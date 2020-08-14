@@ -1,0 +1,40 @@
+{
+  "name": "yage",
+  "version": "1.0.0",
+  "description": "Yet another 3D game engine in JS",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx src/",
+    "jest": "jest",
+    "test": "npm run lint && npm run jest",
+    "start": "webpack-dev-server --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoo2001818/yage.git"
+  },
+  "author": "Duknam Yoo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yoo2001818/yage/issues"
+  },
+  "homepage": "https://github.com/yoo2001818/yage#readme",
+  "devDependencies": {
+    "@types/jest": "^26.0.3",
+    "@typescript-eslint/eslint-plugin": "^2.30.0",
+    "css-loader": "^3.5.3",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-typescript": "^7.2.1",
+    "eslint-plugin-import": "^2.20.2",
+    "html-webpack-plugin": "^4.3.0",
+    "jest": "^25.5.4",
+    "style-loader": "^1.2.1",
+    "ts-jest": "^25.4.0",
+    "ts-loader": "^7.0.2",
+    "typescript": "^3.8.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {}
+}
