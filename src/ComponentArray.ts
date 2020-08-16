@@ -15,6 +15,10 @@ export interface ComponentArray<T> {
   copyTo(pos: number, target: T): void,
 }
 
+function DEFAULT_ON_COPY<T>(from: T, to: T): void {
+  Object.assign(to, from);
+}
+
 export class BaseComponentArray<T> implements ComponentArray<T> {
   onCreate: () => T;
 
@@ -24,7 +28,7 @@ export class BaseComponentArray<T> implements ComponentArray<T> {
 
   constructor(
     onCreate: () => T,
-    onCopy: (from: T, to: T) => void = Object.assign,
+    onCopy: (from: T, to: T) => void = DEFAULT_ON_COPY,
   ) {
     this.onCreate = onCreate;
     this.onCopy = onCopy;

@@ -10,6 +10,8 @@ interface Component<T> {
   deadBlocks: number[],
 }
 
+const GROUP_SIZE = 32;
+
 export class EntityStore {
   components: Component<unknown>[] = [];
 
@@ -78,11 +80,64 @@ export class EntityStore {
     throw new Error('Not implemented');
   }
 
+  _createEntityGroup(baseGroup: EntityGroup): EntityGroup {
+    // Looking at base group's structure, it creates an entity group with
+    // same structure.
+
+    const group = new EntityGroup();
+    group.size = 0;
+    group.maxSize = GROUP_SIZE;
+
+    // TODO: We need utility function for this...
+    const handle = new EntityGroupHandle(this, group);
+    for (let i = 0; i < baseGroup.offsets.length; i += 1) {
+      if (baseGroup.offsets[i] !== -1) {
+        handle.add(this.components[i].name);
+      }
+    }
+
+    return group;
+  }
+
+  _findEntityGroup(hashCode: number): EntityGroup | null {
+    for (let i = 0; i < this.entityGroups.length; i += 1) {
+      const group = this.entityGroups[i];
+      if (group.hashCode === hashCode) return group;
+    }
+    return null;
+  }
+
   floatEntity(id: number): EntityGroupHandle | undefined {
     throw new Error('Not implemented');
   }
 
-  unfloatEntity(handle: EntityGroupHandle): void {
-    throw new Error('Not implemented');
+  unfloatEntity(handle: EntityGroupHandle): [EntityGroupHandle, number] {
+    if (handle.size !== 1) {
+      throw new Error('The provided entity group handle is not floating.');
+    }
+
+    // To unfloat an entity, we need to find or create an entity group that
+    // matches current entity's components.
+
+    // To do that, we would need a signature (a bitset, or a string) to
+    // distinguish each component pattern. This means we have to scan through
+    // entity groups...
+    // TODO: What if the entity group is overflown?
+    const group = this._findEntityGroup(handle.group.hashCode)
+      || this._createEntityGroup(handle.group);
+
+    const offset = group.size;
+    // Append the item to the group.
+    // TODO: We need utility function in here as well. and this is inefficient.
+    group.size += 1;
+
+    const targetHandle = new EntityGroupHandle(this, group);
+    const componentNames = handle.getComponentNames();
+    for (let i = 0; i < componentNames.length; i += 1) {
+      const name = componentNames[i];
+      targetHandle.copyFrom(name, handle.get(name), offset);
+    }
+
+    return [targetHandle, offset];
   }
 }

@@ -29,6 +29,7 @@ export class EntityGroupHandle {
     component.array.allocate(offset + this.group.maxSize);
 
     this.group.offsets[component.pos] = offset;
+    this.group.updateHashCode();
   }
 
   remove(name: string): void {
@@ -49,6 +50,17 @@ export class EntityGroupHandle {
     // If offset is -1, it means that the component is not assigned - therefore
     // it does not belong to this entity group
     return offsets[pos] !== -1;
+  }
+
+  getComponentNames(): string[] {
+    const { offsets } = this.group;
+    const output: string[] = [];
+    for (let i = 0; i < offsets.length; i += 1) {
+      if (offsets[i] !== -1) {
+        output.push(this.store.components[i].name);
+      }
+    }
+    return output;
   }
 
   copyFrom(name: string, source: unknown, index: number = 0): void {

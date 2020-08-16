@@ -1,26 +1,33 @@
 import { ComponentArray } from './ComponentArray';
 
 export class IdComponentArray implements ComponentArray<number> {
-  size: number = 0;
+  ids: number[] = [];
+
+  get size(): number {
+    return this.ids.length;
+  }
 
   allocate(size: number): void {
-    if (this.size > size) return;
-    this.size = size;
+    if (this.ids.length >= size) return;
+    const prevPos = this.ids.length;
+    this.ids.length = size;
+    for (let i = prevPos; i < size; i += 1) {
+      this.ids[i] = i;
+    }
   }
 
   get(pos: number): number {
-    // This should work AS LONG AS entity never gets reassigned; unfortunately
-    // this is never the case.
-
-    // TODO: Actually store data
-    return pos;
+    if (pos >= this.ids.length) {
+      throw new Error('ComponentArray overflown');
+    }
+    return this.ids[pos];
   }
 
-  copyFrom(): void {
-    // No-op
+  copyFrom(pos: number, source: number): void {
+    this.ids[pos] = source;
   }
 
   copyTo(): void {
-    // No-op
+    throw new Error('ID is immutable; it cannot be copied to.');
   }
 }
