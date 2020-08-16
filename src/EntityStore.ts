@@ -1,6 +1,7 @@
 import { ComponentArray } from './ComponentArray';
 import { EntityGroup } from './EntityGroup';
 import { EntityGroupHandle } from './EntityGroupHandle';
+import { IdComponentArray } from './IdComponentArray';
 
 interface Component<T> {
   name: string,
@@ -17,6 +18,10 @@ export class EntityStore {
   entityGroups: EntityGroup[] = [];
 
   deadEntityGroups: EntityGroup[] = [];
+
+  constructor() {
+    this.addComponent('id', new IdComponentArray());
+  }
 
   addComponent<T>(name: string, array: ComponentArray<T>): void {
     // It should register component to registry; this should do the following:
@@ -58,9 +63,11 @@ export class EntityStore {
     group.size = 1;
     group.maxSize = 1;
 
-    // TODO: Initialize id component
+    // Initialize id component
+    const handle = new EntityGroupHandle(this, group);
+    handle.add('id');
 
-    return new EntityGroupHandle(this, group);
+    return handle;
   }
 
   removeEntity(handle: EntityGroupHandle): void {

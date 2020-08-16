@@ -24,6 +24,6 @@ describe('EntityStore', () => {
     // by 1 whenever an entity gets added.
     expect(entity.get('id')).toBe(0);
     // Create new entity to check its ID
-    expect(store.createEntity().get('id')).toBe(2);
+    expect(store.createEntity().get('id')).toBe(1);
   });
 });

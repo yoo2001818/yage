@@ -9,6 +9,7 @@
     "no-restricted-syntax": "off",
     "implicit-arrow-linebreak": "off",
     "no-underscore-dangle": "off",
-    "no-param-reassign": "off"
+    "no-param-reassign": "off",
+    "class-methods-use-this": "off"
   }
 }
