@@ -24,7 +24,7 @@ export class BaseComponentArray<T> implements ComponentArray<T> {
 
   constructor(
     onCreate: () => T,
-    onCopy: (from: T, to: T) => void,
+    onCopy: (from: T, to: T) => void = Object.assign,
   ) {
     this.onCreate = onCreate;
     this.onCopy = onCopy;

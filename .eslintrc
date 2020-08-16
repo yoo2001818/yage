@@ -5,6 +5,7 @@
   },
   "rules": {
     "import/prefer-default-export": "off",
+    "import/no-cycle": "off",
     "no-restricted-syntax": "off",
     "implicit-arrow-linebreak": "off",
     "no-underscore-dangle": "off",
