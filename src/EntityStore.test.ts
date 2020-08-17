@@ -37,11 +37,15 @@ describe('EntityStore', () => {
     // index.
     const [target, index] = store.unfloatEntity(entity);
     expect(target.size).toBe(1);
+    expect(target.group.maxSize).toBeGreaterThan(1);
     expect(index).toBe(0);
     expect(target.get('position', 0)).toEqual([0, 0, 5]);
     // From this point, the 'entity' should be marked as deleted
     expect(entity.disposed).toBe(true);
-    // TODO: Concerns about floating entity / unfloating entity segregation
+
+    // Float the entity.
+    const entity2 = store.floatEntity(target, index);
+    expect(entity2.group.maxSize).toBe(1);
   });
   it('should be able to handle more than 1 entity group', () => {
     const store = new EntityStore();

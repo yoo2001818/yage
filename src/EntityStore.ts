@@ -73,18 +73,18 @@ export class EntityStore {
     if (this.deadEntityGroups.length > 0) {
       const group = this.deadEntityGroups.pop() as EntityGroup;
       group.disposed = false;
+      group.size = 0;
       return group;
     }
     return new EntityGroup();
   }
 
-  _createEntityGroupFrom(baseGroup: EntityGroup): EntityGroup {
+  _createEntityGroupFrom(baseGroup: EntityGroup, size: number): EntityGroup {
     // Looking at base group's structure, it creates an entity group with
     // same structure.
 
     const group = this._createEntityGroup();
-    group.size = 0;
-    group.maxSize = GROUP_SIZE;
+    group.maxSize = size;
 
     // TODO: We need utility function for this...
     const handle = new EntityGroupHandle(this, group);
@@ -112,12 +112,26 @@ export class EntityStore {
     return null;
   }
 
-  floatEntity(id: number): EntityGroupHandle | undefined {
-    throw new Error('Not implemented');
+  // TODO: Float the entity using ID
+  floatEntity(
+    handle: EntityGroupHandle,
+    offset: number,
+  ): EntityGroupHandle {
+    if (handle.group.maxSize === 1) {
+      throw new Error('The provided entity group handle is already floating.');
+    }
+    // Floating an entity is too easy; we just copy its structure / contents
+    // to size 1 entity.
+    const group = this._createEntityGroupFrom(handle.group, 1);
+    group.size = 1;
+    const targetHandle = new EntityGroupHandle(this, group);
+    // Copy entity's contents...
+    targetHandle.copyEntityFrom(handle, offset, 0);
+    return targetHandle;
   }
 
   unfloatEntity(handle: EntityGroupHandle): [EntityGroupHandle, number] {
-    if (handle.size !== 1) {
+    if (handle.group.maxSize !== 1) {
       throw new Error('The provided entity group handle is not floating.');
     }
 
@@ -129,7 +143,7 @@ export class EntityStore {
     // entity groups...
     // TODO: What if the entity group is overflown?
     const group = this._findEntityGroup(handle.group.hashCode)
-      || this._createEntityGroupFrom(handle.group);
+      || this._createEntityGroupFrom(handle.group, GROUP_SIZE);
     const targetHandle = new EntityGroupHandle(this, group);
 
     const offset = targetHandle.pushEntity();
