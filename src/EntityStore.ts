@@ -65,8 +65,24 @@ export class EntityStore {
     this.deadEntityGroups.push(handle.group);
   }
 
-  getEntity(id: number): [EntityGroupHandle, number] {
-    throw new Error('Not implemented');
+  getEntity(id: number): [EntityGroupHandle, number] | null {
+    // In order to retrieve an entity from ID, we must have reverse index.
+    // For now, let's just full-scan the entities...
+
+    const idComponent = this.getComponent('id');
+
+    for (let i = 0; i < this.entityGroups.length; i += 1) {
+      const group = this.entityGroups[i];
+      const offset = group.offsets[idComponent.pos];
+      if (offset === -1) continue;
+      for (let j = 0; j < group.size; j += 1) {
+        if (id === idComponent.array.get(offset + j)) {
+          const handle = new EntityGroupHandle(this, group);
+          return [handle, j];
+        }
+      }
+    }
+    return null;
   }
 
   _createEntityGroup(): EntityGroup {
@@ -74,9 +90,12 @@ export class EntityStore {
       const group = this.deadEntityGroups.pop() as EntityGroup;
       group.disposed = false;
       group.size = 0;
+      this.entityGroups.push(group);
       return group;
     }
-    return new EntityGroup();
+    const group = new EntityGroup();
+    this.entityGroups.push(group);
+    return group;
   }
 
   _createEntityGroupFrom(baseGroup: EntityGroup, size: number): EntityGroup {

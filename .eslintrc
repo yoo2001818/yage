@@ -11,6 +11,7 @@
     "no-underscore-dangle": "off",
     "no-param-reassign": "off",
     "no-bitwise": "off",
-    "class-methods-use-this": "off"
+    "class-methods-use-this": "off",
+    "no-continue": "off"
   }
 }

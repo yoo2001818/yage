@@ -60,4 +60,11 @@ describe('EntityStore', () => {
       expect(target.size).toBeLessThanOrEqual(target.group.maxSize);
     }
   });
+  it('should be able to retrieve entity using its ID', () => {
+    const store = new EntityStore();
+    const entity = store.createEntity();
+    const id = entity.get('id') as number;
+
+    expect(store.getEntity(id)).toEqual([entity, 0]);
+  });
 });
