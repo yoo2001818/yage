@@ -39,5 +39,21 @@ describe('EntityStore', () => {
     expect(target.size).toBe(1);
     expect(index).toBe(0);
     expect(target.get('position', 0)).toEqual([0, 0, 5]);
+    // From this point, the 'entity' should be marked as deleted
+    expect(entity.disposed).toBe(true);
+    // TODO: Concerns about floating entity / unfloating entity segregation
+  });
+  it('should be able to handle more than 1 entity group', () => {
+    const store = new EntityStore();
+    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    for (let i = 0; i < 100; i += 1) {
+      // Create new entity with position component
+      const entity = store.createEntity();
+      entity.add('position');
+      entity.copyFrom('position', [0, 0, 5]);
+      // Unfloat it many, many times
+      const [target] = store.unfloatEntity(entity);
+      expect(target.size).toBeLessThanOrEqual(target.group.maxSize);
+    }
   });
 });

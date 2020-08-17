@@ -96,13 +96,20 @@ export class EntityStore {
       }
     }
 
+    this.entityGroups.push(group);
+
     return group;
   }
 
   _findEntityGroup(hashCode: number): EntityGroup | null {
     for (let i = 0; i < this.entityGroups.length; i += 1) {
       const group = this.entityGroups[i];
-      if (group.hashCode === hashCode) return group;
+      if (
+        group.size < group.maxSize
+        && group.hashCode === hashCode
+      ) {
+        return group;
+      }
     }
     return null;
   }
@@ -125,18 +132,10 @@ export class EntityStore {
     // TODO: What if the entity group is overflown?
     const group = this._findEntityGroup(handle.group.hashCode)
       || this._createEntityGroup(handle.group);
-
-    const offset = group.size;
-    // Append the item to the group.
-    // TODO: We need utility function in here as well. and this is inefficient.
-    group.size += 1;
-
     const targetHandle = new EntityGroupHandle(this, group);
-    const componentNames = handle.getComponentNames();
-    for (let i = 0; i < componentNames.length; i += 1) {
-      const name = componentNames[i];
-      targetHandle.copyFrom(name, handle.get(name), offset);
-    }
+
+    const offset = targetHandle.pushEntity();
+    targetHandle.copyEntityFrom(handle, 0, offset);
 
     return [targetHandle, offset];
   }

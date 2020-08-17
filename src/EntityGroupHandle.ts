@@ -76,4 +76,29 @@ export class EntityGroupHandle {
     const offset = offsets[pos];
     return array.copyTo(offset + index, target);
   }
+
+  pushEntity(): number {
+    if (this.group.size >= this.group.maxSize) {
+      throw new Error('The entity group is full');
+    }
+    const offset = this.group.size;
+    this.group.size += 1;
+    return offset;
+  }
+
+  copyEntityFrom(
+    source: EntityGroupHandle,
+    sourceIndex: number,
+    targetIndex: number,
+  ): void {
+    const componentNames = this.getComponentNames();
+    for (let i = 0; i < componentNames.length; i += 1) {
+      const name = componentNames[i];
+      this.copyFrom(name, source.get(name, sourceIndex), targetIndex);
+    }
+  }
+
+  get disposed(): boolean {
+    return this.group.disposed;
+  }
 }

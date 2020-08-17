@@ -4,6 +4,8 @@
  * and the offset of each component.
  */
 export class EntityGroup {
+  disposed: boolean = false;
+
   size: number = 0;
 
   maxSize: number = 0;
