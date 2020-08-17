@@ -24,7 +24,7 @@ describe('EntityStore', () => {
     // by 1 whenever an entity gets added.
     expect(entity.get('id')).toBe(0);
     // Create new entity to check its ID
-    expect(store.createEntity().get('id')).toBe(1);
+    expect(store.createEntity().get('id')).toBeGreaterThan(0);
   });
   it('should be able to float/unfloat entities', () => {
     const store = new EntityStore();

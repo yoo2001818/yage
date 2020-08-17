@@ -1,14 +1,8 @@
 import { ComponentArray } from './ComponentArray';
+import { Component } from './Component';
 import { EntityGroup } from './EntityGroup';
 import { EntityGroupHandle } from './EntityGroupHandle';
 import { IdComponentArray } from './IdComponentArray';
-
-interface Component<T> {
-  name: string,
-  pos: number,
-  array: ComponentArray<T>,
-  deadBlocks: number[],
-}
 
 const GROUP_SIZE = 32;
 
@@ -35,13 +29,7 @@ export class EntityStore {
       throw new Error(`Component ${name} is already registered`);
     }
 
-    // TODO: Make this as a class
-    const component: Component<T> = {
-      name,
-      pos: this.components.length,
-      array,
-      deadBlocks: [],
-    };
+    const component = new Component(name, this.components.length, array);
     // Register component's offset to componentNames
     this.componentNames[name] = component.pos;
     this.components.push(component);

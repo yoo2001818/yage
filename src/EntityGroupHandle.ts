@@ -21,13 +21,7 @@ export class EntityGroupHandle {
     const component = this.store.getComponent(name);
     // To register a component, we need to allocate fitting block from the
     // component array, and write its offset to the group.
-
-    // TODO: Implement block allocation mechanism
-    // While we need to implement block reusing and fixed block size, this will
-    // work for now. However, it never reaps resources so it's horrible.
-    const offset = component.array.size;
-    component.array.allocate(offset + this.group.maxSize);
-
+    const offset = component.allocate(this.group.maxSize);
     this.group.offsets[component.pos] = offset;
     this.group.updateHashCode();
   }
