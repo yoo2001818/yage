@@ -53,7 +53,15 @@ export class Component<T> {
     throw new Error(`Size ${size} is unsupported for now`);
   }
 
-  unallocate(offset: number, size: number): number {
-
+  unallocate(offset: number, size: number): void {
+    if (size === 1) {
+      this.freedSingleOffsets.push(offset);
+      return;
+    }
+    if (size === GROUP_SIZE) {
+      this.freedOffsets.push(offset);
+      return;
+    }
+    throw new Error(`Size ${size} is unsupported for now`);
   }
 }

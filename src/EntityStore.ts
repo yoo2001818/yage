@@ -44,12 +44,10 @@ export class EntityStore {
   }
 
   createEntity(): EntityGroupHandle {
-    // It should create an entity group with size of 1, and wrap it using 
+    // It should create an entity group with size of 1, and wrap it using
     // EntityGroupHandle
 
-    // TODO: If deadEntityGroups exist, pull one from there
-
-    const group = new EntityGroup();
+    const group = this._createEntityGroup();
     group.size = 1;
     group.maxSize = 1;
 
@@ -61,18 +59,30 @@ export class EntityStore {
   }
 
   removeEntity(handle: EntityGroupHandle): void {
-    throw new Error('Not implemented');
+    // Unallocate resources assigned to entity group
+    handle.dispose();
+    // Register this to dead list
+    this.deadEntityGroups.push(handle.group);
   }
 
   getEntity(id: number): [EntityGroupHandle, number] {
     throw new Error('Not implemented');
   }
 
-  _createEntityGroup(baseGroup: EntityGroup): EntityGroup {
+  _createEntityGroup(): EntityGroup {
+    if (this.deadEntityGroups.length > 0) {
+      const group = this.deadEntityGroups.pop() as EntityGroup;
+      group.disposed = false;
+      return group;
+    }
+    return new EntityGroup();
+  }
+
+  _createEntityGroupFrom(baseGroup: EntityGroup): EntityGroup {
     // Looking at base group's structure, it creates an entity group with
     // same structure.
 
-    const group = new EntityGroup();
+    const group = this._createEntityGroup();
     group.size = 0;
     group.maxSize = GROUP_SIZE;
 
@@ -119,11 +129,14 @@ export class EntityStore {
     // entity groups...
     // TODO: What if the entity group is overflown?
     const group = this._findEntityGroup(handle.group.hashCode)
-      || this._createEntityGroup(handle.group);
+      || this._createEntityGroupFrom(handle.group);
     const targetHandle = new EntityGroupHandle(this, group);
 
     const offset = targetHandle.pushEntity();
     targetHandle.copyEntityFrom(handle, 0, offset);
+
+    // Delete previous entity as everything is copied from there
+    this.removeEntity(handle);
 
     return [targetHandle, offset];
   }

@@ -15,6 +15,19 @@ export class EntityGroupHandle {
     return this.group.size;
   }
 
+  dispose(): void {
+    if (this.group.disposed) return;
+    // Free all components belong in this entity group
+    const { offsets, maxSize } = this.group;
+    for (let i = 0; i < offsets.length; i += 1) {
+      if (offsets[i] !== -1) {
+        this.store.components[i].unallocate(offsets[i], maxSize);
+        offsets[i] = -1;
+      }
+    }
+    this.group.disposed = true;
+  }
+
   add(name: string): void {
     // Do nothing if already registered
     if (this.has(name)) return;
