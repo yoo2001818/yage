@@ -40,7 +40,11 @@ export class EntityGroupHandle {
   }
 
   remove(name: string): void {
-    throw new Error('Not implemented yet');
+    if (!this.has(name)) return;
+    const component = this.store.getComponent(name);
+    component.unallocate(this.group.offsets[component.pos], this.group.maxSize);
+    this.group.offsets[component.pos] = -1;
+    this.group.updateHashCode();
   }
 
   get(name: string, index: number = 0): unknown {

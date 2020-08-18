@@ -67,4 +67,13 @@ describe('EntityStore', () => {
 
     expect(store.getEntity(id)).toEqual([entity, 0]);
   });
+  it('should be able to remove components from entity group', () => {
+    const store = new EntityStore();
+    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    const entity = store.createEntity();
+    entity.add('position');
+    expect(entity.has('position')).toBe(true);
+    entity.remove('position');
+    expect(entity.has('position')).toBe(false);
+  });
 });
