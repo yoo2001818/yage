@@ -1,5 +1,6 @@
 import { EntityGroup } from './EntityGroup';
 import { EntityStore } from './EntityStore';
+import { Component } from './Component';
 
 export class EntityGroupHandle {
   store: EntityStore;
@@ -28,10 +29,8 @@ export class EntityGroupHandle {
     this.group.disposed = true;
   }
 
-  add(name: string): void {
-    // Do nothing if already registered
-    if (this.has(name)) return;
-    const component = this.store.getComponent(name);
+  addComponent<T>(component: Component<T>): void {
+    if (this.hasComponent(component)) return;
     // To register a component, we need to allocate fitting block from the
     // component array, and write its offset to the group.
     const offset = component.allocate(this.group.maxSize);
@@ -39,28 +38,47 @@ export class EntityGroupHandle {
     this.group.updateHashCode();
   }
 
-  remove(name: string): void {
-    if (!this.has(name)) return;
-    const component = this.store.getComponent(name);
+  removeComponent<T>(component: Component<T>): void {
+    if (!this.hasComponent(component)) return;
     component.unallocate(this.group.offsets[component.pos], this.group.maxSize);
     this.group.offsets[component.pos] = -1;
     this.group.updateHashCode();
   }
 
-  get(name: string, index: number = 0): unknown {
-    const { pos, array } = this.store.getComponent(name);
+  hasComponent<T>(component: Component<T>): boolean {
+    const { offsets } = this.group;
+    const { pos } = component;
+    if (offsets.length <= pos) return false;
+    // If offset is -1, it means that the component is not assigned - therefore
+    // it does not belong to this entity group
+    return offsets[pos] !== -1;
+  }
+
+  getComponent<T>(component: Component<T>, index: number = 0): T {
+    const { pos, array } = component;
     const { offsets } = this.group;
     const offset = offsets[pos];
     return array.get(offset + index);
   }
 
+  add(name: string): void {
+    const component = this.store.getComponent(name);
+    return this.addComponent(component);
+  }
+
+  remove(name: string): void {
+    const component = this.store.getComponent(name);
+    return this.removeComponent(component);
+  }
+
+  get(name: string, index: number = 0): unknown {
+    const component = this.store.getComponent(name);
+    return this.getComponent(component, index);
+  }
+
   has(name: string): boolean {
-    const { pos } = this.store.getComponent(name);
-    const { offsets } = this.group;
-    if (offsets.length <= pos) return false;
-    // If offset is -1, it means that the component is not assigned - therefore
-    // it does not belong to this entity group
-    return offsets[pos] !== -1;
+    const component = this.store.getComponent(name);
+    return this.hasComponent(component);
   }
 
   getComponentNames(): string[] {
