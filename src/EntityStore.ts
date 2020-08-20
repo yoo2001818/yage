@@ -15,11 +15,13 @@ export class EntityStore {
 
   deadEntityGroups: EntityGroup[] = [];
 
+  idComponent: Component<number>;
+
   constructor() {
-    this.addComponent('id', new IdComponentArray());
+    this.idComponent = this.addComponent('id', new IdComponentArray());
   }
 
-  addComponent<T>(name: string, array: ComponentArray<T>): void {
+  addComponent<T>(name: string, array: ComponentArray<T>): Component<T> {
     // It should register component to registry; this should do the following:
     // 1. Check if component name conflicts.
     // 2. If not, using given component array, just create and append the
@@ -33,6 +35,7 @@ export class EntityStore {
     // Register component's offset to componentNames
     this.componentNames[name] = component.pos;
     this.components.push(component);
+    return component;
   }
 
   getComponent<T>(name: string): Component<T> {
@@ -53,7 +56,7 @@ export class EntityStore {
 
     // Initialize id component
     const handle = new EntityGroupHandle(this, group);
-    handle.add('id');
+    handle.addComponent(this.idComponent);
 
     return handle;
   }
@@ -69,14 +72,12 @@ export class EntityStore {
     // In order to retrieve an entity from ID, we must have reverse index.
     // For now, let's just full-scan the entities...
 
-    const idComponent = this.getComponent('id');
-
     for (let i = 0; i < this.entityGroups.length; i += 1) {
       const group = this.entityGroups[i];
-      const offset = group.offsets[idComponent.pos];
+      const offset = group.offsets[this.idComponent.pos];
       if (offset === -1) continue;
       for (let j = 0; j < group.size; j += 1) {
-        if (id === idComponent.array.get(offset + j)) {
+        if (id === this.idComponent.array.get(offset + j)) {
           const handle = new EntityGroupHandle(this, group);
           return [handle, j];
         }
@@ -109,7 +110,7 @@ export class EntityStore {
     const handle = new EntityGroupHandle(this, group);
     for (let i = 0; i < baseGroup.offsets.length; i += 1) {
       if (baseGroup.offsets[i] !== -1) {
-        handle.add(this.components[i].name);
+        handle.addComponent(this.components[i]);
       }
     }
 

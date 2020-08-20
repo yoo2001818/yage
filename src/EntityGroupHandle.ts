@@ -81,15 +81,19 @@ export class EntityGroupHandle {
     return this.hasComponent(component);
   }
 
-  getComponentNames(): string[] {
+  getComponents(): Component<unknown>[] {
     const { offsets } = this.group;
-    const output: string[] = [];
+    const output: Component<unknown>[] = [];
     for (let i = 0; i < offsets.length; i += 1) {
       if (offsets[i] !== -1) {
-        output.push(this.store.components[i].name);
+        output.push(this.store.components[i]);
       }
     }
     return output;
+  }
+
+  getComponentNames(): string[] {
+    return this.getComponents().map((v) => v.name);
   }
 
   copyFrom(name: string, source: unknown, index: number = 0): void {
