@@ -76,4 +76,13 @@ describe('EntityStore', () => {
     entity.remove('position');
     expect(entity.has('position')).toBe(false);
   });
+  it('should be able to serialize state', () => {
+    const store = new EntityStore();
+    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    const entity = store.createEntity();
+    entity.add('position');
+    expect(store.serialize()).toEqual([
+      { id: 0, position: [0, 0, 0] },
+    ]);
+  });
 });

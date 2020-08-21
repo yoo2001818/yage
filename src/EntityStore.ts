@@ -86,6 +86,24 @@ export class EntityStore {
     return null;
   }
 
+  getEntityGroups(): EntityGroupHandle[] {
+    return this.entityGroups.map((v) => new EntityGroupHandle(this, v));
+  }
+
+  forEach(callback: (group: EntityGroupHandle, index: number) => void): void {
+    this.getEntityGroups().forEach((group) => {
+      group.forEach((index) => callback(group, index));
+    });
+  }
+
+  serialize(): unknown[] {
+    const output: unknown[] = [];
+    this.forEach((group, index) => {
+      output.push(group.serialize(index));
+    });
+    return output;
+  }
+
   _createEntityGroup(): EntityGroup {
     if (this.deadEntityGroups.length > 0) {
       const group = this.deadEntityGroups.pop() as EntityGroup;

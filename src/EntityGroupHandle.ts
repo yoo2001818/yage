@@ -81,6 +81,12 @@ export class EntityGroupHandle {
     return this.hasComponent(component);
   }
 
+  forEach(callback: (index: number) => void): void {
+    for (let i = 0; i < this.size; i += 1) {
+      callback(i);
+    }
+  }
+
   getComponents(): Component<unknown>[] {
     const { offsets } = this.group;
     const output: Component<unknown>[] = [];
@@ -96,18 +102,36 @@ export class EntityGroupHandle {
     return this.getComponents().map((v) => v.name);
   }
 
-  copyFrom(name: string, source: unknown, index: number = 0): void {
-    const { pos, array } = this.store.getComponent(name);
+  copyFromComponent<T>(
+    component: Component<T>,
+    source: T,
+    index: number = 0,
+  ): void {
+    const { pos, array } = component;
     const { offsets } = this.group;
     const offset = offsets[pos];
     return array.copyFrom(offset + index, source);
   }
 
-  copyTo(name: string, target: unknown, index: number = 0): void {
-    const { pos, array } = this.store.getComponent(name);
+  copyToComponent<T>(
+    component: Component<T>,
+    target: T,
+    index: number = 0,
+  ): void {
+    const { pos, array } = component;
     const { offsets } = this.group;
     const offset = offsets[pos];
     return array.copyTo(offset + index, target);
+  }
+
+  copyFrom(name: string, source: unknown, index: number = 0): void {
+    const component = this.store.getComponent(name);
+    return this.copyFromComponent(component, source, index);
+  }
+
+  copyTo(name: string, target: unknown, index: number = 0): void {
+    const component = this.store.getComponent(name);
+    return this.copyToComponent(component, target, index);
   }
 
   pushEntity(): number {
@@ -124,10 +148,34 @@ export class EntityGroupHandle {
     sourceIndex: number,
     targetIndex: number,
   ): void {
-    const componentNames = this.getComponentNames();
-    for (let i = 0; i < componentNames.length; i += 1) {
-      const name = componentNames[i];
-      this.copyFrom(name, source.get(name, sourceIndex), targetIndex);
+    const components = this.getComponents();
+    for (let i = 0; i < components.length; i += 1) {
+      const component = components[i];
+      this.copyFromComponent(
+        component,
+        source.getComponent(component, sourceIndex),
+        targetIndex,
+      );
+    }
+  }
+
+  serialize(index: number = 0): unknown {
+    const output: Record<string, unknown> = {};
+    const components = this.getComponents();
+    for (let i = 0; i < components.length; i += 1) {
+      const component = components[i];
+      output[component.name] = this.getComponent(component, index);
+    }
+    return output;
+  }
+
+  deserialize(value: unknown, index: number = 0): void {
+    if (typeof value !== 'object' || value == null) return;
+    const valueTable = value as Record<string, unknown>;
+    // eslint-disable-next-line guard-for-in
+    for (const name in value) {
+      const component = this.store.getComponent(name);
+      this.copyFromComponent(component, valueTable[name], index);
     }
   }
 
