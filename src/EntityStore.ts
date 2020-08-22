@@ -64,6 +64,8 @@ export class EntityStore {
   removeEntity(handle: EntityGroupHandle): void {
     // Unallocate resources assigned to entity group
     handle.dispose();
+    // Remove itself from entity groups (TODO: don't full scan)
+    this.entityGroups = this.entityGroups.filter((v) => v !== handle.group);
     // Register this to dead list
     this.deadEntityGroups.push(handle.group);
   }
@@ -87,7 +89,8 @@ export class EntityStore {
   }
 
   getEntityGroups(): EntityGroupHandle[] {
-    return this.entityGroups.map((v) => new EntityGroupHandle(this, v));
+    return this.entityGroups
+      .map((v) => new EntityGroupHandle(this, v));
   }
 
   forEach(callback: (group: EntityGroupHandle, index: number) => void): void {
@@ -102,6 +105,14 @@ export class EntityStore {
       output.push(group.serialize(index));
     });
     return output;
+  }
+
+  deserialize(input: unknown[]): void {
+    input.forEach((item) => {
+      const entity = this.createEntity();
+      entity.deserialize(item, 0);
+      this.unfloatEntity(entity);
+    });
   }
 
   _createEntityGroup(): EntityGroup {
@@ -131,8 +142,6 @@ export class EntityStore {
         handle.addComponent(this.components[i]);
       }
     }
-
-    this.entityGroups.push(group);
 
     return group;
   }

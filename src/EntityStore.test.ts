@@ -85,4 +85,16 @@ describe('EntityStore', () => {
       { id: 0, position: [0, 0, 0] },
     ]);
   });
+  it('should be able to deserialize state', () => {
+    const store = new EntityStore();
+    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    expect(store.deserialize([
+      { id: 0, position: [5, 0, 0] },
+      { id: 1, position: [6, 0, 0] },
+    ]));
+    expect(store.serialize()).toEqual([
+      { id: 0, position: [5, 0, 0] },
+      { id: 1, position: [6, 0, 0] },
+    ]);
+  });
 });

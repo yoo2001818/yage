@@ -175,6 +175,9 @@ export class EntityGroupHandle {
     // eslint-disable-next-line guard-for-in
     for (const name in value) {
       const component = this.store.getComponent(name);
+      if (!this.hasComponent(component)) {
+        this.addComponent(component);
+      }
       this.copyFromComponent(component, valueTable[name], index);
     }
   }
