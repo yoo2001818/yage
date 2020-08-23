@@ -7,7 +7,7 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
-  entry: [path.resolve(__dirname, 'src/index.ts')],
+  entry: [path.resolve(__dirname, 'sample/index.ts')],
   output: {
     path: path.resolve(__dirname, 'dist'),
   },

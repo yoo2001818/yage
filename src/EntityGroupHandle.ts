@@ -71,9 +71,9 @@ export class EntityGroupHandle {
     return this.removeComponent(component);
   }
 
-  get(name: string, index: number = 0): unknown {
+  get<T>(name: string, index: number = 0): T {
     const component = this.store.getComponent(name);
-    return this.getComponent(component, index);
+    return this.getComponent(component, index) as T;
   }
 
   has(name: string): boolean {

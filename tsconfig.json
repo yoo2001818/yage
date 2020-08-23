@@ -7,7 +7,7 @@
     "downlevelIteration": true,
     "module": "esnext",
     "target": "esnext",
-    "lib": ["es6"],
+    "lib": ["es6", "DOM", "DOM.Iterable"],
     "moduleResolution": "Node",
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
@@ -15,10 +15,11 @@
     "composite": true,
     "incremental": true,
     "baseUrl": ".",
-    "rootDir": "src"
+    "rootDir": "."
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "sample/**/*"
   ],
   "exclude": [
     "node_modules",
