@@ -61,6 +61,22 @@ export class EntityStore {
     return handle;
   }
 
+  // TODO: This would be 'createEntity', and original one will be
+  // 'createEmptyEntity' or something.
+  // Because almost all entities have predetermined shape!
+  createEntityWith(shape: object = {}): [EntityGroupHandle, number] {
+    const group = this._createEntityGroup();
+    group.size = 1;
+    group.maxSize = 1;
+
+    // Initialize id component
+    const handle = new EntityGroupHandle(this, group);
+    handle.addComponent(this.idComponent);
+    handle.deserialize(shape);
+
+    return this.unfloatEntity(handle);
+  }
+
   removeEntity(handle: EntityGroupHandle): void {
     // Unallocate resources assigned to entity group
     handle.dispose();

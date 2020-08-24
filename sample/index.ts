@@ -44,6 +44,7 @@ function main() {
   systemStore.addSystem((event) => {
     // Game initializer
     if (event !== 'init') return;
+    /*
     const entity = entityStore.createEntity();
     // This is extremely cumbersome
     entity.add('pos');
@@ -53,6 +54,13 @@ function main() {
     entity.get<number[]>('pos')[1] = 0.5;
     entity.get<number[]>('vel')[0] = 0.01;
     entity.get<number[]>('vel')[1] = 0;
+    entityStore.unfloatEntity(entity);
+    */
+    // This can be changed to...
+    entityStore.createEntityWith({
+      pos: [0.5, 0.5],
+      vel: [0.01, 0],
+    });
   });
   systemStore.addSystem(() => {
     // Step
