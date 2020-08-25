@@ -73,6 +73,12 @@ function main() {
       entityPos[0] += entityVel[0];
       entityPos[1] += entityVel[1];
     });
+    /*
+    entityStore.forEach([pos, vel], (pos, vel) => {
+      pos[0] += vel[0];
+      pos[1] += vel[1];
+    });
+    */
   });
   systemStore.addSystem(() => {
     // Respawn
@@ -85,6 +91,14 @@ function main() {
       if (entityPos[1] < 0) entityPos[1] = 1;
       if (entityPos[1] > 1) entityPos[1] = 0;
     });
+    /*
+    entityStore.forEach([pos], (pos) => {
+      if (pos[0] < 0) pos[0] = 1;
+      if (pos[0] > 1) pos[0] = 0;
+      if (pos[1] < 0) pos[1] = 1;
+      if (pos[1] > 1) pos[1] = 0;
+    });
+    */
   });
   systemStore.addSystem(() => {
     // Debug display
