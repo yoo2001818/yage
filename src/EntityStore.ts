@@ -56,7 +56,7 @@ export class EntityStore {
 
     // Initialize id component
     const handle = new EntityGroupHandle(this, group);
-    handle.addComponent(this.idComponent);
+    handle.add(this.idComponent);
 
     return handle;
   }
@@ -71,7 +71,7 @@ export class EntityStore {
 
     // Initialize id component
     const handle = new EntityGroupHandle(this, group);
-    handle.addComponent(this.idComponent);
+    handle.add(this.idComponent);
     handle.deserialize(shape);
 
     return this.unfloatEntity(handle);
@@ -155,7 +155,7 @@ export class EntityStore {
     const handle = new EntityGroupHandle(this, group);
     for (let i = 0; i < baseGroup.offsets.length; i += 1) {
       if (baseGroup.offsets[i] !== -1) {
-        handle.addComponent(this.components[i]);
+        handle.add(this.components[i]);
       }
     }
 

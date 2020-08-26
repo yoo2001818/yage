@@ -29,8 +29,13 @@ export class EntityGroupHandle {
     this.group.disposed = true;
   }
 
-  addComponent<T>(component: Component<T>): void {
-    if (this.hasComponent(component)) return;
+  add<T>(component: Component<T> | string): void {
+    if (typeof component === 'string') {
+      const target = this.store.getComponent(component);
+      this.add(target);
+      return;
+    }
+    if (this.has(component)) return;
     // To register a component, we need to allocate fitting block from the
     // component array, and write its offset to the group.
     const offset = component.allocate(this.group.maxSize);
@@ -38,14 +43,23 @@ export class EntityGroupHandle {
     this.group.updateHashCode();
   }
 
-  removeComponent<T>(component: Component<T>): void {
-    if (!this.hasComponent(component)) return;
+  remove<T>(component: Component<T> | string): void {
+    if (typeof component === 'string') {
+      const target = this.store.getComponent(component);
+      this.remove(target);
+      return;
+    }
+    if (!this.has(component)) return;
     component.unallocate(this.group.offsets[component.pos], this.group.maxSize);
     this.group.offsets[component.pos] = -1;
     this.group.updateHashCode();
   }
 
-  hasComponent<T>(component: Component<T>): boolean {
+  has<T>(component: Component<T> | string): boolean {
+    if (typeof component === 'string') {
+      const target = this.store.getComponent(component);
+      return this.has(target);
+    }
     const { offsets } = this.group;
     const { pos } = component;
     if (offsets.length <= pos) return false;
@@ -54,31 +68,15 @@ export class EntityGroupHandle {
     return offsets[pos] !== -1;
   }
 
-  getComponent<T>(component: Component<T>, index: number = 0): T {
+  get<T>(component: Component<T> | string, index: number = 0): T {
+    if (typeof component === 'string') {
+      const target = this.store.getComponent(component);
+      return this.get(target, index) as T;
+    }
     const { pos, array } = component;
     const { offsets } = this.group;
     const offset = offsets[pos];
     return array.get(offset + index);
-  }
-
-  add(name: string): void {
-    const component = this.store.getComponent(name);
-    return this.addComponent(component);
-  }
-
-  remove(name: string): void {
-    const component = this.store.getComponent(name);
-    return this.removeComponent(component);
-  }
-
-  get<T>(name: string, index: number = 0): T {
-    const component = this.store.getComponent(name);
-    return this.getComponent(component, index) as T;
-  }
-
-  has(name: string): boolean {
-    const component = this.store.getComponent(name);
-    return this.hasComponent(component);
   }
 
   forEach(callback: (index: number) => void): void {
@@ -102,36 +100,34 @@ export class EntityGroupHandle {
     return this.getComponents().map((v) => v.name);
   }
 
-  copyFromComponent<T>(
-    component: Component<T>,
+  copyFrom<T>(
+    component: Component<T> | string,
     source: T,
     index: number = 0,
   ): void {
+    if (typeof component === 'string') {
+      const comp = this.store.getComponent(component);
+      return this.copyFrom(comp, source, index);
+    }
     const { pos, array } = component;
     const { offsets } = this.group;
     const offset = offsets[pos];
     return array.copyFrom(offset + index, source);
   }
 
-  copyToComponent<T>(
-    component: Component<T>,
+  copyTo<T>(
+    component: Component<T> | string,
     target: T,
     index: number = 0,
   ): void {
+    if (typeof component === 'string') {
+      const comp = this.store.getComponent(component);
+      return this.copyTo(comp, target, index);
+    }
     const { pos, array } = component;
     const { offsets } = this.group;
     const offset = offsets[pos];
     return array.copyTo(offset + index, target);
-  }
-
-  copyFrom(name: string, source: unknown, index: number = 0): void {
-    const component = this.store.getComponent(name);
-    return this.copyFromComponent(component, source, index);
-  }
-
-  copyTo(name: string, target: unknown, index: number = 0): void {
-    const component = this.store.getComponent(name);
-    return this.copyToComponent(component, target, index);
   }
 
   pushEntity(): number {
@@ -151,9 +147,9 @@ export class EntityGroupHandle {
     const components = this.getComponents();
     for (let i = 0; i < components.length; i += 1) {
       const component = components[i];
-      this.copyFromComponent(
+      this.copyFrom(
         component,
-        source.getComponent(component, sourceIndex),
+        source.get(component, sourceIndex),
         targetIndex,
       );
     }
@@ -164,7 +160,7 @@ export class EntityGroupHandle {
     const components = this.getComponents();
     for (let i = 0; i < components.length; i += 1) {
       const component = components[i];
-      output[component.name] = this.getComponent(component, index);
+      output[component.name] = this.get(component, index);
     }
     return output;
   }
@@ -175,10 +171,10 @@ export class EntityGroupHandle {
     // eslint-disable-next-line guard-for-in
     for (const name in value) {
       const component = this.store.getComponent(name);
-      if (!this.hasComponent(component)) {
-        this.addComponent(component);
+      if (!this.has(component)) {
+        this.add(component);
       }
-      this.copyFromComponent(component, valueTable[name], index);
+      this.copyFrom(component, valueTable[name], index);
     }
   }
 

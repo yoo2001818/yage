@@ -67,9 +67,9 @@ function main() {
     const pos = entityStore.getComponent<number[]>('pos');
     const vel = entityStore.getComponent<number[]>('vel');
     entityStore.forEach((group, index) => {
-      if (!group.hasComponent(pos) || !group.hasComponent(vel)) return;
-      const entityPos = group.getComponent(pos, index);
-      const entityVel = group.getComponent(vel, index);
+      if (!group.has(pos) || !group.has(vel)) return;
+      const entityPos = group.get(pos, index);
+      const entityVel = group.get(vel, index);
       entityPos[0] += entityVel[0];
       entityPos[1] += entityVel[1];
     });
@@ -84,8 +84,8 @@ function main() {
     // Respawn
     const pos = entityStore.getComponent<number[]>('pos');
     entityStore.forEach((group, index) => {
-      if (!group.hasComponent(pos)) return;
-      const entityPos = group.getComponent(pos, index);
+      if (!group.has(pos)) return;
+      const entityPos = group.get(pos, index);
       if (entityPos[0] < 0) entityPos[0] = 1;
       if (entityPos[0] > 1) entityPos[0] = 0;
       if (entityPos[1] < 0) entityPos[1] = 1;
@@ -114,9 +114,9 @@ function main() {
     const pos = entityStore.getComponent<number[]>('pos');
     const shape = entityStore.getComponent<Shape>('shape');
     entityStore.forEach((group, index) => {
-      if (!group.hasComponent(pos) || !group.hasComponent(shape)) return;
-      const entityPos = group.getComponent(pos, index);
-      const entityShape = group.getComponent(shape, index);
+      if (!group.has(pos) || !group.has(shape)) return;
+      const entityPos = group.get(pos, index);
+      const entityShape = group.get(shape, index);
       ctx.fillStyle = entityShape.color;
       switch (entityShape.type) {
         case 'box':
