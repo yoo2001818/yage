@@ -13,6 +13,7 @@ export interface ComponentArray<T> {
   get(pos: number): T,
   copyFrom(pos: number, source: T): void,
   copyTo(pos: number, target: T): void,
+  copyBetween(src: number, dest: number): void,
 }
 
 function DEFAULT_ON_COPY<T>(from: T, to: T): void {
@@ -61,5 +62,9 @@ export class BaseComponentArray<T> implements ComponentArray<T> {
 
   copyTo(pos: number, target: T): void {
     this.onCopy(this.get(pos), target);
+  }
+
+  copyBetween(src: number, dest: number): void {
+    this.onCopy(this.get(src), this.get(dest));
   }
 }

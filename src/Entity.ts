@@ -1,6 +1,7 @@
 import { EntityGroup } from './EntityGroup';
 import { EntityStore } from './EntityStore';
 import { Component } from './Component';
+import { copyGroupEntity, addGroupComponent, removeGroupComponent } from './EntityGroupMethods';
 
 export class Entity {
   store: EntityStore;
@@ -21,7 +22,14 @@ export class Entity {
     const oldGroup = this.group;
     // Create a single-sized entity group
     const newGroup = this.store._createEntityGroupFrom(oldGroup, 1);
-    // TODO Copy oldGroup's contents onto newGroup
+    // Copy oldGroup's contents onto newGroup
+    copyGroupEntity(
+      this.store,
+      oldGroup,
+      newGroup,
+      this.index,
+      0,
+    );
     this.group = newGroup;
     this.index = 0;
   }
@@ -32,17 +40,37 @@ export class Entity {
     const oldGroup = this.group;
     const newGroup = this.store._findEntityGroup(oldGroup.hashCode)
       || this.store._createEntityGroupFrom(oldGroup, 32);
-    // TODO Add new entity onto the group
+    const newIndex = newGroup.size;
+    newGroup.size += 1;
+    copyGroupEntity(
+      this.store,
+      oldGroup,
+      newGroup,
+      this.index,
+      newIndex,
+    );
     this.group = newGroup;
-    this.index = 0;
+    this.index = newIndex;
   }
 
   add<T>(component: Component<T> | string): void {
+    if (typeof component === 'string') {
+      const componentInst = this.store.getComponent(component);
+      this.add(componentInst);
+      return;
+    }
     this.float();
+    addGroupComponent(this.group, component);
   }
 
   remove<T>(component: Component<T> | string): void {
+    if (typeof component === 'string') {
+      const componentInst = this.store.getComponent(component);
+      this.remove(componentInst);
+      return;
+    }
     this.float();
+    removeGroupComponent(this.group, component);
   }
 
   has<T>(component: Component<T> | string): boolean {
