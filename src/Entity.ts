@@ -100,7 +100,7 @@ export class Entity {
 
   destroy(): void {
     this.float();
-    this.store.removeEntityGroup(this.group);
+    this.store._removeEntityGroup(this.group);
     this.index = -1;
   }
 
