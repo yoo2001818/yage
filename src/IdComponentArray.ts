@@ -30,4 +30,8 @@ export class IdComponentArray implements ComponentArray<number> {
   copyTo(): void {
     throw new Error('ID is immutable; it cannot be copied to.');
   }
+
+  copyBetween(src: number, dest: number): void {
+    this.ids[dest] = this.ids[src];
+  }
 }

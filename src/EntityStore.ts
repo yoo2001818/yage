@@ -3,6 +3,7 @@ import { Component } from './Component';
 import { EntityGroup } from './EntityGroup';
 import { EntityGroupHandle } from './EntityGroupHandle';
 import { IdComponentArray } from './IdComponentArray';
+import { unallocateGroup } from './EntityGroupMethods';
 
 const GROUP_SIZE = 32;
 
@@ -84,6 +85,14 @@ export class EntityStore {
     this.entityGroups = this.entityGroups.filter((v) => v !== handle.group);
     // Register this to dead list
     this.deadEntityGroups.push(handle.group);
+  }
+
+  removeEntityGroup(group: EntityGroup): void {
+    unallocateGroup(group, this);
+    // Remove itself from entity groups (TODO: don't full scan)
+    this.entityGroups = this.entityGroups.filter((v) => v !== group);
+    // Register this to dead list
+    this.deadEntityGroups.push(group);
   }
 
   getEntity(id: number): [EntityGroupHandle, number] | null {

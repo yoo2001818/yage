@@ -59,7 +59,7 @@ export function removeGroupComponent(
 export function getGroupComponentOffset(
   group: EntityGroup,
   component: Component<unknown>,
-): number | null {
+): number {
   const { pos } = component;
   if (group.offsets.length <= pos) return -1;
   return group.offsets[pos];
@@ -81,5 +81,18 @@ export function copyGroupEntity(
       srcOffset + srcIndex,
       destOffset + destIndex,
     );
+  }
+}
+
+export function unallocateGroup(
+  group: EntityGroup,
+  store: EntityStore,
+): void {
+  for (let i = 0; i < group.offsets.length; i += 1) {
+    if (group.offsets[i] !== -1) {
+      const component = store.components[i];
+      component.unallocate(group.offsets[i], group.maxSize);
+      group.offsets[i] = -1;
+    }
   }
 }
