@@ -117,8 +117,11 @@ export class Entity {
       this.set(componentInst, source);
       return;
     }
-    const offset = getGroupComponentOffset(this.group, component);
-    if (offset === -1) return;
+    let offset = getGroupComponentOffset(this.group, component);
+    if (offset === -1) {
+      this.add(component);
+      offset = getGroupComponentOffset(this.group, component);
+    }
     component.array.copyFrom(offset + this.index, source);
   }
 

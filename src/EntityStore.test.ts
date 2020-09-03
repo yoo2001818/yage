@@ -11,9 +11,8 @@ describe('EntityStore', () => {
     entity.add('position');
     // We must have position now... replace it
     expect(entity.has('position')).toBe(true);
-    entity.copyFrom('position', [0, 0, 5]);
+    entity.set('position', [0, 0, 5]);
     expect(entity.get('position')).toEqual([0, 0, 5]);
-    expect(entity.size).toBe(1);
   });
   it('should be able to distinguish entities using ID', () => {
     const store = new EntityStore();
@@ -26,13 +25,14 @@ describe('EntityStore', () => {
     // Create new entity to check its ID
     expect(store.createEntity().get('id')).toBeGreaterThan(0);
   });
+  /*
   it('should be able to float/unfloat entities', () => {
     const store = new EntityStore();
     store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
     // Create new entity with position component
     const entity = store.createEntity();
     entity.add('position');
-    entity.copyFrom('position', [0, 0, 5]);
+    entity.set('position', [0, 0, 5]);
     // Then unfloat it. This should return resulting entity group handle and
     // index.
     const [target, index] = store.unfloatEntity(entity);
@@ -47,6 +47,7 @@ describe('EntityStore', () => {
     const entity2 = store.floatEntity(target, index);
     expect(entity2.group.maxSize).toBe(1);
   });
+  */
   it('should be able to handle more than 1 entity group', () => {
     const store = new EntityStore();
     store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
@@ -54,10 +55,9 @@ describe('EntityStore', () => {
       // Create new entity with position component
       const entity = store.createEntity();
       entity.add('position');
-      entity.copyFrom('position', [0, 0, 5]);
+      entity.set('position', [0, 0, 5]);
       // Unfloat it many, many times
-      const [target] = store.unfloatEntity(entity);
-      expect(target.size).toBeLessThanOrEqual(target.group.maxSize);
+      entity.unfloat();
     }
   });
   it('should be able to retrieve entity using its ID', () => {
@@ -65,7 +65,7 @@ describe('EntityStore', () => {
     const entity = store.createEntity();
     const id = entity.get('id') as number;
 
-    expect(store.getEntity(id)).toEqual([entity, 0]);
+    expect(store.getEntity(id)).toEqual(entity);
   });
   it('should be able to remove components from entity group', () => {
     const store = new EntityStore();
