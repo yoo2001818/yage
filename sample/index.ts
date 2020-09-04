@@ -44,20 +44,7 @@ function main() {
   systemStore.addSystem((event) => {
     // Game initializer
     if (event !== 'init') return;
-    /*
-    const entity = entityStore.createEntity();
-    // This is extremely cumbersome
-    entity.add('pos');
-    entity.add('vel');
-    entity.add('shape');
-    entity.get<number[]>('pos')[0] = 0.5;
-    entity.get<number[]>('pos')[1] = 0.5;
-    entity.get<number[]>('vel')[0] = 0.01;
-    entity.get<number[]>('vel')[1] = 0;
-    entityStore.unfloatEntity(entity);
-    */
-    // This can be changed to...
-    entityStore.createEntityWith({
+    entityStore.createEntity({
       pos: [0.5, 0.5],
       vel: [0.01, 0],
     });
@@ -66,10 +53,10 @@ function main() {
     // Step
     const pos = entityStore.getComponent<number[]>('pos');
     const vel = entityStore.getComponent<number[]>('vel');
-    entityStore.forEach((group, index) => {
-      if (!group.has(pos) || !group.has(vel)) return;
-      const entityPos = group.get(pos, index);
-      const entityVel = group.get(vel, index);
+    entityStore.forEach((entity) => {
+      if (!entity.has(pos) || !entity.has(vel)) return;
+      const entityPos = entity.get(pos)!;
+      const entityVel = entity.get(vel)!;
       entityPos[0] += entityVel[0];
       entityPos[1] += entityVel[1];
     });
@@ -83,9 +70,9 @@ function main() {
   systemStore.addSystem(() => {
     // Respawn
     const pos = entityStore.getComponent<number[]>('pos');
-    entityStore.forEach((group, index) => {
-      if (!group.has(pos)) return;
-      const entityPos = group.get(pos, index);
+    entityStore.forEach((entity) => {
+      if (!entity.has(pos)) return;
+      const entityPos = entity.get(pos)!;
       if (entityPos[0] < 0) entityPos[0] = 1;
       if (entityPos[0] > 1) entityPos[0] = 0;
       if (entityPos[1] < 0) entityPos[1] = 1;
@@ -113,10 +100,10 @@ function main() {
     // TODO Clearly we need a method to iterate entities
     const pos = entityStore.getComponent<number[]>('pos');
     const shape = entityStore.getComponent<Shape>('shape');
-    entityStore.forEach((group, index) => {
-      if (!group.has(pos) || !group.has(shape)) return;
-      const entityPos = group.get(pos, index);
-      const entityShape = group.get(shape, index);
+    entityStore.forEach((entity) => {
+      if (!entity.has(pos) || !entity.has(shape)) return;
+      const entityPos = entity.get(pos)!;
+      const entityShape = entity.get(shape)!;
       ctx.fillStyle = entityShape.color;
       switch (entityShape.type) {
         case 'box':

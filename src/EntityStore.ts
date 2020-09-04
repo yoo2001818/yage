@@ -45,9 +45,9 @@ export class EntityStore {
     return this.components[pos] as Component<T>;
   }
 
-  createEntity(): Entity {
-    // It should create an entity group with size of 1
-
+  createEntity(
+    base?: (string | Component<unknown>)[] | object,
+  ): Entity {
     const group = this._createEntityGroup();
     group.size = 1;
     group.maxSize = 1;
@@ -55,6 +55,16 @@ export class EntityStore {
     // Initialize id component
     const entity = new Entity(this, group, 0);
     entity.add(this.idComponent);
+
+    // If base was provided as an array, initialize them
+    if (Array.isArray(base)) {
+      base.forEach((item) => entity.add(item));
+    } else if (base != null) {
+      Object.keys(base).forEach((key) => {
+        entity.add(key);
+        entity.set(key, (base as { [key: string]: unknown })[key]);
+      });
+    }
 
     return entity;
   }
