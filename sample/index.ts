@@ -47,6 +47,12 @@ function main() {
     entityStore.createEntity({
       pos: [0.5, 0.5],
       vel: [0.01, 0],
+      shape: {},
+    });
+    entityStore.createEntity({
+      pos: [0.5, 0.6],
+      vel: [-0.007, 0.007],
+      shape: {},
     });
   });
   systemStore.addSystem(() => {
