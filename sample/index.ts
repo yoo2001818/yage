@@ -56,6 +56,19 @@ function main() {
     });
   });
   systemStore.addSystem(() => {
+    // Spawn one more... Sort of?
+    let xDir = Math.random() * 2 - 1;
+    let yDir = Math.random() * 2 - 1;
+    const dist = Math.sqrt(xDir * xDir + yDir * yDir);
+    xDir /= dist;
+    yDir /= dist;
+    entityStore.createEntity({
+      pos: [-xDir / 2 + 0.5, -yDir / 2 + 0.5],
+      vel: [xDir * 0.01, yDir * 0.01],
+      shape: {},
+    });
+  });
+  systemStore.addSystem(() => {
     // Step
     const pos = entityStore.getComponent<number[]>('pos');
     const vel = entityStore.getComponent<number[]>('vel');
@@ -79,10 +92,14 @@ function main() {
     entityStore.forEach((entity) => {
       if (!entity.has(pos)) return;
       const entityPos = entity.get(pos)!;
-      if (entityPos[0] < 0) entityPos[0] = 1;
-      if (entityPos[0] > 1) entityPos[0] = 0;
-      if (entityPos[1] < 0) entityPos[1] = 1;
-      if (entityPos[1] > 1) entityPos[1] = 0;
+      if (
+        entityPos[0] < 0
+        || entityPos[0] > 1
+        || entityPos[1] < 0
+        || entityPos[1] > 1
+      ) {
+        entity.destroy();
+      }
     });
     /*
     entityStore.forEach([pos], (pos) => {
@@ -95,7 +112,9 @@ function main() {
   });
   systemStore.addSystem(() => {
     // Debug display
-    const consoleData = JSON.stringify(entityStore.serialize(), null, 2);
+    const consoleData = String(
+      entityStore.entityGroups.reduce((p, v) => p + v.size, 0),
+    );
     while (debugDiv.firstChild != null) debugDiv.removeChild(debugDiv.firstChild);
     debugDiv.appendChild(document.createTextNode(consoleData));
   });
