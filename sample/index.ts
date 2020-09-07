@@ -72,10 +72,7 @@ function main() {
     // Step
     const pos = entityStore.getComponent<number[]>('pos');
     const vel = entityStore.getComponent<number[]>('vel');
-    entityStore.forEach((entity) => {
-      if (!entity.has(pos) || !entity.has(vel)) return;
-      const entityPos = entity.get(pos)!;
-      const entityVel = entity.get(vel)!;
+    entityStore.forEachWith([pos, vel], (_, entityPos, entityVel) => {
       entityPos[0] += entityVel[0];
       entityPos[1] += entityVel[1];
     });
@@ -89,9 +86,7 @@ function main() {
   systemStore.addSystem(() => {
     // Respawn
     const pos = entityStore.getComponent<number[]>('pos');
-    entityStore.forEach((entity) => {
-      if (!entity.has(pos)) return;
-      const entityPos = entity.get(pos)!;
+    entityStore.forEachWith([pos], (entity, entityPos) => {
       if (
         entityPos[0] < 0
         || entityPos[0] > 1

@@ -3,7 +3,7 @@ import { Component } from './Component';
 import { EntityGroup } from './EntityGroup';
 import { Entity } from './Entity';
 import { IdComponentArray } from './IdComponentArray';
-import { unallocateGroup, addGroupComponent } from './EntityGroupMethods';
+import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
 
 export class EntityStore {
   components: Component<unknown>[] = [];
@@ -99,6 +99,29 @@ export class EntityStore {
       const { size } = group;
       for (let i = 0; i < size; i += 1) {
         callback(new Entity(this, group, i));
+      }
+    });
+  }
+
+  forEachWith<T extends any[]>(
+    components: { [K in keyof T]: Component<T[K]> },
+    callback: (e: Entity, ...args: T) => void,
+  ): void {
+    this.entityGroups.forEach((group) => {
+      let failed = false;
+      const offsets = components.map((component) => {
+        const offset = getGroupComponentOffset(group, component);
+        if (offset === -1) failed = true;
+        return offset;
+      });
+      if (failed) return;
+      const { size } = group;
+      for (let i = 0; i < size; i += 1) {
+        const entity = new Entity(this, group, i);
+        callback(
+          entity,
+          ...components.map((v, j) => v.array.get(offsets[j])) as T,
+        );
       }
     });
   }
