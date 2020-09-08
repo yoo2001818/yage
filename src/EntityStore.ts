@@ -59,11 +59,13 @@ export class EntityStore {
     // If base was provided as an array, initialize them
     if (Array.isArray(base)) {
       base.forEach((item) => entity.add(item));
+      entity.unfloat();
     } else if (base != null) {
       Object.keys(base).forEach((key) => {
         entity.add(key);
         entity.set(key, (base as { [key: string]: unknown })[key]);
       });
+      entity.unfloat();
     }
 
     return entity;
@@ -120,7 +122,7 @@ export class EntityStore {
         const entity = new Entity(this, group, i);
         callback(
           entity,
-          ...components.map((v, j) => v.array.get(offsets[j])) as T,
+          ...components.map((v, j) => v.array.get(offsets[j] + i)) as T,
         );
       }
     });

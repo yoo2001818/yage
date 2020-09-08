@@ -56,6 +56,7 @@ function main() {
     });
   });
   systemStore.addSystem(() => {
+    /*
     // Spawn one more... Sort of?
     let xDir = Math.random() * 2 - 1;
     let yDir = Math.random() * 2 - 1;
@@ -67,6 +68,7 @@ function main() {
       vel: [xDir * 0.01, yDir * 0.01],
       shape: {},
     });
+    */
   });
   systemStore.addSystem(() => {
     // Step
@@ -93,6 +95,7 @@ function main() {
         || entityPos[1] < 0
         || entityPos[1] > 1
       ) {
+        console.log('begone thot');
         entity.destroy();
       }
     });
@@ -107,7 +110,8 @@ function main() {
   });
   systemStore.addSystem(() => {
     // Debug display
-    const consoleData = String(
+    const consoleData = JSON.stringify(entityStore.serialize(), null, 2);
+    String(
       entityStore.entityGroups.reduce((p, v) => p + v.size, 0),
     );
     while (debugDiv.firstChild != null) debugDiv.removeChild(debugDiv.firstChild);

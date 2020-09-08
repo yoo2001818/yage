@@ -56,6 +56,7 @@ export class Entity {
       this.index,
       newIndex,
     );
+    this.store._removeEntityGroup(oldGroup);
     this.group = newGroup;
     this.index = newIndex;
   }
