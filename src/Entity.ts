@@ -37,6 +37,18 @@ export class Entity {
       this.index,
       0,
     );
+    // Decrease size of oldGroup, and copy last entity to the old index
+    // (this results in deleting the old entity in the old group)
+    if (this.index !== oldGroup.size - 1) {
+      copyGroupEntity(
+        this.store,
+        oldGroup,
+        oldGroup,
+        oldGroup.size - 1,
+        this.index,
+      );
+    }
+    oldGroup.size -= 1;
     this.group = newGroup;
     this.index = 0;
   }

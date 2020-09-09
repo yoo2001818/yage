@@ -33,8 +33,8 @@ function main() {
   entityStore.addComponent('shape', new BaseComponentArray<Shape>(() => ({
     type: 'box',
     color: '#fff',
-    width: 0.1,
-    height: 0.1,
+    width: 0.01,
+    height: 0.01,
   })));
 
   // Initialize system store
@@ -56,19 +56,19 @@ function main() {
     });
   });
   systemStore.addSystem(() => {
-    /*
-    // Spawn one more... Sort of?
-    let xDir = Math.random() * 2 - 1;
-    let yDir = Math.random() * 2 - 1;
-    const dist = Math.sqrt(xDir * xDir + yDir * yDir);
-    xDir /= dist;
-    yDir /= dist;
-    entityStore.createEntity({
-      pos: [-xDir / 2 + 0.5, -yDir / 2 + 0.5],
-      vel: [xDir * 0.01, yDir * 0.01],
-      shape: {},
-    });
-    */
+    for (let i = 0; i < 2; i += 1) {
+      // Spawn one more... Sort of?
+      let xDir = Math.random() * 2 - 1;
+      let yDir = Math.random() * 2 - 1;
+      const dist = Math.sqrt(xDir * xDir + yDir * yDir);
+      xDir /= dist;
+      yDir /= dist;
+      entityStore.createEntity({
+        pos: [-xDir / 2 + 0.5, -yDir / 2 + 0.5],
+        vel: [xDir * 0.01, yDir * 0.01],
+        shape: {},
+      });
+    }
   });
   systemStore.addSystem(() => {
     // Step
@@ -95,7 +95,6 @@ function main() {
         || entityPos[1] < 0
         || entityPos[1] > 1
       ) {
-        console.log('begone thot');
         entity.destroy();
       }
     });
@@ -110,10 +109,10 @@ function main() {
   });
   systemStore.addSystem(() => {
     // Debug display
-    const consoleData = JSON.stringify(entityStore.serialize(), null, 2);
-    String(
+    const consoleData = String(
       entityStore.entityGroups.reduce((p, v) => p + v.size, 0),
     );
+    // JSON.stringify(entityStore.serialize(), null, 2);
     while (debugDiv.firstChild != null) debugDiv.removeChild(debugDiv.firstChild);
     debugDiv.appendChild(document.createTextNode(consoleData));
   });
