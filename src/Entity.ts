@@ -7,6 +7,7 @@ import {
   removeGroupComponent,
   getGroupComponentOffset,
   getGroupComponents,
+  removeGroupEntity,
 } from './EntityGroupMethods';
 
 export class Entity {
@@ -37,18 +38,11 @@ export class Entity {
       this.index,
       0,
     );
-    // Decrease size of oldGroup, and copy last entity to the old index
-    // (this results in deleting the old entity in the old group)
-    if (this.index !== oldGroup.size - 1) {
-      copyGroupEntity(
-        this.store,
-        oldGroup,
-        oldGroup,
-        oldGroup.size - 1,
-        this.index,
-      );
-    }
-    oldGroup.size -= 1;
+    removeGroupEntity(
+      this.store,
+      oldGroup,
+      this.index,
+    );
     this.group = newGroup;
     this.index = 0;
   }
@@ -89,7 +83,6 @@ export class Entity {
       this.remove(componentInst);
       return;
     }
-    this.float();
     removeGroupComponent(this.group, component);
   }
 
@@ -112,8 +105,14 @@ export class Entity {
   }
 
   destroy(): void {
-    this.float();
-    this.store._removeEntityGroup(this.group);
+    removeGroupEntity(
+      this.store,
+      this.group,
+      this.index,
+    );
+    if (this.group.size === 0) {
+      this.store._removeEntityGroup(this.group);
+    }
     this.index = -1;
   }
 

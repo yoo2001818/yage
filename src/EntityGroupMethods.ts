@@ -84,6 +84,26 @@ export function copyGroupEntity(
   }
 }
 
+export function removeGroupEntity(
+  store: EntityStore,
+  group: EntityGroup,
+  index: number,
+): void {
+  // Removes the entity from the entity group. This works by moving last
+  // entity to the provided index, and decrementing the size of the group -
+  // Therefore the provided entity will be 'overwritten'.
+  if (index !== group.size - 1) {
+    copyGroupEntity(
+      store,
+      group,
+      group,
+      group.size - 1,
+      index,
+    );
+  }
+  group.size -= 1;
+}
+
 export function unallocateGroup(
   group: EntityGroup,
   store: EntityStore,
