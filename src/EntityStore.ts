@@ -1,8 +1,7 @@
-import { ComponentArray } from './ComponentArray';
+import { ComponentArray, ImmutableComponentArray } from './ComponentArray';
 import { Component } from './Component';
 import { EntityGroup } from './EntityGroup';
 import { Entity } from './Entity';
-import { IdComponentArray } from './IdComponentArray';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
 
 export class EntityStore {
@@ -16,8 +15,15 @@ export class EntityStore {
 
   idComponent: Component<number>;
 
+  lastGroupId: number = 0;
+
+  lastEntityId: number = 0;
+
   constructor() {
-    this.idComponent = this.addComponent('id', new IdComponentArray());
+    this.idComponent = this.addComponent(
+      'id',
+      new ImmutableComponentArray<number>(() => 0),
+    );
   }
 
   addComponent<T>(name: string, array: ComponentArray<T>): Component<T> {
@@ -55,6 +61,8 @@ export class EntityStore {
     // Initialize id component
     const entity = new Entity(this, group, 0);
     entity.add(this.idComponent);
+    entity.set(this.idComponent, this.lastEntityId);
+    this.lastEntityId += 1;
 
     // If base was provided as an array, initialize them
     if (Array.isArray(base)) {
@@ -94,6 +102,10 @@ export class EntityStore {
       }
     }
     return null;
+  }
+
+  forEachGroup(callback: (group: EntityGroup) => void): void {
+    this.entityGroups.forEach(callback);
   }
 
   forEach(callback: (entity: Entity) => void): void {
@@ -152,6 +164,8 @@ export class EntityStore {
       return group;
     }
     const group = new EntityGroup();
+    group.id = this.lastGroupId;
+    this.lastGroupId += 1;
     this.entityGroups.push(group);
     return group;
   }

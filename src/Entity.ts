@@ -134,7 +134,7 @@ export class Entity {
       this.add(component);
       offset = getGroupComponentOffset(this.group, component);
     }
-    component.array.copyFrom(offset + this.index, source);
+    component.array.set(offset + this.index, source);
   }
 
   copyTo<T>(

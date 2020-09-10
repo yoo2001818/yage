@@ -12,6 +12,7 @@
     "no-param-reassign": "off",
     "no-bitwise": "off",
     "class-methods-use-this": "off",
-    "no-continue": "off"
+    "no-continue": "off",
+    "max-classes-per-file": "off"
   }
 }

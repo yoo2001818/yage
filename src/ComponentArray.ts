@@ -11,7 +11,7 @@ export interface ComponentArray<T> {
   size: number,
   allocate(size: number): void,
   get(pos: number): T,
-  copyFrom(pos: number, source: T): void,
+  set(pos: number, source: T): void,
   copyTo(pos: number, target: T): void,
   copyBetween(src: number, dest: number): void,
 }
@@ -56,7 +56,7 @@ export class BaseComponentArray<T> implements ComponentArray<T> {
     return this.items[pos];
   }
 
-  copyFrom(pos: number, source: T): void {
+  set(pos: number, source: T): void {
     this.onCopy(source, this.get(pos));
   }
 
@@ -66,5 +66,50 @@ export class BaseComponentArray<T> implements ComponentArray<T> {
 
   copyBetween(src: number, dest: number): void {
     this.onCopy(this.get(src), this.get(dest));
+  }
+}
+
+export class ImmutableComponentArray<T> implements ComponentArray<T> {
+  onCreate: () => T;
+
+  items: T[];
+
+  constructor(
+    onCreate: () => T,
+  ) {
+    this.onCreate = onCreate;
+    this.items = [];
+  }
+
+  get size(): number {
+    return this.items.length;
+  }
+
+  allocate(size: number): void {
+    if (this.items.length >= size) return;
+    const prevPos = this.items.length;
+    this.items.length = size;
+    for (let i = prevPos; i < size; i += 1) {
+      this.items[i] = this.onCreate();
+    }
+  }
+
+  get(pos: number): T {
+    if (pos >= this.items.length) {
+      throw new Error('ComponentArray overflown');
+    }
+    return this.items[pos];
+  }
+
+  set(pos: number, source: T): void {
+    this.items[pos] = source;
+  }
+
+  copyTo(): void {
+    throw new Error('Immutable data does not support copying');
+  }
+
+  copyBetween(src: number, dest: number): void {
+    this.items[dest] = this.items[src];
   }
 }

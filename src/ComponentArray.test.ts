@@ -23,7 +23,7 @@ describe.each([
     const array = create();
     array.allocate(5);
 
-    array.copyFrom(0, { value: 'a' });
+    array.set(0, { value: 'a' });
     const result = { value: '' };
     array.copyTo(0, result);
     expect(result.value).toBe('a');
