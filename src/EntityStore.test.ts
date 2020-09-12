@@ -1,10 +1,10 @@
 import { EntityStore } from './EntityStore';
-import { BaseComponentArray } from './ComponentArray';
+import { BaseComponent } from './Component';
 
 describe('EntityStore', () => {
   it('should be able to create entities', () => {
     const store = new EntityStore();
-    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    store.addComponent('position', new BaseComponent(() => [0, 0, 0]));
     // Create new entity with position component
     const entity = store.createEntity();
     expect(entity.has('position')).toBe(false);
@@ -28,7 +28,7 @@ describe('EntityStore', () => {
   /*
   it('should be able to float/unfloat entities', () => {
     const store = new EntityStore();
-    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    store.addComponent('position', new BaseComponent(() => [0, 0, 0]));
     // Create new entity with position component
     const entity = store.createEntity();
     entity.add('position');
@@ -50,7 +50,7 @@ describe('EntityStore', () => {
   */
   it('should be able to handle more than 1 entity group', () => {
     const store = new EntityStore();
-    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    store.addComponent('position', new BaseComponent(() => [0, 0, 0]));
     for (let i = 0; i < 100; i += 1) {
       // Create new entity with position component
       const entity = store.createEntity();
@@ -69,7 +69,7 @@ describe('EntityStore', () => {
   });
   it('should be able to remove components from entity group', () => {
     const store = new EntityStore();
-    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    store.addComponent('position', new BaseComponent(() => [0, 0, 0]));
     const entity = store.createEntity();
     entity.add('position');
     expect(entity.has('position')).toBe(true);
@@ -78,7 +78,7 @@ describe('EntityStore', () => {
   });
   it('should be able to serialize state', () => {
     const store = new EntityStore();
-    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    store.addComponent('position', new BaseComponent(() => [0, 0, 0]));
     const entity = store.createEntity();
     entity.add('position');
     expect(store.serialize()).toEqual([
@@ -87,7 +87,7 @@ describe('EntityStore', () => {
   });
   it('should be able to deserialize state', () => {
     const store = new EntityStore();
-    store.addComponent('position', new BaseComponentArray(() => [0, 0, 0]));
+    store.addComponent('position', new BaseComponent(() => [0, 0, 0]));
     expect(store.deserialize([
       { id: 0, position: [5, 0, 0] },
       { id: 1, position: [6, 0, 0] },

@@ -5,9 +5,14 @@ export class ComponentAllocator {
 
   freedSingleOffsets: number[];
 
-  constructor() {
+  onAllocate: (size: number) => number;
+
+  constructor(
+    onAllocate: (size: number) => number,
+  ) {
     this.freedOffsets = [];
     this.freedSingleOffsets = [];
+    this.onAllocate = onAllocate;
   }
 
   allocate(size: number): number {
@@ -30,10 +35,7 @@ export class ComponentAllocator {
       if (this.freedOffsets.length > 0) {
         return this.freedOffsets.pop() as number;
       }
-      // Assign more
-      const offset = this.array.size;
-      this.array.allocate(offset + GROUP_SIZE);
-      return offset;
+      return this.onAllocate(GROUP_SIZE);
     }
     throw new Error(`Size ${size} is unsupported for now`);
   }

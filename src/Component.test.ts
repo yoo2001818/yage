@@ -1,9 +1,9 @@
-import { BaseComponentArray } from './ComponentArray';
+import { BaseComponent } from './Component';
 
 describe.each([
   [
-    'BaseComponentArray',
-    () => new BaseComponentArray(
+    'BaseComponent',
+    () => new BaseComponent(
       () => ({ value: 'a' }),
       (from, to) => { to.value = from.value; },
     ),

@@ -40,6 +40,7 @@ export function addGroupComponent(
   component: Component<unknown>,
 ): void {
   const { pos } = component;
+  if (pos == null) return;
   if (group.offsets.length > pos && group.offsets[pos] !== -1) return;
   group.offsets[pos] = component.allocate(group.maxSize);
   updateGroupHashCode(group);
@@ -50,6 +51,7 @@ export function removeGroupComponent(
   component: Component<unknown>,
 ): void {
   const { pos } = component;
+  if (pos == null) return;
   if (group.offsets.length <= pos || group.offsets[pos] === -1) return;
   component.unallocate(group.offsets[pos], group.maxSize);
   group.offsets[pos] = -1;
@@ -61,8 +63,8 @@ export function getGroupComponentOffset(
   component: Component<unknown>,
 ): number {
   const { pos } = component;
-  if (group.offsets.length <= pos) return -1;
-  return group.offsets[pos];
+  if (group.offsets.length <= pos!) return -1;
+  return group.offsets[pos!];
 }
 
 export function copyGroupEntity(
@@ -77,7 +79,7 @@ export function copyGroupEntity(
     const destOffset = dest.offsets[i];
     if (srcOffset === -1 || destOffset === -1) continue;
     const component = store.components[i];
-    component.array.copyBetween(
+    component.copyBetween(
       srcOffset + srcIndex,
       destOffset + destIndex,
     );

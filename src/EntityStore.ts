@@ -1,5 +1,4 @@
-import { ComponentArray, ImmutableComponentArray } from './ComponentArray';
-import { Component } from './Component';
+import { Component, ImmutableComponent } from './Component';
 import { EntityGroup } from './EntityGroup';
 import { Entity } from './Entity';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
@@ -22,11 +21,11 @@ export class EntityStore {
   constructor() {
     this.idComponent = this.addComponent(
       'id',
-      new ImmutableComponentArray<number>(() => 0),
+      new ImmutableComponent<number>(() => 0),
     );
   }
 
-  addComponent<T>(name: string, array: ComponentArray<T>): Component<T> {
+  addComponent<T>(name: string, component: Component<T>): Component<T> {
     // It should register component to registry; this should do the following:
     // 1. Check if component name conflicts.
     // 2. If not, using given component array, just create and append the
@@ -36,9 +35,9 @@ export class EntityStore {
       throw new Error(`Component ${name} is already registered`);
     }
 
-    const component = new Component(name, this.components.length, array);
+    component.register(name, this.components.length);
     // Register component's offset to componentNames
-    this.componentNames[name] = component.pos;
+    this.componentNames[name] = this.components.length;
     this.components.push(component);
     return component;
   }
@@ -93,10 +92,10 @@ export class EntityStore {
 
     for (let i = 0; i < this.entityGroups.length; i += 1) {
       const group = this.entityGroups[i];
-      const offset = group.offsets[this.idComponent.pos];
+      const offset = group.offsets[this.idComponent.pos!];
       if (offset === -1) continue;
       for (let j = 0; j < group.size; j += 1) {
-        if (id === this.idComponent.array.get(offset + j)) {
+        if (id === this.idComponent.get(offset + j)) {
           return new Entity(this, group, j);
         }
       }
@@ -134,7 +133,7 @@ export class EntityStore {
         const entity = new Entity(this, group, i);
         callback(
           entity,
-          ...components.map((v, j) => v.array.get(offsets[j] + i)) as T,
+          ...components.map((v, j) => v.get(offsets[j] + i)) as T,
         );
       }
     });
