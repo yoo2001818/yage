@@ -1,3 +1,5 @@
+import { EntityGroup } from '../EntityGroup';
+
 /**
  * Component maintains an array of each component. It stores actual data
  * of each entities.
@@ -23,5 +25,7 @@ export interface Component<T> {
   copyTo(pos: number, target: T): void,
   copyBetween(src: number, dest: number): void,
 
-  markChanged(pos: number): void,
+  markChanged(group: EntityGroup): void,
+  addListener(callback: (group: EntityGroup) => void): void,
+  removeListener(callback: (group: EntityGroup) => void): void,
 }

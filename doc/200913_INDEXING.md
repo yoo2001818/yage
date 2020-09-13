@@ -72,3 +72,12 @@ Note that we don't maintain dirty flag from component's side - each index
 manages each own dirty flags. This workarounds 'versioning dirty flags' problem
 which is very tricky to solve.
 
+However, instead of submitting posOffset, we're sending out entity group IDs.
+This is necessary as entity group ID is required to find other corresponding
+components, however, it's kind of weird.
+
+But I don't think there is any better way to do this - so let's go on with it!
+
+... I originally wrote array-logic in ComponentArray, and engine-specific logic
+in Component. But, if we're gonna put these kind of logic in here, it'd be 
+better to just separate it...
