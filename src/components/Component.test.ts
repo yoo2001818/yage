@@ -1,9 +1,9 @@
-import { BaseComponent } from './Component';
+import { MutableComponent } from './MutableComponent';
 
 describe.each([
   [
-    'BaseComponent',
-    () => new BaseComponent(
+    'MutableComponent',
+    () => new MutableComponent(
       () => ({ value: 'a' }),
       (from, to) => { to.value = from.value; },
     ),

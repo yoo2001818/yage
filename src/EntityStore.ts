@@ -1,4 +1,5 @@
-import { Component, ImmutableComponent } from './Component';
+import { Component } from './components/Component';
+import { ImmutableComponent } from './components/ImmutableComponent';
 import { EntityGroup } from './EntityGroup';
 import { Entity } from './Entity';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';

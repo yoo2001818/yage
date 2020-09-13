@@ -1,6 +1,6 @@
 import { EntityGroup } from './EntityGroup';
 import { EntityStore } from './EntityStore';
-import { Component } from './Component';
+import { Component } from './components/Component';
 
 export function getGroupComponentIds(group: EntityGroup): number[] {
   const output: number[] = [];

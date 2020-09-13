@@ -1,6 +1,6 @@
 import { EntityStore } from '../src/EntityStore';
 import { SystemStore } from '../src/SystemStore';
-import { BaseComponentArray } from '../src/ComponentArray';
+import { MutableComponent } from '../src/components/MutableComponent';
 
 interface Shape {
   type: string,
@@ -28,9 +28,9 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponent('pos', new BaseComponentArray(() => [0, 0]));
-  entityStore.addComponent('vel', new BaseComponentArray(() => [0, 0]));
-  entityStore.addComponent('shape', new BaseComponentArray<Shape>(() => ({
+  entityStore.addComponent('pos', new MutableComponent(() => [0, 0]));
+  entityStore.addComponent('vel', new MutableComponent(() => [0, 0]));
+  entityStore.addComponent('shape', new MutableComponent<Shape>(() => ({
     type: 'box',
     color: '#fff',
     width: 0.01,

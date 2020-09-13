@@ -1,6 +1,6 @@
 import { EntityGroup } from './EntityGroup';
 import { EntityStore } from './EntityStore';
-import { Component } from './Component';
+import { Component } from './components/Component';
 import {
   copyGroupEntity,
   addGroupComponent,
@@ -101,7 +101,7 @@ export class Entity {
     }
     const offset = getGroupComponentOffset(this.group, component);
     if (offset === -1) return null;
-    return component.array.get(offset + this.index);
+    return component.get(offset + this.index);
   }
 
   destroy(): void {
@@ -134,7 +134,7 @@ export class Entity {
       this.add(component);
       offset = getGroupComponentOffset(this.group, component);
     }
-    component.array.set(offset + this.index, source);
+    component.set(offset + this.index, source);
   }
 
   copyTo<T>(
@@ -148,7 +148,7 @@ export class Entity {
     }
     const offset = getGroupComponentOffset(this.group, component);
     if (offset === -1) return;
-    component.array.copyTo(offset + this.index, target);
+    component.copyTo(offset + this.index, target);
   }
 
   serialize(): unknown {
@@ -156,7 +156,7 @@ export class Entity {
     const components = this.getComponents();
     for (let i = 0; i < components.length; i += 1) {
       const component = components[i];
-      output[component.name] = this.get(component);
+      output[component.name!] = this.get(component);
     }
     return output;
   }
