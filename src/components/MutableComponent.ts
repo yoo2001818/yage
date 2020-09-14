@@ -1,61 +1,34 @@
-import { Component } from './Component';
-import { ComponentAllocator } from './ComponentAllocator';
+import { AbstractComponent } from './AbstractComponent';
 
 function DEFAULT_ON_COPY<T>(from: T, to: T): void {
   Object.assign(to, from);
 }
 
-export class MutableComponent<T> implements Component<T> {
+export class MutableComponent<T> extends AbstractComponent<T> {
   onCreate: () => T;
 
   onCopy: (from: T, to: T) => void;
 
   items: T[];
 
-  allocator: ComponentAllocator;
-
-  name: string | null = null;
-
-  pos: number | null = null;
-
   constructor(
     onCreate: () => T,
     onCopy: (from: T, to: T) => void = DEFAULT_ON_COPY,
   ) {
+    super();
     this.onCreate = onCreate;
     this.onCopy = onCopy;
     this.items = [];
-    this.allocator = new ComponentAllocator((size) => {
-      const start = this.items.length;
-      const end = start + size;
-      this.items.length = end;
-      for (let i = start; i < end; i += 1) {
-        this.items[i] = this.onCreate();
-      }
-      return start;
-    });
   }
 
-  get size(): number {
-    return this.items.length;
-  }
-
-  register(name: string, pos: number): void {
-    this.name = name;
-    this.pos = pos;
-  }
-
-  unregister(): void {
-    this.name = null;
-    this.pos = null;
-  }
-
-  allocate(size: number): number {
-    return this.allocator.allocate(size);
-  }
-
-  unallocate(offset: number, size: number): void {
-    return this.allocator.unallocate(offset, size);
+  _allocateNew(size: number): number {
+    const start = this.items.length;
+    const end = start + size;
+    this.items.length = end;
+    for (let i = start; i < end; i += 1) {
+      this.items[i] = this.onCreate();
+    }
+    return start;
   }
 
   get(pos: number): T {

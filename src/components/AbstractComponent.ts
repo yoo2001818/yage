@@ -1,20 +1,43 @@
 import { Component } from './Component';
+import { ComponentAllocator } from './ComponentAllocator';
+import { Signal } from '../Signal';
 import { EntityGroup } from '../EntityGroup';
 
 export abstract class AbstractComponent<T> implements Component<T> {
-  name: string | null;
+  name: string | null = null;
 
-  pos: number | null;
+  pos: number | null = null;
 
-  size: number;
+  size: number = 0;
 
-  abstract register(name: string, pos: number): void;
+  allocator: ComponentAllocator;
 
-  abstract unregister(): void;
+  signal: Signal<[EntityGroup]>;
 
-  abstract allocate(size: number): number;
+  constructor() {
+    this.allocator = new ComponentAllocator((size) => this._allocateNew(size));
+    this.signal = new Signal();
+  }
 
-  abstract unallocate(offset: number, size: number): void;
+  register(name: string, pos: number): void {
+    this.name = name;
+    this.pos = pos;
+  }
+
+  unregister(): void {
+    this.name = null;
+    this.pos = null;
+  }
+
+  allocate(size: number): number {
+    return this.allocator.allocate(size);
+  }
+
+  unallocate(offset: number, size: number): void {
+    this.allocator.unallocate(offset, size);
+  }
+
+  abstract _allocateNew(size: number): number;
 
   abstract get(pos: number): T;
 
@@ -24,10 +47,16 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   abstract copyBetween(src: number, dest: number): void;
 
-  abstract markChanged(group: EntityGroup): void;
+  markChanged(group: EntityGroup): void {
+    this.signal.emit(group);
+  }
 
-  abstract addListener(callback: (group: EntityGroup) => void): void;
+  addListener(callback: (group: EntityGroup) => void): void {
+    this.signal.subscribe(callback);
+  }
 
-  abstract removeListener(callback: (group: EntityGroup) => void): void;
+  removeListener(callback: (group: EntityGroup) => void): void {
+    this.signal.unsubscribe(callback);
+  }
 
 }
