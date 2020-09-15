@@ -58,5 +58,4 @@ export abstract class AbstractComponent<T> implements Component<T> {
   removeListener(callback: (group: EntityGroup) => void): void {
     this.signal.unsubscribe(callback);
   }
-
 }
