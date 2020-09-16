@@ -1,6 +1,6 @@
 import { AbstractComponent } from './AbstractComponent';
 
-function DEFAULT_ON_COPY<T>(from: T, to: T): void {
+function defaultOnCopy<T>(from: T, to: T): void {
   Object.assign(to, from);
 }
 
@@ -13,7 +13,7 @@ export class MutableComponent<T> extends AbstractComponent<T> {
 
   constructor(
     onCreate: () => T,
-    onCopy: (from: T, to: T) => void = DEFAULT_ON_COPY,
+    onCopy: (from: T, to: T) => void = defaultOnCopy,
   ) {
     super();
     this.onCreate = onCreate;
