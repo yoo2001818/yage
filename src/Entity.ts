@@ -105,6 +105,7 @@ export class Entity {
   }
 
   destroy(): void {
+    this.store._removeEntity(this);
     removeGroupEntity(
       this.store,
       this.group,

@@ -2,6 +2,7 @@ import { Component } from './components/Component';
 import { ImmutableComponent } from './components/ImmutableComponent';
 import { EntityGroup } from './EntityGroup';
 import { Entity } from './Entity';
+import { Signal } from './Signal';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
 
 export class EntityStore {
@@ -15,6 +16,8 @@ export class EntityStore {
 
   idComponent: Component<number>;
 
+  removedSignal: Signal<[Entity]>;
+
   lastGroupId: number = 0;
 
   lastEntityId: number = 0;
@@ -24,6 +27,7 @@ export class EntityStore {
       'id',
       new ImmutableComponent<number>(() => 0),
     );
+    this.removedSignal = new Signal();
   }
 
   addComponent<T>(name: string, component: Component<T>): Component<T> {
@@ -85,6 +89,10 @@ export class EntityStore {
     this.entityGroups = this.entityGroups.filter((v) => v !== group);
     // Register this to dead list
     this.deadEntityGroups.push(group);
+  }
+
+  _removeEntity(entity: Entity): void {
+    this.removedSignal.emit(entity);
   }
 
   getEntity(id: number): Entity | null {
