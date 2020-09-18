@@ -7,6 +7,8 @@ interface IdIndexEntry {
 }
 
 export class IdIndex {
+  store: EntityStore;
+  
   ids: IdIndexEntry[];
 
   constructor() {
@@ -16,6 +18,7 @@ export class IdIndex {
   register(entityStore: EntityStore): void {
     this.ids = [];
     // Register listeners
+    this.store = entityStore;
   }
 
   unregister(): void {
