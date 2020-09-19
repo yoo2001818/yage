@@ -5,6 +5,7 @@ import { Entity } from './Entity';
 import { Signal } from './Signal';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
 import { Index } from './indexes/Index';
+import { IdIndex } from './indexes/IdIndex';
 
 export class EntityStore {
   components: Component<unknown>[] = [];
@@ -26,11 +27,12 @@ export class EntityStore {
   lastEntityId: number = 0;
 
   constructor() {
+    this.removedSignal = new Signal();
     this.idComponent = this.addComponent(
       'id',
       new ImmutableComponent<number>(() => 0),
     );
-    this.removedSignal = new Signal();
+    this.addIndex('id', new IdIndex());
   }
 
   addComponent<T>(name: string, component: Component<T>): Component<T> {
@@ -117,20 +119,7 @@ export class EntityStore {
   }
 
   getEntity(id: number): Entity | null {
-    // In order to retrieve an entity from ID, we must have reverse index.
-    // For now, let's just full-scan the entities...
-
-    for (let i = 0; i < this.entityGroups.length; i += 1) {
-      const group = this.entityGroups[i];
-      const offset = group.offsets[this.idComponent.pos!];
-      if (offset === -1) continue;
-      for (let j = 0; j < group.size; j += 1) {
-        if (id === this.idComponent.get(offset + j)) {
-          return new Entity(this, group, j);
-        }
-      }
-    }
-    return null;
+    return this.getIndex<IdIndex>('id').get(id);
   }
 
   forEachGroup(callback: (group: EntityGroup) => void): void {

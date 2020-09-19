@@ -75,6 +75,7 @@ export class Entity {
     }
     this.float();
     addGroupComponent(this.group, component);
+    component.markChanged(this.group);
   }
 
   remove<T>(component: Component<T> | string): void {
@@ -84,6 +85,7 @@ export class Entity {
       return;
     }
     removeGroupComponent(this.group, component);
+    component.markChanged(this.group);
   }
 
   has<T>(component: Component<T> | string): boolean {
@@ -136,6 +138,7 @@ export class Entity {
       offset = getGroupComponentOffset(this.group, component);
     }
     component.set(offset + this.index, source);
+    component.markChanged(this.group);
   }
 
   copyTo<T>(

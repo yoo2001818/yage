@@ -65,7 +65,7 @@ describe('EntityStore', () => {
     const entity = store.createEntity();
     const id = entity.get('id') as number;
 
-    expect(store.getEntity(id)).toEqual(entity);
+    expect(store.getEntity(id)!.get('id')).toBe(id);
   });
   it('should be able to remove components from entity group', () => {
     const store = new EntityStore();
