@@ -4,11 +4,14 @@ import { EntityGroup } from './EntityGroup';
 import { Entity } from './Entity';
 import { Signal } from './Signal';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
+import { Index } from './indexes/Index';
 
 export class EntityStore {
   components: Component<unknown>[] = [];
 
   componentNames: Record<string, number> = {};
+
+  indexes: Record<string, Index> = {};
 
   entityGroups: EntityGroup[] = [];
 
@@ -53,6 +56,24 @@ export class EntityStore {
       throw new Error(`Component ${name} does not exist`);
     }
     return this.components[pos] as Component<T>;
+  }
+
+  addIndex<T extends Index>(name: string, index: T): T {
+    if (name in this.indexes) {
+      throw new Error(`Index ${name} is already registered`);
+    }
+
+    index.register(this);
+    this.indexes[name] = index;
+    return index;
+  }
+
+  getIndex<T extends Index>(name: string): T {
+    const item = this.indexes[name];
+    if (item == null) {
+      throw new Error(`Index ${name} does not exist`);
+    }
+    return item as T;
   }
 
   createEntity(
