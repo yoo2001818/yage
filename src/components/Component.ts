@@ -26,6 +26,6 @@ export interface Component<T> {
   copyBetween(src: number, dest: number): void,
 
   markChanged(group: EntityGroup): void,
-  addListener(callback: (group: EntityGroup) => void): void,
-  removeListener(callback: (group: EntityGroup) => void): void,
+  subscribe(callback: (group: EntityGroup) => void): void,
+  unsubscribe(callback: (group: EntityGroup) => void): void,
 }

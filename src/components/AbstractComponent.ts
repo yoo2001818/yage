@@ -51,11 +51,11 @@ export abstract class AbstractComponent<T> implements Component<T> {
     this.signal.emit(group);
   }
 
-  addListener(callback: (group: EntityGroup) => void): void {
+  subscribe(callback: (group: EntityGroup) => void): void {
     this.signal.subscribe(callback);
   }
 
-  removeListener(callback: (group: EntityGroup) => void): void {
+  unsubscribe(callback: (group: EntityGroup) => void): void {
     this.signal.unsubscribe(callback);
   }
 }
