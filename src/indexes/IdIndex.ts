@@ -51,4 +51,11 @@ export class IdIndex {
       this.ids[id] = { group, index: i };
     }
   }
+
+  get(id: number): Entity | null {
+    const entry = this.ids[id];
+    if (entry == null) return null;
+    const entity = new Entity(this.store, entry.group, entry.index);
+    return entity;
+  }
 }
