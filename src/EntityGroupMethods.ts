@@ -20,6 +20,21 @@ export function getGroupComponents(
   return ids.map((id) => store.components[id]);
 }
 
+export function getGroupContainerHashCode(components: boolean[]): number {
+  let result = 7;
+  let windPos = 0;
+  for (let i = 0; i < components.length; i += 1) {
+    if (components[i]) {
+      for (let j = windPos; j < i; j += 1) {
+        result = result * 31 | 0;
+      }
+      windPos = i;
+      result = result * 31 + 1 | 0;
+    }
+  }
+  return result;
+}
+
 export function updateGroupHashCode(group: EntityGroup): void {
   let result = 7;
   let windPos = 0;
