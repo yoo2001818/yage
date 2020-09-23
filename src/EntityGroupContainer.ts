@@ -7,7 +7,11 @@ export class EntityGroupContainer {
 
   hashCode: number = 0;
 
-  entityGroups: EntityGroup[] = [];
+  first: EntityGroup | null = null;
+
+  last: EntityGroup | null = null;
+
+  lastEmpty: EntityGroup | null = null;
 
   freeEntityGroups: EntityGroup[] = [];
 
@@ -46,7 +50,18 @@ export class EntityGroupContainer {
       }
     }
 
-    this.entityGroups.push(group);
+    if (this.last == null || this.lastEmpty == null) {
+      this.first = group;
+      this.last = group;
+      this.lastEmpty = group;
+    } else {
+      const { last, lastEmpty } = this;
+      last.next = group;
+      lastEmpty.next = group;
+      lastEmpty.nextEmpty = group;
+      group.prev = last;
+      group.prevEmpty = lastEmpty;
+    }
     this.freeEntityGroups.push(group);
     return group;
   }

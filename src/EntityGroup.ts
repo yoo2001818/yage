@@ -20,4 +20,12 @@ export class EntityGroup {
 
   // TODO: Should this be a bitset? or a hash code to just filter out items?
   hashCode: number = 0;
+
+  next: EntityGroup | null = null;
+
+  prev: EntityGroup | null = null;
+
+  nextEmpty: EntityGroup | null = null;
+
+  prevEmpty: EntityGroup | null = null;
 }
