@@ -2,18 +2,34 @@ import { EntityGroup } from './EntityGroup';
 import { addGroupComponent, getGroupContainerHashCode } from './EntityGroupMethods';
 import { EntityStore } from './EntityStore';
 
+class EntityGroupNode {
+  group: EntityGroup;
+
+  next: EntityGroupNode | null = null;
+
+  prev: EntityGroupNode | null = null;
+
+  nextEmpty: EntityGroupNode | null = null;
+
+  prevEmpty: EntityGroupNode | null = null;
+
+  constructor(group: EntityGroup) {
+    this.group = group;
+  }
+}
+
 export class EntityGroupContainer {
   components: boolean[] = [];
 
   hashCode: number = 0;
 
-  first: EntityGroup | null = null;
+  first: EntityGroupNode | null = null;
 
-  last: EntityGroup | null = null;
+  last: EntityGroupNode | null = null;
 
-  lastEmpty: EntityGroup | null = null;
+  lastEmpty: EntityGroupNode | null = null;
 
-  freeEntityGroups: EntityGroup[] = [];
+  freeList: EntityGroupNode[] = [];
 
   init(components: boolean[]): void {
     this.components = components;
@@ -22,10 +38,11 @@ export class EntityGroupContainer {
 
   allocate(store: EntityStore): EntityGroup {
     // Do we have any free entity groups?
-    if (this.freeEntityGroups.length > 0) {
-      const group = this.freeEntityGroups[this.freeEntityGroups.length - 1];
+    if (this.freeList.length > 0) {
+      const node = this.freeList[this.freeList.length - 1];
+      const { group } = node;
       if (group.size + 1 >= group.maxSize) {
-        this.freeEntityGroups.pop();
+        this.freeList.pop();
       }
       return group;
     }
@@ -36,7 +53,7 @@ export class EntityGroupContainer {
   unallocate(group: EntityGroup): void {
     // TODO: This is not safe
     if (group.size === group.maxSize - 1) {
-      this.freeEntityGroups.push(group);
+      this.freeList.push(group);
     }
   }
 
@@ -50,19 +67,20 @@ export class EntityGroupContainer {
       }
     }
 
+    const node = new EntityGroupNode(group);
     if (this.last == null || this.lastEmpty == null) {
-      this.first = group;
-      this.last = group;
-      this.lastEmpty = group;
+      this.first = node;
+      this.last = node;
+      this.lastEmpty = node;
     } else {
       const { last, lastEmpty } = this;
-      last.next = group;
-      lastEmpty.next = group;
-      lastEmpty.nextEmpty = group;
-      group.prev = last;
-      group.prevEmpty = lastEmpty;
+      last.next = node;
+      lastEmpty.next = node;
+      lastEmpty.nextEmpty = node;
+      node.prev = last;
+      node.prevEmpty = lastEmpty;
     }
-    this.freeEntityGroups.push(group);
+    this.freeList.push(node);
     return group;
   }
 
