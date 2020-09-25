@@ -89,6 +89,10 @@ export class EntityGroupContainer {
   }
 
   forEachGroup(callback: (group: EntityGroup) => void): void {
-
+    let current = this.first;
+    while (current != null) {
+      callback(current.group);
+      current = current.next;
+    }
   }
 }
