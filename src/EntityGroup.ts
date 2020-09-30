@@ -6,6 +6,8 @@
 export class EntityGroup {
   id: number = 0;
 
+  parentId: number = 0;
+
   disposed: boolean = false;
 
   size: number = 0;

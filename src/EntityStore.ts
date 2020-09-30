@@ -1,6 +1,7 @@
 import { Component } from './components/Component';
 import { ImmutableComponent } from './components/ImmutableComponent';
 import { EntityGroup } from './EntityGroup';
+import { EntityGroupContainer } from './EntityGroupContainer';
 import { Entity } from './Entity';
 import { Signal } from './Signal';
 import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
@@ -17,6 +18,8 @@ export class EntityStore {
   entityGroups: EntityGroup[] = [];
 
   deadEntityGroups: EntityGroup[] = [];
+
+  entityGroupContainers: EntityGroupContainer[] = [];
 
   idComponent: Component<number>;
 

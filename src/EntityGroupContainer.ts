@@ -19,6 +19,8 @@ class EntityGroupNode {
 }
 
 export class EntityGroupContainer {
+  id: number = 0;
+
   components: boolean[] = [];
 
   hashCode: number = 0;
