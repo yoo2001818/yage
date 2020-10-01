@@ -1,0 +1,32 @@
+@startuml
+
+class Entity {
+
+}
+
+class EntityPage {
+  id: number
+  parentId: number
+  offsets: number[]
+  size: number
+  maxSize: number
+}
+
+class EntityGroup {
+  pages: EntityPage[]
+}
+
+class EntityStore {
+  pages: EntityPage[]
+  groups: EntityGroup[]
+}
+
+EntityStore --* EntityGroup
+EntityStore --* EntityPage
+EntityGroup --* EntityPage
+
+interface Index {
+
+}
+
+@enduml
