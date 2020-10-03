@@ -51,3 +51,6 @@ EntityGroup - we can just decrease size, overwrite last data with current one.
 However, if the size becomes 0 and therefore we need to destroy the EntityGroup,
 it... becomes cumbersome.
 
+1. The EntityStore gets notified of destroyed EntityGroup, and calls
+   EntityGroupContainer associated with it.
+2. The EntityGroupContainer can decide to keep the EntityGroup, or destroy it.
