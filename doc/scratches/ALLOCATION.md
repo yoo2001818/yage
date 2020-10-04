@@ -54,3 +54,12 @@ it... becomes cumbersome.
 1. The EntityStore gets notified of destroyed EntityGroup, and calls
    EntityGroupContainer associated with it.
 2. The EntityGroupContainer can decide to keep the EntityGroup, or destroy it.
+   If EntityGroup should not be destroyed, it is kepted inside
+   EntityGroupContainer for a while - nothing is reported to EntityStore.
+3. If EntityGroup should be destroyed, we need to get through few processes -
+   but mainly, the EntityStore should be reported that the EntityGroup is
+   'unallocated'. The EntityGroup should be removed from EntityGroupContainer
+   entirely - this can be done by "pushing" the array, or by swapping the last
+   one and the deleted one.
+4. If EntityStore decides to delete the EntityGroup, similiar processing is
+   done.
