@@ -63,3 +63,8 @@ it... becomes cumbersome.
    one and the deleted one.
 4. If EntityStore decides to delete the EntityGroup, similiar processing is
    done.
+
+## ID Allocaton
+Whenever the entity changes, its ID must be copied from group to another group.
+This shouldn't pose any problem - it is completely compatiable with previous
+structure. 
