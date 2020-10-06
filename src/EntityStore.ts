@@ -81,6 +81,34 @@ export class EntityStore {
     return item as T;
   }
 
+  createEntityGroup(): EntityGroup {
+    // TODO Scan dead entity group
+    const group = new EntityGroup();
+    group.id = this.entityGroups.length;
+    this.entityGroups.push(group);
+    return group;
+  }
+
+  releaseEntityGroup(group: EntityGroup): void {
+    // TODO Check dead entity group, push to list or remove it
+  }
+
+  createEntityGroupContainer(): EntityGroupContainer {
+    const container = new EntityGroupContainer();
+    container.id = this.entityGroupContainers.length;
+    this.entityGroupContainers.push(container);
+    return container;
+  }
+
+  releaseEntityGroupContainer(container: EntityGroupContainer): void {
+    // TODO Check dead entity group containers, push to list or remove it
+  }
+
+  createEntity(): Entity {
+    // Create floating entity group. Any other logic directly goes to Entity
+  }
+
+  /*
   createEntity(
     base?: (string | Component<unknown>)[] | object,
   ): Entity {
@@ -219,4 +247,5 @@ export class EntityStore {
     }
     return null;
   }
+  */
 }
