@@ -106,6 +106,16 @@ export class EntityStore {
 
   createEntity(): Entity {
     // Create floating entity group. Any other logic directly goes to Entity
+    const group = this.createEntityGroup();
+    group.size = 1;
+    group.maxSize = 1;
+
+    const entity = new Entity(this, group, 0);
+    entity.add(this.idComponent);
+    entity.set(this.idComponent, this.lastEntityId);
+    this.lastEntityId += 1;
+
+    return entity;
   }
 
   /*
