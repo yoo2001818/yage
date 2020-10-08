@@ -118,6 +118,10 @@ export class EntityStore {
     return entity;
   }
 
+  getEntityGroupContainer(signature: number[]): EntityGroupContainer {
+
+  }
+
   /*
   createEntity(
     base?: (string | Component<unknown>)[] | object,
