@@ -118,6 +118,12 @@ export class EntityStore {
     return entity;
   }
 
+  // Signature is determined by the "offsets" array of each component group.
+  // -1 means the component is not used, any other value means the component
+  // is used.
+  // We need to convert this 'offsets' array to list of numbers - persumably a
+  // bitset - but we'll do this right here for now, and accept
+  // offsets array as an argument.
   getEntityGroupContainer(signature: number[]): EntityGroupContainer {
 
   }
