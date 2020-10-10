@@ -1,22 +1,6 @@
 import { EntityGroup } from './EntityGroup';
-import { addGroupComponent, getGroupContainerHashCode } from './EntityGroupMethods';
+import { addGroupComponent, getGroupContainerHashCode, removeGroupEntity } from './EntityGroupMethods';
 import { EntityStore } from './EntityStore';
-
-class EntityGroupNode {
-  group: EntityGroup;
-
-  next: EntityGroupNode | null = null;
-
-  prev: EntityGroupNode | null = null;
-
-  nextEmpty: EntityGroupNode | null = null;
-
-  prevEmpty: EntityGroupNode | null = null;
-
-  constructor(group: EntityGroup) {
-    this.group = group;
-  }
-}
 
 export class EntityGroupContainer {
   id: number = 0;
@@ -25,76 +9,60 @@ export class EntityGroupContainer {
 
   hashCode: number = 0;
 
-  first: EntityGroupNode | null = null;
+  groups: EntityGroup[] = [];
 
-  last: EntityGroupNode | null = null;
-
-  lastEmpty: EntityGroupNode | null = null;
-
-  freeList: EntityGroupNode[] = [];
+  freeGroups: EntityGroup[] = [];
 
   init(components: boolean[]): void {
     this.components = components;
     this.hashCode = getGroupContainerHashCode(components);
   }
 
-  allocate(store: EntityStore): EntityGroup {
+  createEntitySlot(store: EntityStore): [EntityGroup, number] {
     // Do we have any free entity groups?
-    if (this.freeList.length > 0) {
-      const node = this.freeList[this.freeList.length - 1];
-      const { group } = node;
+    if (this.freeGroups.length > 0) {
+      const group = this.freeGroups[this.freeGroups.length - 1];
+      const index = group.size;
       if (group.size + 1 >= group.maxSize) {
-        this.freeList.pop();
+        this.freeGroups.pop();
       }
-      return group;
+      group.size += 1;
+      return [group, index];
     }
-    // Create new group
-    return this._createGroup(store);
-  }
-
-  unallocate(group: EntityGroup): void {
-    // TODO: This is not safe
-    if (group.size === group.maxSize - 1) {
-      this.freeList.push(group);
-    }
-  }
-
-  _createGroup(store: EntityStore): EntityGroup {
-    const group = store._createEntityGroup();
+    // If not, retrieve entity group from the store
+    const group = store.createEntityGroup();
+    group.parentId = this.id;
     group.maxSize = 32;
 
+    // TODO This is not ideal
     for (let i = 0; i < this.components.length; i += 1) {
       if (this.components[i]) {
         addGroupComponent(group, store.components[i]);
       }
     }
+    group.size += 1;
+    this.groups.push(group);
+    this.freeGroups.push(group);
 
-    const node = new EntityGroupNode(group);
-    if (this.last == null || this.lastEmpty == null) {
-      this.first = node;
-      this.last = node;
-      this.lastEmpty = node;
-    } else {
-      const { last, lastEmpty } = this;
-      last.next = node;
-      lastEmpty.next = node;
-      lastEmpty.nextEmpty = node;
-      node.prev = last;
-      node.prevEmpty = lastEmpty;
+    return [group, 0];
+  }
+
+  releaseEntitySlot(
+    store: EntityStore,
+    group: EntityGroup,
+    index: number,
+  ): void {
+    if (group.size === group.maxSize) {
+      this.freeGroups.push(group);
     }
-    this.freeList.push(node);
-    return group;
-  }
-
-  _removeGroup(group: EntityGroup): void {
-
-  }
-
-  forEachGroup(callback: (group: EntityGroup) => void): void {
-    let current = this.first;
-    while (current != null) {
-      callback(current.group);
-      current = current.next;
+    // We're responsible for unallocating entity data from the entity group.
+    removeGroupEntity(store, group, index);
+    if (group.size === 0) {
+      // If the entity group is no longer used, we have to snoop through
+      // the groups array and remove it.
+      // TODO Remember position of the group inside the group
+      this.freeGroups = this.freeGroups.filter((v) => v !== group);
+      this.groups = this.groups.filter((v) => v !== group);
     }
   }
 }

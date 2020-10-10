@@ -4,7 +4,7 @@ import { EntityGroup } from './EntityGroup';
 import { EntityGroupContainer } from './EntityGroupContainer';
 import { Entity } from './Entity';
 import { Signal } from './Signal';
-import { unallocateGroup, addGroupComponent, getGroupComponentOffset } from './EntityGroupMethods';
+import { unallocateGroup, addGroupComponent, getGroupComponentOffset, getGroupContainerHashCode } from './EntityGroupMethods';
 import { Index } from './indexes/Index';
 import { IdIndex } from './indexes/IdIndex';
 
@@ -125,7 +125,17 @@ export class EntityStore {
   // bitset - but we'll do this right here for now, and accept
   // offsets array as an argument.
   getEntityGroupContainer(signature: number[]): EntityGroupContainer {
-
+    const components = signature.map((v) => v !== -1);
+    const hashCode = getGroupContainerHashCode(components);
+    // Bleh - we're full scanning the array! It's okay for now...
+    let item = this.entityGroupContainers
+      .find((v) => v.hashCode === hashCode);
+    if (item == null) {
+      item = this.createEntityGroupContainer();
+      item.components = components;
+      item.hashCode = hashCode;
+    }
+    return item;
   }
 
   /*
