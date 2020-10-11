@@ -172,25 +172,50 @@ export class EntityStore {
   createEntity(
     base?: (string | Component<unknown>)[] | object,
   ): Entity {
+    // If base was provided as an array, initialize them
+    if (Array.isArray(base)) {
+      // Map the component array to 'signatures'. We must make sure that
+      // we don't have any 'holes' ... but I think this will be enough for now.
+      // TODO Properly generate signature array
+      const signature: number[] = [];
+      base.forEach((item) => {
+        const component = typeof item === 'string'
+          ? this.getComponent(item)
+          : item;
+        signature[component.pos!] = 0;
+      });
+      signature[this.idComponent.pos!] = 0;
+      const [group, index] = this.createEntitySlot(signature);
+      const entity = new Entity(this, group, index);
+      entity.set(this.idComponent, this.lastEntityId);
+      this.lastEntityId += 1;
+      return entity;
+    }
+    if (base != null) {
+      // Map the component array to 'signatures'. We must make sure that
+      // we don't have any 'holes' ... but I think this will be enough for now.
+      // TODO Properly generate signature array
+      const signature: number[] = [];
+      Object.keys(base).forEach((key) => {
+        const component = this.getComponent(key);
+        signature[component.pos!] = 0;
+      });
+      signature[this.idComponent.pos!] = 0;
+      const [group, index] = this.createEntitySlot(signature);
+      const entity = new Entity(this, group, index);
+      entity.set(this.idComponent, this.lastEntityId);
+      this.lastEntityId += 1;
+      Object.keys(base).forEach((key) => {
+        entity.set(key, (base as { [key: string]: unknown })[key]);
+      });
+      return entity;
+    }
     // Create floating entity group. Any other logic directly goes to Entity
     const [group, index] = this.createFloatingEntitySlot();
     const entity = new Entity(this, group, index);
     entity.add(this.idComponent);
     entity.set(this.idComponent, this.lastEntityId);
     this.lastEntityId += 1;
-
-    // If base was provided as an array, initialize them
-    if (Array.isArray(base)) {
-      base.forEach((item) => entity.add(item));
-      entity.unfloat();
-    } else if (base != null) {
-      Object.keys(base).forEach((key) => {
-        entity.add(key);
-        entity.set(key, (base as { [key: string]: unknown })[key]);
-      });
-      entity.unfloat();
-    }
-
     return entity;
   }
 
@@ -217,36 +242,6 @@ export class EntityStore {
   getEntityGroupContainerById(id: number): EntityGroupContainer | null {
     return this.entityGroupContainers[id];
   }
-
-  /*
-  createEntity(
-    base?: (string | Component<unknown>)[] | object,
-  ): Entity {
-    const group = this._createEntityGroup();
-    group.size = 1;
-    group.maxSize = 1;
-
-    // Initialize id component
-    const entity = new Entity(this, group, 0);
-    entity.add(this.idComponent);
-    entity.set(this.idComponent, this.lastEntityId);
-    this.lastEntityId += 1;
-
-    // If base was provided as an array, initialize them
-    if (Array.isArray(base)) {
-      base.forEach((item) => entity.add(item));
-      entity.unfloat();
-    } else if (base != null) {
-      Object.keys(base).forEach((key) => {
-        entity.add(key);
-        entity.set(key, (base as { [key: string]: unknown })[key]);
-      });
-      entity.unfloat();
-    }
-
-    return entity;
-  }
-  */
 
   getEntity(id: number): Entity | null {
     return this.getIndex<IdIndex>('id').get(id);

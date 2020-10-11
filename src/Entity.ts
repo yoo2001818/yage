@@ -48,8 +48,7 @@ export class Entity {
   unfloat(): void {
     if (this.group.maxSize !== 1) return;
     const oldGroup = this.group;
-    const container = this.store.getEntityGroupContainer(oldGroup.offsets);
-    const [newGroup, newIndex] = container.createEntitySlot(this.store);
+    const [newGroup, newIndex] = this.store.createEntitySlot(oldGroup.offsets);
     copyGroupEntity(
       this.store,
       oldGroup,
