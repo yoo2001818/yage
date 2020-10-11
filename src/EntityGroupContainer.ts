@@ -1,6 +1,7 @@
 import { EntityGroup } from './EntityGroup';
 import { addGroupComponent, getGroupContainerHashCode, removeGroupEntity } from './EntityGroupMethods';
 import { EntityStore } from './EntityStore';
+import { removeItem } from './utils/array';
 
 export class EntityGroupContainer {
   id: number = 0;
@@ -32,7 +33,9 @@ export class EntityGroupContainer {
     // If not, retrieve entity group from the store
     const group = store.createEntityGroup();
     group.parentId = this.id;
+    group.parentIndex = this.groups.length;
     group.maxSize = 32;
+    this.groups.push(group);
 
     // TODO This is not ideal
     for (let i = 0; i < this.components.length; i += 1) {
@@ -41,7 +44,6 @@ export class EntityGroupContainer {
       }
     }
     group.size += 1;
-    this.groups.push(group);
     this.freeGroups.push(group);
 
     return [group, 0];
@@ -60,9 +62,11 @@ export class EntityGroupContainer {
     if (group.size === 0) {
       // If the entity group is no longer used, we have to snoop through
       // the groups array and remove it.
-      // TODO Remember position of the group inside the group
+      // TODO: Erm, managing this would be an issue - index of this frequently
+      // changes. Assuming freeGroups won't contain data too much, we'll just
+      // iterate them...
       this.freeGroups = this.freeGroups.filter((v) => v !== group);
-      this.groups = this.groups.filter((v) => v !== group);
+      removeItem(this.groups, group.parentIndex);
     }
   }
 }

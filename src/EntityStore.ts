@@ -4,9 +4,10 @@ import { EntityGroup } from './EntityGroup';
 import { EntityGroupContainer } from './EntityGroupContainer';
 import { Entity } from './Entity';
 import { Signal } from './Signal';
-import { unallocateGroup, addGroupComponent, getGroupComponentOffset, getGroupContainerHashCode } from './EntityGroupMethods';
+import { getGroupContainerHashCode, removeGroupEntity } from './EntityGroupMethods';
 import { Index } from './indexes/Index';
 import { IdIndex } from './indexes/IdIndex';
+import { removeItem } from './utils/array';
 
 export class EntityStore {
   components: Component<unknown>[] = [];
@@ -17,9 +18,16 @@ export class EntityStore {
 
   entityGroups: EntityGroup[] = [];
 
-  deadEntityGroups: EntityGroup[] = [];
+  // Floating entity groups are stored separately. This is because
+  // entity group containers are iterated while looping through entities, but
+  // floating entity groups will be missed if we just scan group containers.
+  // Therefore, after iterating entity group containers, we iterate
+  // floating entity groups separately.
+  floatingEntityGroups: EntityGroup[] = [];
 
   entityGroupContainers: EntityGroupContainer[] = [];
+
+  deadEntityGroups: EntityGroup[] = [];
 
   idComponent: Component<number>;
 
@@ -104,13 +112,57 @@ export class EntityStore {
     // TODO Check dead entity group containers, push to list or remove it
   }
 
+  createEntitySlot(signature: number[]): [EntityGroup, number] {
+    // Well, this does not make any sense because to assign an entity slot, we
+    // must know the signature of the entity beforehand.
+    // Still, let's support it anyway.
+    const groupContainer = this.getEntityGroupContainer(signature);
+    return groupContainer.createEntitySlot(this);
+  }
+
+  releaseEntitySlot(group: EntityGroup, index: number): void {
+    // Read group's parent ID, and process accordingly
+    const { parentId } = group;
+    if (parentId === -1) {
+      this.releaseFloatingEntitySlot(group, index);
+    } else {
+      const groupContainer = this.getEntityGroupContainerById(parentId);
+      // Do nothing if we can't find the group container
+      if (groupContainer == null) return;
+      groupContainer.releaseEntitySlot(this, group, index);
+    }
+  }
+
+  createFloatingEntitySlot(): [EntityGroup, number] {
+    // Just create an empty entity group, assign empty entity.
+    const group = this.createEntityGroup();
+    // Then, we register floating entity groups inside the list. This is used
+    // to reference groups later.
+    group.maxSize = 1;
+    group.size = 1;
+    group.parentId = -1;
+    group.parentIndex = this.floatingEntityGroups.length;
+    this.floatingEntityGroups.push(group);
+    group.size += 1;
+    return [group, 0];
+  }
+
+  releaseFloatingEntitySlot(group: EntityGroup, index: number): void {
+    // Floating entity group has only one entity within, therefore the group
+    // can be released without any problem.
+    removeGroupEntity(this, group, index);
+    if (group.size <= 0) {
+      // Remove the entity group from the list.
+      removeItem(this.floatingEntityGroups, group.parentIndex);
+      // Release the entity group.
+      this.releaseEntityGroup(group);
+    }
+  }
+
   createEntity(): Entity {
     // Create floating entity group. Any other logic directly goes to Entity
-    const group = this.createEntityGroup();
-    group.size = 1;
-    group.maxSize = 1;
-
-    const entity = new Entity(this, group, 0);
+    const [group, index] = this.createFloatingEntitySlot();
+    const entity = new Entity(this, group, index);
     entity.add(this.idComponent);
     entity.set(this.idComponent, this.lastEntityId);
     this.lastEntityId += 1;
@@ -136,6 +188,10 @@ export class EntityStore {
       item.hashCode = hashCode;
     }
     return item;
+  }
+
+  getEntityGroupContainerById(id: number): EntityGroupContainer | null {
+    return this.entityGroupContainers[id];
   }
 
   /*

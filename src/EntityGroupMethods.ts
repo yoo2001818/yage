@@ -82,6 +82,19 @@ export function getGroupComponentOffset(
   return group.offsets[pos!];
 }
 
+export function copyGroupComponents(
+  store: EntityStore,
+  src: EntityGroup,
+  dest: EntityGroup,
+): void {
+  for (let i = 0; i < src.offsets.length; i += 1) {
+    const srcOffset = src.offsets[i];
+    if (srcOffset !== -1) {
+      addGroupComponent(dest, store.components[i]);
+    }
+  }
+}
+
 export function copyGroupEntity(
   store: EntityStore,
   src: EntityGroup,

@@ -6,7 +6,15 @@
 export class EntityGroup {
   id: number = 0;
 
-  parentId: number = 0;
+  // The ID of the parent group container. If the group is "floating", -1 is
+  // assigned instead.
+  parentId: number = -1;
+
+  // The index of the parent group container. This is the physical offset of
+  // group container's array. When the entity group gets removed, this offset
+  // will be used to quickly identify which offset to remove.
+  // (We won't push/pull the entire list, instead pop and swapping will be used)
+  parentIndex: number = 0;
 
   disposed: boolean = false;
 

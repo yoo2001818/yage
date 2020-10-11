@@ -7,7 +7,7 @@ import {
   removeGroupComponent,
   getGroupComponentOffset,
   getGroupComponents,
-  removeGroupEntity,
+  copyGroupComponents,
 } from './EntityGroupMethods';
 
 export class Entity {
@@ -29,7 +29,9 @@ export class Entity {
     if (this.group.maxSize === 1) return;
     const oldGroup = this.group;
     // Create a single-sized entity group
-    const newGroup = this.store._createEntityGroupFrom(oldGroup, 1);
+    const [newGroup, newIndex] = this.store.createFloatingEntitySlot();
+    // Copy oldGroup's signature onto new floating entity
+    copyGroupComponents(this.store, oldGroup, newGroup);
     // Copy oldGroup's contents onto newGroup
     copyGroupEntity(
       this.store,
@@ -38,23 +40,16 @@ export class Entity {
       this.index,
       0,
     );
-    removeGroupEntity(
-      this.store,
-      oldGroup,
-      this.index,
-    );
+    this.store.releaseEntitySlot(oldGroup, this.index);
     this.group = newGroup;
-    this.index = 0;
+    this.index = newIndex;
   }
 
   unfloat(): void {
     if (this.group.maxSize !== 1) return;
-    // Find a large entity group
     const oldGroup = this.group;
-    const newGroup = this.store._findEntityGroup(oldGroup.hashCode)
-      || this.store._createEntityGroupFrom(oldGroup, 32);
-    const newIndex = newGroup.size;
-    newGroup.size += 1;
+    const container = this.store.getEntityGroupContainer(oldGroup.offsets);
+    const [newGroup, newIndex] = container.createEntitySlot(this.store);
     copyGroupEntity(
       this.store,
       oldGroup,
@@ -62,7 +57,7 @@ export class Entity {
       this.index,
       newIndex,
     );
-    this.store._removeEntityGroup(oldGroup);
+    this.store.releaseEntitySlot(oldGroup, this.index);
     this.group = newGroup;
     this.index = newIndex;
   }
@@ -107,15 +102,7 @@ export class Entity {
   }
 
   destroy(): void {
-    this.store._removeEntity(this);
-    removeGroupEntity(
-      this.store,
-      this.group,
-      this.index,
-    );
-    if (this.group.size === 0) {
-      this.store._removeEntityGroup(this.group);
-    }
+    this.store.releaseEntitySlot(this.group, this.index);
     this.index = -1;
   }
 
