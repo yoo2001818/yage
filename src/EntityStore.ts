@@ -154,7 +154,6 @@ export class EntityStore {
     group.parentId = -1;
     group.parentIndex = this.floatingEntityGroups.length;
     this.floatingEntityGroups.push(group);
-    group.size += 1;
     return [group, 0];
   }
 

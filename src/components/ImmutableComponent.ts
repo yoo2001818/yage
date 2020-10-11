@@ -17,6 +17,7 @@ export class ImmutableComponent<T> extends AbstractComponent<T> {
     const start = this.items.length;
     const end = start + size;
     this.items.length = end;
+    this.size = end;
     for (let i = start; i < end; i += 1) {
       this.items[i] = this.onCreate();
     }
