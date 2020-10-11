@@ -4,7 +4,11 @@ import { EntityGroup } from './EntityGroup';
 import { EntityGroupContainer } from './EntityGroupContainer';
 import { Entity } from './Entity';
 import { Signal } from './Signal';
-import { getGroupContainerHashCode, removeGroupEntity } from './EntityGroupMethods';
+import {
+  getGroupContainerHashCode,
+  removeGroupEntity,
+  getGroupComponentOffset,
+} from './EntityGroupMethods';
 import { Index } from './indexes/Index';
 import { IdIndex } from './indexes/IdIndex';
 import { removeItem } from './utils/array';
@@ -90,7 +94,10 @@ export class EntityStore {
   }
 
   createEntityGroup(): EntityGroup {
-    // TODO Scan dead entity group
+    if (this.deadEntityGroups.length > 0) {
+      // Scan dead entity group
+      return this.deadEntityGroups.pop() as EntityGroup;
+    }
     const group = new EntityGroup();
     group.id = this.entityGroups.length;
     this.entityGroups.push(group);
@@ -99,6 +106,7 @@ export class EntityStore {
 
   releaseEntityGroup(group: EntityGroup): void {
     // TODO Check dead entity group, push to list or remove it
+    this.deadEntityGroups.push(group);
   }
 
   createEntityGroupContainer(): EntityGroupContainer {
@@ -108,9 +116,12 @@ export class EntityStore {
     return container;
   }
 
+  /*
   releaseEntityGroupContainer(container: EntityGroupContainer): void {
     // TODO Check dead entity group containers, push to list or remove it
+    // Although this will be never called...
   }
+  */
 
   createEntitySlot(signature: number[]): [EntityGroup, number] {
     // Well, this does not make any sense because to assign an entity slot, we
@@ -159,13 +170,27 @@ export class EntityStore {
     }
   }
 
-  createEntity(): Entity {
+  createEntity(
+    base?: (string | Component<unknown>)[] | object,
+  ): Entity {
     // Create floating entity group. Any other logic directly goes to Entity
     const [group, index] = this.createFloatingEntitySlot();
     const entity = new Entity(this, group, index);
     entity.add(this.idComponent);
     entity.set(this.idComponent, this.lastEntityId);
     this.lastEntityId += 1;
+
+    // If base was provided as an array, initialize them
+    if (Array.isArray(base)) {
+      base.forEach((item) => entity.add(item));
+      entity.unfloat();
+    } else if (base != null) {
+      Object.keys(base).forEach((key) => {
+        entity.add(key);
+        entity.set(key, (base as { [key: string]: unknown })[key]);
+      });
+      entity.unfloat();
+    }
 
     return entity;
   }
@@ -222,29 +247,21 @@ export class EntityStore {
 
     return entity;
   }
-
-  _removeEntityGroup(group: EntityGroup): void {
-    unallocateGroup(group, this);
-    // Remove itself from entity groups (TODO: don't full scan)
-    this.entityGroups = this.entityGroups.filter((v) => v !== group);
-    // Register this to dead list
-    this.deadEntityGroups.push(group);
-  }
-
-  _removeEntity(entity: Entity): void {
-    this.removedSignal.emit(entity);
-  }
+  */
 
   getEntity(id: number): Entity | null {
     return this.getIndex<IdIndex>('id').get(id);
   }
 
   forEachGroup(callback: (group: EntityGroup) => void): void {
-    this.entityGroups.forEach(callback);
+    this.entityGroupContainers.forEach((container) => {
+      container.groups.forEach(callback);
+    });
+    this.floatingEntityGroups.forEach(callback);
   }
 
   forEach(callback: (entity: Entity) => void): void {
-    this.entityGroups.forEach((group) => {
+    this.forEachGroup((group) => {
       const { size } = group;
       for (let i = 0; i < size; i += 1) {
         callback(new Entity(this, group, i));
@@ -256,7 +273,7 @@ export class EntityStore {
     components: { [K in keyof T]: Component<T[K]> },
     callback: (e: Entity, ...args: T) => void,
   ): void {
-    this.entityGroups.forEach((group) => {
+    this.forEachGroup((group) => {
       let failed = false;
       const offsets = components.map((component) => {
         const offset = getGroupComponentOffset(group, component);
@@ -289,49 +306,4 @@ export class EntityStore {
       entity.deserialize(entry);
     });
   }
-
-  _createEntityGroup(): EntityGroup {
-    if (this.deadEntityGroups.length > 0) {
-      const group = this.deadEntityGroups.pop() as EntityGroup;
-      group.disposed = false;
-      group.size = 0;
-      this.entityGroups.push(group);
-      return group;
-    }
-    const group = new EntityGroup();
-    group.id = this.lastGroupId;
-    this.lastGroupId += 1;
-    this.entityGroups.push(group);
-    return group;
-  }
-
-  _createEntityGroupFrom(baseGroup: EntityGroup, size: number): EntityGroup {
-    // Looking at base group's structure, it creates an entity group with
-    // same structure.
-
-    const group = this._createEntityGroup();
-    group.maxSize = size;
-
-    for (let i = 0; i < baseGroup.offsets.length; i += 1) {
-      if (baseGroup.offsets[i] !== -1) {
-        addGroupComponent(group, this.components[i]);
-      }
-    }
-
-    return group;
-  }
-
-  _findEntityGroup(hashCode: number): EntityGroup | null {
-    for (let i = 0; i < this.entityGroups.length; i += 1) {
-      const group = this.entityGroups[i];
-      if (
-        group.size < group.maxSize
-        && group.hashCode === hashCode
-      ) {
-        return group;
-      }
-    }
-    return null;
-  }
-  */
 }
