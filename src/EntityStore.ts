@@ -259,6 +259,30 @@ export class EntityStore {
     this.floatingEntityGroups.forEach(callback);
   }
 
+  forEachGroupWith(
+    components: Component<unknown>[],
+    callback: (group: EntityGroup) => void,
+  ): void {
+    this.entityGroupContainers.forEach((container) => {
+      // TODO: Maybe bitset is better?
+      const passed = components.every((component) => {
+        const { pos } = component;
+        if (pos == null) return false;
+        return container.components.length > pos && container.components[pos];
+      });
+      if (!passed) return;
+      container.groups.forEach(callback);
+    });
+    this.floatingEntityGroups.forEach((group) => {
+      const passed = components.every((component) => {
+        const offset = getGroupComponentOffset(group, component);
+        return offset !== -1;
+      });
+      if (!passed) return;
+      callback(group);
+    });
+  }
+
   forEach(callback: (entity: Entity) => void): void {
     this.forEachGroup((group) => {
       const { size } = group;
@@ -272,14 +296,8 @@ export class EntityStore {
     components: { [K in keyof T]: Component<T[K]> },
     callback: (e: Entity, ...args: T) => void,
   ): void {
-    this.forEachGroup((group) => {
-      let failed = false;
-      const offsets = components.map((component) => {
-        const offset = getGroupComponentOffset(group, component);
-        if (offset === -1) failed = true;
-        return offset;
-      });
-      if (failed) return;
+    this.forEachGroupWith(components, (group) => {
+      const offsets = components.map((v) => getGroupComponentOffset(group, v));
       const { size } = group;
       for (let i = 0; i < size; i += 1) {
         const entity = new Entity(this, group, i);
