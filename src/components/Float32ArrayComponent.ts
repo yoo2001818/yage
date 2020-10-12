@@ -42,6 +42,13 @@ export class Float32ArrayComponent extends AbstractComponent<Float32Array> {
     array.set(source, offset);
   }
 
+  getArrayOf(pos: number): [Float32Array, number] {
+    const page = pos / PAGE_SIZE | 0;
+    const offset = (pos % PAGE_SIZE) * this.dimensions;
+    const array = this.arrays[page];
+    return [array, offset];
+  }
+
   copyTo(): void {
     throw new Error('Immutable data does not support copying');
   }

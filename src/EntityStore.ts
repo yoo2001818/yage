@@ -67,12 +67,12 @@ export class EntityStore {
     return component;
   }
 
-  getComponent<T>(name: string): Component<T> {
+  getComponent<T extends Component<unknown>>(name: string): T {
     const pos = this.componentNames[name];
     if (pos == null) {
       throw new Error(`Component ${name} does not exist`);
     }
-    return this.components[pos] as Component<T>;
+    return this.components[pos] as T;
   }
 
   addIndex<T extends Index>(name: string, index: T): T {
@@ -247,6 +247,10 @@ export class EntityStore {
     return this.getIndex<IdIndex>('id').get(id);
   }
 
+  getEntityOfGroup(group: EntityGroup, index: number): Entity {
+    return new Entity(this, group, index);
+  }
+
   forEachGroup(callback: (group: EntityGroup) => void): void {
     this.entityGroupContainers.forEach((container) => {
       container.groups.forEach(callback);
@@ -256,25 +260,30 @@ export class EntityStore {
 
   forEachGroupWith(
     components: Component<unknown>[],
-    callback: (group: EntityGroup) => void,
+    callback: (group: EntityGroup, ...args: number[]) => void,
   ): void {
     this.entityGroupContainers.forEach((container) => {
-      // TODO: Maybe bitset is better?
       const passed = components.every((component) => {
         const { pos } = component;
         if (pos == null) return false;
         return container.components.length > pos && container.components[pos];
       });
       if (!passed) return;
-      container.groups.forEach(callback);
+      container.groups.forEach((group) => {
+        const offsets = components
+          .map((v) => getGroupComponentOffset(group, v));
+        callback(group, ...offsets);
+      });
     });
     this.floatingEntityGroups.forEach((group) => {
-      const passed = components.every((component) => {
+      let passed = true;
+      const offsets = components.map((component) => {
         const offset = getGroupComponentOffset(group, component);
-        return offset !== -1;
+        if (offset === -1) passed = false;
+        return offset;
       });
       if (!passed) return;
-      callback(group);
+      callback(group, ...offsets);
     });
   }
 

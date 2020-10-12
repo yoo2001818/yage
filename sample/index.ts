@@ -2,6 +2,7 @@ import { EntityStore } from '../src/EntityStore';
 import { SystemStore } from '../src/SystemStore';
 import { MutableComponent } from '../src/components/MutableComponent';
 import { Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
+import { Component } from '../src/components/Component';
 
 interface Shape {
   type: string,
@@ -29,8 +30,8 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponent('pos', new Float32ArrayComponent(3));
-  entityStore.addComponent('vel', new Float32ArrayComponent(3));
+  entityStore.addComponent('pos', new Float32ArrayComponent(2));
+  entityStore.addComponent('vel', new Float32ArrayComponent(2));
   entityStore.addComponent('shape', new MutableComponent<Shape>(() => ({
     type: 'box',
     color: '#fff',
@@ -73,12 +74,22 @@ function main() {
   });
   systemStore.addSystem(() => {
     // Step
-    const pos = entityStore.getComponent<number[]>('pos');
-    const vel = entityStore.getComponent<number[]>('vel');
+    const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
+    const vel = entityStore.getComponent<Float32ArrayComponent>('vel');
+    entityStore.forEachGroupWith([pos, vel], (group, posOffset, velOffset) => {
+      const [posArr, posArrIdx] = pos.getArrayOf(posOffset);
+      const [velArr, velArrIdx] = vel.getArrayOf(velOffset);
+      for (let i = 0; i < group.size; i += 1) {
+        posArr[posArrIdx + 2 * i] += velArr[velArrIdx + 2 * i];
+        posArr[posArrIdx + 2 * i + 1] += velArr[velArrIdx + 2 * i + 1];
+      }
+    });
+    /*
     entityStore.forEachWith([pos, vel], (_, entityPos, entityVel) => {
       entityPos[0] += entityVel[0];
       entityPos[1] += entityVel[1];
     });
+    */
     /*
     entityStore.forEach([pos, vel], (pos, vel) => {
       pos[0] += vel[0];
@@ -88,7 +99,8 @@ function main() {
   });
   systemStore.addSystem(() => {
     // Respawn
-    const pos = entityStore.getComponent<number[]>('pos');
+    /*
+    const pos = entityStore.getComponent<Component<number[]>>('pos');
     entityStore.forEachWith([pos], (entity, entityPos) => {
       if (
         entityPos[0] < 0
@@ -97,6 +109,22 @@ function main() {
         || entityPos[1] > 1
       ) {
         entity.destroy();
+      }
+    });
+    */
+    const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
+    entityStore.forEachGroupWith([pos], (group, posOffset) => {
+      const [posArr, posArrIdx] = pos.getArrayOf(posOffset);
+      const deleteList = [];
+      for (let i = 0; i < group.size; i += 1) {
+        const x = posArr[posArrIdx + 2 * i];
+        const y = posArr[posArrIdx + 2 * i + 1];
+        if (x < 0 || x > 1 || y < 0 || y > 1) {
+          deleteList.push(i);
+        }
+      }
+      for (let i = 0; i < deleteList.length; i += 1) {
+        entityStore.getEntityOfGroup(group, deleteList[i]).destroy();
       }
     });
     /*
@@ -122,8 +150,8 @@ function main() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // TODO Clearly we need a method to iterate entities
-    const pos = entityStore.getComponent<number[]>('pos');
-    const shape = entityStore.getComponent<Shape>('shape');
+    const pos = entityStore.getComponent<Component<number[]>>('pos');
+    const shape = entityStore.getComponent<Component<Shape>>('shape');
     entityStore.forEach((entity) => {
       if (!entity.has(pos) || !entity.has(shape)) return;
       const entityPos = entity.get(pos)!;
