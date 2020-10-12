@@ -1,6 +1,7 @@
 import { EntityStore } from '../src/EntityStore';
 import { SystemStore } from '../src/SystemStore';
 import { MutableComponent } from '../src/components/MutableComponent';
+import { Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
 
 interface Shape {
   type: string,
@@ -28,8 +29,8 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponent('pos', new MutableComponent(() => [0, 0]));
-  entityStore.addComponent('vel', new MutableComponent(() => [0, 0]));
+  entityStore.addComponent('pos', new Float32ArrayComponent(3));
+  entityStore.addComponent('vel', new Float32ArrayComponent(3));
   entityStore.addComponent('shape', new MutableComponent<Shape>(() => ({
     type: 'box',
     color: '#fff',
@@ -150,6 +151,7 @@ function main() {
     requestAnimationFrame(next);
   }
   requestAnimationFrame(next);
+  console.log(entityStore);
 }
 
 main();
