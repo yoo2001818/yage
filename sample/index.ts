@@ -77,11 +77,11 @@ function main() {
     const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
     const vel = entityStore.getComponent<Float32ArrayComponent>('vel');
     entityStore.forEachGroupWith([pos, vel], (group, posOffset, velOffset) => {
-      const [posArr, posArrIdx] = pos.getArrayOf(posOffset);
-      const [velArr, velArrIdx] = vel.getArrayOf(velOffset);
+      const posArr = pos.getArrayOf(posOffset);
+      const velArr = vel.getArrayOf(velOffset);
       for (let i = 0; i < group.size; i += 1) {
-        posArr[posArrIdx + 2 * i] += velArr[velArrIdx + 2 * i];
-        posArr[posArrIdx + 2 * i + 1] += velArr[velArrIdx + 2 * i + 1];
+        posArr[2 * i] += velArr[2 * i];
+        posArr[2 * i + 1] += velArr[2 * i + 1];
       }
     });
     /*
@@ -114,11 +114,11 @@ function main() {
     */
     const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
     entityStore.forEachGroupWith([pos], (group, posOffset) => {
-      const [posArr, posArrIdx] = pos.getArrayOf(posOffset);
+      const posArr = pos.getArrayOf(posOffset);
       const deleteList = [];
       for (let i = 0; i < group.size; i += 1) {
-        const x = posArr[posArrIdx + 2 * i];
-        const y = posArr[posArrIdx + 2 * i + 1];
+        const x = posArr[2 * i];
+        const y = posArr[2 * i + 1];
         if (x < 0 || x > 1 || y < 0 || y > 1) {
           deleteList.push(i);
         }
