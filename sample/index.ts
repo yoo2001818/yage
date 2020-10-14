@@ -17,8 +17,8 @@ function main() {
   document.body.appendChild(canvas);
   canvas.width = 640;
   canvas.height = 480;
-  const ctx = canvas.getContext('2d');
-  if (ctx == null) {
+  const gl = canvas.getContext('webgl');
+  if (gl == null) {
     throw new Error('Unable to initialize');
   }
 
@@ -145,8 +145,68 @@ function main() {
     while (debugDiv.firstChild != null) debugDiv.removeChild(debugDiv.firstChild);
     debugDiv.appendChild(document.createTextNode(consoleData));
   });
+
+  const vsCode = `
+    attribute vec2 aPosition;
+    attribute vec2 aInstancePosition;
+
+    void main() {
+      gl_Position = vec4(aPosition + aInstancePosition, -1.0, 1.0);
+    }
+  `;
+
+  const fsCode = `
+    uniform highp vec4 uColor;
+
+    void main() {
+      gl_FragColor = uColor;
+    }
+  `;
+
+  // Initialize shader
+  const vShader = gl.createShader(gl.VERTEX_SHADER)!;
+  gl.shaderSource(vShader, vsCode);
+  gl.compileShader(vShader);
+  if (!gl.getShaderParameter(vShader, gl.COMPILE_STATUS)) {
+    alert(gl.getShaderInfoLog(vShader));
+  }
+
+  const fShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+  gl.shaderSource(fShader, fsCode);
+  gl.compileShader(fShader);
+  if (!gl.getShaderParameter(fShader, gl.COMPILE_STATUS)) {
+    alert(gl.getShaderInfoLog(fShader));
+  }
+
+  const glProgram = gl.createProgram()!;
+  gl.attachShader(glProgram, vShader);
+  gl.attachShader(glProgram, fShader);
+  gl.linkProgram(glProgram);
+
+  const aPosition = gl.getAttribLocation(glProgram, 'aPosition');
+  const aInstancePosition = gl.getAttribLocation(glProgram, 'aInstancePosition');
+  const uColor = gl.getUniformLocation(glProgram, 'uColor');
+
+  console.log(aPosition, aInstancePosition);
+
+  const posBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([
+      0, 0,
+      0.1, 0.1,
+      0, 0.1,
+      0.1, 0,
+    ]),
+    gl.STATIC_DRAW,
+  );
+
+  const instancePosBuffer = gl.createBuffer();
+
   systemStore.addSystem(() => {
     // Renderer
+    /*
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // TODO Clearly we need a method to iterate entities
@@ -168,6 +228,38 @@ function main() {
           break;
         default:
       }
+    });
+    */
+    gl.clearColor(0, 0, 0, 1);
+    gl.clearDepth(1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+    // We don't use depth testing for now.
+    const pos = entityStore.getComponent<Component<number[]>>('pos');
+    entityStore.forEach((entity) => {
+      if (!entity.has(pos)) return;
+      const entityPos = entity.get(pos)!;
+      gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([...entityPos, ...entityPos, ...entityPos, ...entityPos]),
+        gl.DYNAMIC_DRAW,
+      );
+      gl.enableVertexAttribArray(aInstancePosition);
+      gl.vertexAttribPointer(aInstancePosition, 2, gl.FLOAT, false, 0, 0);
+
+      // Bind aPosition
+      gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+      gl.enableVertexAttribArray(aPosition);
+      gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+
+      gl.useProgram(glProgram);
+
+      // Bind uColor
+      gl.uniform4f(uColor, 1, 1, 1, 1);
+
+      // Finally, issue draw call
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     });
   });
 
