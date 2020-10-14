@@ -58,7 +58,7 @@ function main() {
     });
   });
   systemStore.addSystem(() => {
-    for (let i = 0; i < 2; i += 1) {
+    for (let i = 0; i < 4; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;
@@ -146,12 +146,18 @@ function main() {
     debugDiv.appendChild(document.createTextNode(consoleData));
   });
 
+  const instancedExt = gl.getExtension('ANGLE_instanced_arrays');
+  if (instancedExt == null) {
+    alert('Instancing is required');
+    return;
+  }
+
   const vsCode = `
     attribute vec2 aPosition;
     attribute vec2 aInstancePosition;
 
     void main() {
-      gl_Position = vec4(aPosition + aInstancePosition, -1.0, 1.0);
+      gl_Position = vec4(aPosition + (aInstancePosition * 2.0 - vec2(1.0, 1.0)), -1.0, 1.0);
     }
   `;
 
@@ -195,9 +201,9 @@ function main() {
     gl.ARRAY_BUFFER,
     new Float32Array([
       0, 0,
-      0.1, 0.1,
-      0, 0.1,
-      0.1, 0,
+      0.05, 0,
+      0, 0.05,
+      0.05, 0.05,
     ]),
     gl.STATIC_DRAW,
   );
@@ -235,18 +241,18 @@ function main() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
     // We don't use depth testing for now.
-    const pos = entityStore.getComponent<Component<number[]>>('pos');
-    entityStore.forEach((entity) => {
-      if (!entity.has(pos)) return;
-      const entityPos = entity.get(pos)!;
+    const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
+    entityStore.forEachGroupWith([pos], (group, posOffset) => {
+      const posArray = pos.getArrayOf(posOffset);
       gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
       gl.bufferData(
         gl.ARRAY_BUFFER,
-        new Float32Array([...entityPos, ...entityPos, ...entityPos, ...entityPos]),
+        posArray,
         gl.DYNAMIC_DRAW,
       );
       gl.enableVertexAttribArray(aInstancePosition);
       gl.vertexAttribPointer(aInstancePosition, 2, gl.FLOAT, false, 0, 0);
+      instancedExt.vertexAttribDivisorANGLE(aInstancePosition, 1);
 
       // Bind aPosition
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
@@ -259,7 +265,12 @@ function main() {
       gl.uniform4f(uColor, 1, 1, 1, 1);
 
       // Finally, issue draw call
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      instancedExt.drawArraysInstancedANGLE(
+        gl.TRIANGLE_STRIP,
+        0,
+        4,
+        group.size,
+      );
     });
   });
 
