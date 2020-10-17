@@ -16,6 +16,10 @@ export class ComponentAllocator {
   }
 
   allocate(size: number): number {
+    // TODO: This must be able to handle any 2^n sized allocations. This means
+    // we have to manage something like a binary-tree, and if we need to
+    // support arbitrary size, we need to resize the on-the-fly...
+
     // This is similiar to malloc. We need to find an offset that can fulfill
     // given size.
     // Well, let's be simple! We'll only support group size and size of 1.

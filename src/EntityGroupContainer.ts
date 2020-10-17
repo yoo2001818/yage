@@ -34,6 +34,7 @@ export class EntityGroupContainer {
     const group = store.createEntityGroup();
     group.parentId = this.id;
     group.parentIndex = this.groups.length;
+    // TODO: Vary this
     group.maxSize = 32;
     this.groups.push(group);
 
