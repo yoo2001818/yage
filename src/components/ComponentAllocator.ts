@@ -50,7 +50,7 @@ export class ComponentAllocator {
     {
       let start = 0;
       let end = this.chunks.length;
-      while (start < end) {
+      while (start <= end) {
         const mid = (start + end) >> 1;
         const target = this.chunks[mid];
         if (target.start < chunk.start) {
