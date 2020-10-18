@@ -43,7 +43,7 @@ export class ComponentAllocator {
 
   unallocate(offset: number, size: number): void {
     // First, create a chunk using the offset and try to merge them together.
-    const chunk = { start: offset, end: offset + size };
+    let chunk: Chunk = { start: offset, end: offset + size };
     // Then, we need to find where it belongs to. Since we've got a sorted list,
     // a binary search is possible.
     let pos = 0;
@@ -54,9 +54,9 @@ export class ComponentAllocator {
         const mid = (start + end) >> 1;
         const target = this.chunks[mid];
         if (target.start < chunk.start) {
-          start = mid;
+          start = mid + 1;
         } else if (target.start > chunk.start) {
-          end = mid;
+          end = mid - 1;
         } else {
           // What?
           throw new Error('Resource unallocated twice');
@@ -65,7 +65,35 @@ export class ComponentAllocator {
       pos = start;
     }
     // So, the chunk belongs in that position!
-    // TODO: Implement merging.
-    this.chunks.splice(pos, 0, chunk);
+    let shouldAppend = true;
+    if (pos > 0) {
+      // Try to scan the chunk before that.
+      const beforeChunk = this.chunks[pos - 1];
+      if (beforeChunk.end === chunk.start) {
+        // Merge it.
+        shouldAppend = false;
+        beforeChunk.end = chunk.end;
+        chunk = beforeChunk;
+      }
+    }
+    if (this.chunks.length > pos) {
+      // Try to scan the chunk after that.
+      const afterChunk = this.chunks[pos];
+      if (afterChunk.start === chunk.end) {
+        if (shouldAppend) {
+          // We could just reuse afterChunk.
+          shouldAppend = false;
+          afterChunk.start = chunk.start;
+        } else {
+          // There is beforeChunk already overlapping - so the after chunk must
+          // be removed.
+          this.chunks.splice(pos, 1);
+          chunk.end = afterChunk.end;
+        }
+      }
+    }
+    if (shouldAppend) {
+      this.chunks.splice(pos, 0, chunk);
+    }
   }
 }
