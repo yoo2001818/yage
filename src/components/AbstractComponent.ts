@@ -12,7 +12,7 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   allocator: ComponentAllocator;
 
-  signal: Signal<[EntityGroup]>;
+  signal: Signal<[EntityGroup, number, number]>;
 
   constructor() {
     this.allocator = new ComponentAllocator((size) => this._allocateNew(size));
@@ -47,15 +47,19 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   abstract copyBetween(src: number, dest: number): void;
 
-  markChanged(group: EntityGroup): void {
-    this.signal.emit(group);
+  markChanged(group: EntityGroup, start = 0, size = group.size): void {
+    this.signal.emit(group, start, size);
   }
 
-  subscribe(callback: (group: EntityGroup) => void): void {
+  subscribe(
+    callback: (group: EntityGroup, start: number, size: number) => void,
+  ): void {
     this.signal.subscribe(callback);
   }
 
-  unsubscribe(callback: (group: EntityGroup) => void): void {
+  unsubscribe(
+    callback: (group: EntityGroup, start: number, size: number) => void,
+  ): void {
     this.signal.unsubscribe(callback);
   }
 }

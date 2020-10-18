@@ -27,8 +27,8 @@ export class IdIndex {
     // Register listeners
     this.store = store;
     this.idComponent = this.store.idComponent;
-    // this.store.removedSignal.subscribe(this._handleRemoved);
-    // this.store.idComponent.subscribe(this._handleChanged);
+    this.store.removedSignal.subscribe(this._handleRemoved);
+    this.store.idComponent.subscribe(this._handleChanged);
   }
 
   unregister(): void {
@@ -41,14 +41,14 @@ export class IdIndex {
     if (id != null) this.ids[id] = null;
   }
 
-  _handleChanged(group: EntityGroup): void {
+  _handleChanged(group: EntityGroup, start: number, size: number): void {
     // Scan the contents of the entity group and map the id index entries.
     const { idComponent } = this;
     const offset = getGroupComponentOffset(group, idComponent);
     if (offset === -1) return;
-    for (let i = 0; i < group.size; i += 1) {
-      const id = idComponent.get(offset + i);
-      this.ids[id] = { group, index: i };
+    for (let i = 0; i < size; i += 1) {
+      const id = idComponent.get(offset + start + i);
+      this.ids[id] = { group, index: start + i };
     }
   }
 

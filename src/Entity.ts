@@ -124,7 +124,7 @@ export class Entity {
       offset = getGroupComponentOffset(this.group, component);
     }
     component.set(offset + this.index, source);
-    component.markChanged(this.group);
+    component.markChanged(this.group, this.index, 1);
   }
 
   copyTo<T>(
