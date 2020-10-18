@@ -1,58 +1,71 @@
-const GROUP_SIZE = 32;
+const PAGE_SIZE = 65536;
+
+interface Chunk {
+  start: number,
+  end: number,
+}
 
 export class ComponentAllocator {
-  freedOffsets: number[];
-
-  freedSingleOffsets: number[];
+  chunks: Chunk[];
 
   onAllocate: (size: number) => number;
 
   constructor(
     onAllocate: (size: number) => number,
   ) {
-    this.freedOffsets = [];
-    this.freedSingleOffsets = [];
+    this.chunks = [];
     this.onAllocate = onAllocate;
   }
 
   allocate(size: number): number {
-    // TODO: This must be able to handle any 2^n sized allocations. This means
-    // we have to manage something like a binary-tree, and if we need to
-    // support arbitrary size, we need to resize the on-the-fly...
-
-    // This is similiar to malloc. We need to find an offset that can fulfill
-    // given size.
-    // Well, let's be simple! We'll only support group size and size of 1.
-    if (size === 1) {
-      // First, try to read if any single offsets exist...
-      if (this.freedSingleOffsets.length > 0) {
-        return this.freedSingleOffsets.pop() as number;
-      }
-      // Otherwise, borrow one block and use it
-      const addr = this.allocate(GROUP_SIZE);
-      for (let i = 1; i < GROUP_SIZE; i += 1) {
-        this.freedSingleOffsets.push(addr + i);
-      }
-      return addr;
+    // We could sort the chunks in size order, but let's resort to full scan
+    // for now.
+    let chunkIndex = this.chunks.findIndex((v) => v.end - v.start >= size);
+    let chunk: Chunk;
+    if (chunkIndex === -1) {
+      // There is no chunk available. Let's request for more...
+      const allocated = this.onAllocate(PAGE_SIZE);
+      chunk = { start: allocated, end: allocated + PAGE_SIZE };
+      this.chunks.push(chunk);
+      chunkIndex = this.chunks.length - 1;
+    } else {
+      chunk = this.chunks[chunkIndex];
     }
-    if (size === GROUP_SIZE) {
-      if (this.freedOffsets.length > 0) {
-        return this.freedOffsets.pop() as number;
-      }
-      return this.onAllocate(GROUP_SIZE);
+    // Slice the chunk at the beginning of the list.
+    const current = chunk.start;
+    chunk.start += size;
+    if (chunk.start === chunk.end) {
+      // If the chunk becomes empty, remove the chunk.
+      this.chunks.splice(chunkIndex, 1);
     }
-    throw new Error(`Size ${size} is unsupported for now`);
+    return current;
   }
 
   unallocate(offset: number, size: number): void {
-    if (size === 1) {
-      this.freedSingleOffsets.push(offset);
-      return;
+    // First, create a chunk using the offset and try to merge them together.
+    const chunk = { start: offset, end: offset + size };
+    // Then, we need to find where it belongs to. Since we've got a sorted list,
+    // a binary search is possible.
+    let pos = 0;
+    {
+      let start = 0;
+      let end = this.chunks.length;
+      while (start < end) {
+        const mid = (start + end) >> 1;
+        const target = this.chunks[mid];
+        if (target.start < chunk.start) {
+          start = mid;
+        } else if (target.start > chunk.start) {
+          end = mid;
+        } else {
+          // What?
+          throw new Error('Resource unallocated twice');
+        }
+      }
+      pos = start;
     }
-    if (size === GROUP_SIZE) {
-      this.freedOffsets.push(offset);
-      return;
-    }
-    throw new Error(`Size ${size} is unsupported for now`);
+    // So, the chunk belongs in that position!
+    // TODO: Implement merging.
+    this.chunks.splice(pos, 0, chunk);
   }
 }
