@@ -27,8 +27,8 @@ export class IdIndex {
     // Register listeners
     this.store = store;
     this.idComponent = this.store.idComponent;
-    this.store.removedSignal.subscribe(this._handleRemoved);
-    this.store.idComponent.subscribe(this._handleChanged);
+    // this.store.removedSignal.subscribe(this._handleRemoved);
+    // this.store.idComponent.subscribe(this._handleChanged);
   }
 
   unregister(): void {

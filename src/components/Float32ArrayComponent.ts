@@ -1,6 +1,6 @@
 import { AbstractComponent } from './AbstractComponent';
 
-const PAGE_SIZE = 1024;
+const PAGE_SIZE = 65536;
 
 export class Float32ArrayComponent extends AbstractComponent<Float32Array> {
   dimensions: number;

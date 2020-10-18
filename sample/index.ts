@@ -58,7 +58,7 @@ function main() {
     });
   });
   systemStore.addSystem(() => {
-    for (let i = 0; i < 4; i += 1) {
+    for (let i = 0; i < 1000; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;
@@ -209,6 +209,12 @@ function main() {
   );
 
   const instancePosBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    65536,
+    gl.DYNAMIC_DRAW,
+  );
 
   systemStore.addSystem(() => {
     // Renderer
@@ -225,7 +231,7 @@ function main() {
       ctx.fillStyle = entityShape.color;
       switch (entityShape.type) {
         case 'box':
-          ctx.fillRect(
+          ctx.fillRect;(
             entityPos[0] * canvas.width | 0,
             entityPos[1] * canvas.height | 0,
             entityShape.width * canvas.width | 0,
@@ -245,11 +251,7 @@ function main() {
     entityStore.forEachGroupWith([pos], (group, posOffset) => {
       const posArray = pos.getArrayOf(posOffset);
       gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
-      gl.bufferData(
-        gl.ARRAY_BUFFER,
-        posArray,
-        gl.DYNAMIC_DRAW,
-      );
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArray.subarray(0, group.size * 2));
       gl.enableVertexAttribArray(aInstancePosition);
       gl.vertexAttribPointer(aInstancePosition, 2, gl.FLOAT, false, 0, 0);
       instancedExt.vertexAttribDivisorANGLE(aInstancePosition, 1);
