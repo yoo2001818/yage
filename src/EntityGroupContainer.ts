@@ -67,6 +67,8 @@ export class EntityGroupContainer {
       // iterate them...
       this.freeGroups = this.freeGroups.filter((v) => v !== group);
       removeItem(this.groups, group.parentIndex);
+      // We need to reconcile all parentIndexes! ...
+      this.groups = this.groups.filter((v) => v !== group);
     }
   }
 }

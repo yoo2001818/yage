@@ -3,7 +3,6 @@ import { Float32ArrayComponent } from '../components/Float32ArrayComponent';
 import { EntityGroup } from '../EntityGroup';
 import { getGroupComponentOffset } from '../EntityGroupMethods';
 import { EntityStore } from '../EntityStore';
-import { Entity } from '../Entity';
 
 const PAGE_SIZE = 65536;
 

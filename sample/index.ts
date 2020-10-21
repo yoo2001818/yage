@@ -1,8 +1,9 @@
+import { mat4 } from 'gl-matrix';
 import { EntityStore } from '../src/EntityStore';
 import { SystemStore } from '../src/SystemStore';
 import { MutableComponent } from '../src/components/MutableComponent';
 import { Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
-import { Component } from '../src/components/Component';
+import { LocRotScaleIndex } from '../src/indexes/LocRotScaleIndex';
 
 interface Shape {
   type: string,
@@ -30,7 +31,7 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponent('pos', new Float32ArrayComponent(2));
+  entityStore.addComponent('pos', new Float32ArrayComponent(12));
   entityStore.addComponent('vel', new Float32ArrayComponent(2));
   entityStore.addComponent('shape', new MutableComponent<Shape>(() => ({
     type: 'box',
@@ -39,6 +40,8 @@ function main() {
     height: 0.01,
   })));
 
+  entityStore.addIndex('locRotScale', new LocRotScaleIndex('pos'));
+
   // Initialize system store
   const systemStore = new SystemStore();
 
@@ -46,19 +49,21 @@ function main() {
   systemStore.addSystem((event) => {
     // Game initializer
     if (event !== 'init') return;
+    /*
     entityStore.createEntity({
-      pos: [0.5, 0.5],
+      pos: [0, 0, -1.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
       vel: [0.01, 0],
       shape: {},
     });
     entityStore.createEntity({
-      pos: [0.5, 0.6],
+      pos: [0, 0, 2.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
       vel: [-0.007, 0.007],
       shape: {},
     });
+    */
   });
   systemStore.addSystem(() => {
-    for (let i = 0; i < 1000; i += 1) {
+    for (let i = 0; i < 200; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;
@@ -66,9 +71,8 @@ function main() {
       xDir /= dist;
       yDir /= dist;
       entityStore.createEntity({
-        pos: [-xDir / 2 + 0.5, -yDir / 2 + 0.5],
-        vel: [xDir * 0.01, yDir * 0.01],
-        shape: {},
+        pos: [-xDir / 2 + 0.5, -yDir / 2 + 0.5, 0, 0, 0, 0, 0, 1, 0.05, 0.05, 0.05, 0],
+        vel: [xDir * 0.02, yDir * 0.02],
       });
     }
   });
@@ -80,9 +84,10 @@ function main() {
       const posArr = pos.getArrayOf(posOffset);
       const velArr = vel.getArrayOf(velOffset);
       for (let i = 0; i < group.size; i += 1) {
-        posArr[2 * i] += velArr[2 * i];
-        posArr[2 * i + 1] += velArr[2 * i + 1];
+        posArr[12 * i] += velArr[2 * i];
+        posArr[12 * i + 1] += velArr[2 * i + 1];
       }
+      pos.markChanged(group);
     });
     /*
     entityStore.forEachWith([pos, vel], (_, entityPos, entityVel) => {
@@ -117,9 +122,9 @@ function main() {
       const posArr = pos.getArrayOf(posOffset);
       const deleteList = [];
       for (let i = 0; i < group.size; i += 1) {
-        const x = posArr[2 * i];
-        const y = posArr[2 * i + 1];
-        if (x < 0 || x > 1 || y < 0 || y > 1) {
+        const x = posArr[12 * i];
+        const y = posArr[12 * i + 1];
+        if (x < -10 || x > 10 || y < -10 || y > 10) {
           deleteList.push(i);
         }
       }
@@ -153,11 +158,14 @@ function main() {
   }
 
   const vsCode = `
-    attribute vec2 aPosition;
-    attribute vec2 aInstancePosition;
+    attribute vec3 aPosition;
+    attribute mat4 aModel;
+
+    uniform mat4 uView;
+    uniform mat4 uProjection;
 
     void main() {
-      gl_Position = vec4(aPosition + (aInstancePosition * 2.0 - vec2(1.0, 1.0)), -1.0, 1.0);
+      gl_Position = uProjection * uView * aModel * vec4(aPosition, 1.0);
     }
   `;
 
@@ -190,20 +198,48 @@ function main() {
   gl.linkProgram(glProgram);
 
   const aPosition = gl.getAttribLocation(glProgram, 'aPosition');
-  const aInstancePosition = gl.getAttribLocation(glProgram, 'aInstancePosition');
+  const aModel = gl.getAttribLocation(glProgram, 'aModel');
   const uColor = gl.getUniformLocation(glProgram, 'uColor');
+  const uView = gl.getUniformLocation(glProgram, 'uView');
+  const uProjection = gl.getUniformLocation(glProgram, 'uProjection');
 
-  console.log(aPosition, aInstancePosition);
+  console.log(aPosition, aModel);
 
   const posBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([
-      0, 0,
-      0.05, 0,
-      0, 0.05,
-      0.05, 0.05,
+      // Front
+      -1.0, -1.0, 1.0,
+      1.0, -1.0, 1.0,
+      1.0, 1.0, 1.0,
+      -1.0, 1.0, 1.0,
+      // Top
+      -1.0, 1.0, 1.0,
+      1.0, 1.0, 1.0,
+      1.0, 1.0, -1.0,
+      -1.0, 1.0, -1.0,
+      // Back
+      1.0, -1.0, -1.0,
+      -1.0, -1.0, -1.0,
+      -1.0, 1.0, -1.0,
+      1.0, 1.0, -1.0,
+      // Bottom
+      -1.0, -1.0, -1.0,
+      1.0, -1.0, -1.0,
+      1.0, -1.0, 1.0,
+      -1.0, -1.0, 1.0,
+      // Left
+      -1.0, -1.0, -1.0,
+      -1.0, -1.0, 1.0,
+      -1.0, 1.0, 1.0,
+      -1.0, 1.0, -1.0,
+      // Right
+      1.0, -1.0, 1.0,
+      1.0, -1.0, -1.0,
+      1.0, 1.0, -1.0,
+      1.0, 1.0, 1.0,
     ]),
     gl.STATIC_DRAW,
   );
@@ -212,9 +248,18 @@ function main() {
   gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
   gl.bufferData(
     gl.ARRAY_BUFFER,
-    65536,
+    65536 * 16,
     gl.DYNAMIC_DRAW,
   );
+
+  const viewMat = mat4.create();
+  const projectionMat = mat4.create();
+
+  mat4.identity(viewMat);
+  mat4.translate(viewMat, viewMat, [0, 0, -5]);
+  mat4.rotateX(viewMat, viewMat, Math.PI / 8);
+  mat4.rotateY(viewMat, viewMat, -Math.PI / 4);
+  mat4.perspective(projectionMat, 90 / 180 * Math.PI, 640 / 480, 0.1, 1000);
 
   systemStore.addSystem(() => {
     // Renderer
@@ -247,30 +292,42 @@ function main() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
     // We don't use depth testing for now.
+    const locRotScale = entityStore.getIndex<LocRotScaleIndex>('locRotScale');
     const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
     entityStore.forEachGroupWith([pos], (group, posOffset) => {
-      const posArray = pos.getArrayOf(posOffset);
+      const posArray = locRotScale.getArrayOf(posOffset);
       gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
-      gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArray.subarray(0, group.size * 2));
-      gl.enableVertexAttribArray(aInstancePosition);
-      gl.vertexAttribPointer(aInstancePosition, 2, gl.FLOAT, false, 0, 0);
-      instancedExt.vertexAttribDivisorANGLE(aInstancePosition, 1);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArray.subarray(0, group.size * 16));
+      gl.enableVertexAttribArray(aModel);
+      gl.enableVertexAttribArray(aModel + 1);
+      gl.enableVertexAttribArray(aModel + 2);
+      gl.enableVertexAttribArray(aModel + 3);
+      gl.vertexAttribPointer(aModel, 4, gl.FLOAT, false, 64, 0);
+      gl.vertexAttribPointer(aModel + 1, 4, gl.FLOAT, false, 64, 16);
+      gl.vertexAttribPointer(aModel + 2, 4, gl.FLOAT, false, 64, 32);
+      gl.vertexAttribPointer(aModel + 3, 4, gl.FLOAT, false, 64, 48);
+      instancedExt.vertexAttribDivisorANGLE(aModel, 1);
+      instancedExt.vertexAttribDivisorANGLE(aModel + 1, 1);
+      instancedExt.vertexAttribDivisorANGLE(aModel + 2, 1);
+      instancedExt.vertexAttribDivisorANGLE(aModel + 3, 1);
 
       // Bind aPosition
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
       gl.enableVertexAttribArray(aPosition);
-      gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
 
       gl.useProgram(glProgram);
 
       // Bind uColor
       gl.uniform4f(uColor, 1, 1, 1, 1);
+      gl.uniformMatrix4fv(uView, false, viewMat);
+      gl.uniformMatrix4fv(uProjection, false, projectionMat);
 
       // Finally, issue draw call
       instancedExt.drawArraysInstancedANGLE(
         gl.TRIANGLE_STRIP,
         0,
-        4,
+        24,
         group.size,
       );
     });
