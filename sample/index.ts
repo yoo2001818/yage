@@ -32,7 +32,8 @@ function main() {
 
   // Add needed components
   entityStore.addComponent('pos', new Float32ArrayComponent(12));
-  entityStore.addComponent('vel', new Float32ArrayComponent(2));
+  entityStore.addComponent('vel', new Float32ArrayComponent(3));
+  entityStore.addComponent('color', new Float32ArrayComponent(3));
   entityStore.addComponent('shape', new MutableComponent<Shape>(() => ({
     type: 'box',
     color: '#fff',
@@ -63,16 +64,19 @@ function main() {
     */
   });
   systemStore.addSystem(() => {
-    for (let i = 0; i < 200; i += 1) {
+    for (let i = 0; i < 20; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;
-      const dist = Math.sqrt(xDir * xDir + yDir * yDir);
+      let zDir = Math.random() * 2 - 1;
+      const dist = Math.sqrt(xDir * xDir + yDir * yDir + zDir * zDir);
       xDir /= dist;
       yDir /= dist;
+      zDir /= dist;
       entityStore.createEntity({
-        pos: [-xDir / 2 + 0.5, -yDir / 2 + 0.5, 0, 0, 0, 0, 0, 1, 0.05, 0.05, 0.05, 0],
-        vel: [xDir * 0.02, yDir * 0.02],
+        pos: [0, 0, 0, 0, 0, 0, 0, 1, 0.1, 0.1, 0.1, 0],
+        vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
+        color: [Math.random(), Math.random(), Math.random()],
       });
     }
   });
@@ -84,8 +88,9 @@ function main() {
       const posArr = pos.getArrayOf(posOffset);
       const velArr = vel.getArrayOf(velOffset);
       for (let i = 0; i < group.size; i += 1) {
-        posArr[12 * i] += velArr[2 * i];
-        posArr[12 * i + 1] += velArr[2 * i + 1];
+        posArr[12 * i] += velArr[3 * i];
+        posArr[12 * i + 1] += velArr[3 * i + 1];
+        posArr[12 * i + 2] += velArr[3 * i + 2];
       }
       pos.markChanged(group);
     });
@@ -124,7 +129,8 @@ function main() {
       for (let i = 0; i < group.size; i += 1) {
         const x = posArr[12 * i];
         const y = posArr[12 * i + 1];
-        if (x < -10 || x > 10 || y < -10 || y > 10) {
+        const z = posArr[12 * i + 2];
+        if (x < -10 || x > 10 || y < -10 || y > 10 || z < -10 || z > 10) {
           deleteList.push(i);
         }
       }
@@ -141,15 +147,6 @@ function main() {
     });
     */
   });
-  systemStore.addSystem(() => {
-    // Debug display
-    const consoleData = String(
-      entityStore.entityGroups.reduce((p, v) => p + v.size, 0),
-    );
-    // JSON.stringify(entityStore.serialize(), null, 2);
-    while (debugDiv.firstChild != null) debugDiv.removeChild(debugDiv.firstChild);
-    debugDiv.appendChild(document.createTextNode(consoleData));
-  });
 
   const instancedExt = gl.getExtension('ANGLE_instanced_arrays');
   if (instancedExt == null) {
@@ -160,20 +157,24 @@ function main() {
   const vsCode = `
     attribute vec3 aPosition;
     attribute mat4 aModel;
+    attribute vec3 aColor;
 
     uniform mat4 uView;
     uniform mat4 uProjection;
 
+    varying lowp vec3 vColor;
+
     void main() {
+      vColor = aColor;
       gl_Position = uProjection * uView * aModel * vec4(aPosition, 1.0);
     }
   `;
 
   const fsCode = `
-    uniform highp vec4 uColor;
+    varying lowp vec3 vColor;
 
     void main() {
-      gl_FragColor = uColor;
+      gl_FragColor = vec4(vColor, 1.0);
     }
   `;
 
@@ -199,7 +200,8 @@ function main() {
 
   const aPosition = gl.getAttribLocation(glProgram, 'aPosition');
   const aModel = gl.getAttribLocation(glProgram, 'aModel');
-  const uColor = gl.getUniformLocation(glProgram, 'uColor');
+  const aColor = gl.getAttribLocation(glProgram, 'aColor');
+  // const uColor = gl.getUniformLocation(glProgram, 'uColor');
   const uView = gl.getUniformLocation(glProgram, 'uView');
   const uProjection = gl.getUniformLocation(glProgram, 'uProjection');
 
@@ -210,36 +212,20 @@ function main() {
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([
-      // Front
-      -1.0, -1.0, 1.0,
-      1.0, -1.0, 1.0,
-      1.0, 1.0, 1.0,
-      -1.0, 1.0, 1.0,
-      // Top
-      -1.0, 1.0, 1.0,
-      1.0, 1.0, 1.0,
-      1.0, 1.0, -1.0,
-      -1.0, 1.0, -1.0,
-      // Back
-      1.0, -1.0, -1.0,
-      -1.0, -1.0, -1.0,
-      -1.0, 1.0, -1.0,
-      1.0, 1.0, -1.0,
-      // Bottom
-      -1.0, -1.0, -1.0,
-      1.0, -1.0, -1.0,
-      1.0, -1.0, 1.0,
-      -1.0, -1.0, 1.0,
-      // Left
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0, 1.0,
-      -1.0, 1.0, 1.0,
-      -1.0, 1.0, -1.0,
-      // Right
-      1.0, -1.0, 1.0,
-      1.0, -1.0, -1.0,
-      1.0, 1.0, -1.0,
-      1.0, 1.0, 1.0,
+      -1, 1, 1,
+      1, 1, 1,
+      -1, -1, 1,
+      1, -1, 1,
+      1, -1, -1,
+      1, 1, 1,
+      1, 1, -1,
+      -1, 1, 1,
+      -1, 1, -1,
+      -1, -1, 1,
+      -1, -1, -1,
+      1, -1, -1,
+      -1, 1, -1,
+      1, 1, 1,
     ]),
     gl.STATIC_DRAW,
   );
@@ -249,6 +235,14 @@ function main() {
   gl.bufferData(
     gl.ARRAY_BUFFER,
     65536 * 16,
+    gl.DYNAMIC_DRAW,
+  );
+
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    65536 * 3,
     gl.DYNAMIC_DRAW,
   );
 
@@ -290,11 +284,15 @@ function main() {
     gl.clearColor(0, 0, 0, 1);
     gl.clearDepth(1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.depthFunc(gl.LESS);
+    gl.cullFace(gl.FRONT);
 
-    // We don't use depth testing for now.
     const locRotScale = entityStore.getIndex<LocRotScaleIndex>('locRotScale');
     const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
-    entityStore.forEachGroupWith([pos], (group, posOffset) => {
+    const color = entityStore.getComponent<Float32ArrayComponent>('color');
+    entityStore.forEachGroupWith([pos, color], (group, posOffset, colorOffset) => {
       const posArray = locRotScale.getArrayOf(posOffset);
       gl.bindBuffer(gl.ARRAY_BUFFER, instancePosBuffer);
       gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArray.subarray(0, group.size * 16));
@@ -311,6 +309,13 @@ function main() {
       instancedExt.vertexAttribDivisorANGLE(aModel + 2, 1);
       instancedExt.vertexAttribDivisorANGLE(aModel + 3, 1);
 
+      const colorArray = color.getArrayOf(colorOffset);
+      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, colorArray.subarray(0, group.size * 3));
+      gl.enableVertexAttribArray(aColor);
+      gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 0, 0);
+      instancedExt.vertexAttribDivisorANGLE(aColor, 1);
+
       // Bind aPosition
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
       gl.enableVertexAttribArray(aPosition);
@@ -319,7 +324,7 @@ function main() {
       gl.useProgram(glProgram);
 
       // Bind uColor
-      gl.uniform4f(uColor, 1, 1, 1, 1);
+      // gl.uniform4f(uColor, 1, 1, 1, 1);
       gl.uniformMatrix4fv(uView, false, viewMat);
       gl.uniformMatrix4fv(uProjection, false, projectionMat);
 
@@ -327,7 +332,7 @@ function main() {
       instancedExt.drawArraysInstancedANGLE(
         gl.TRIANGLE_STRIP,
         0,
-        24,
+        14,
         group.size,
       );
     });
