@@ -6,7 +6,7 @@ import { removeItem } from './utils/array';
 export class EntityGroupContainer {
   id: number = 0;
 
-  components: boolean[] = [];
+  components: number[] = [];
 
   hashCode: number = 0;
 
@@ -14,7 +14,7 @@ export class EntityGroupContainer {
 
   freeGroups: EntityGroup[] = [];
 
-  init(components: boolean[]): void {
+  init(components: number[]): void {
     this.components = components;
     this.hashCode = getGroupContainerHashCode(components);
   }
