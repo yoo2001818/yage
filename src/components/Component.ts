@@ -13,6 +13,7 @@ export interface Component<T> {
   name: string | null,
   pos: number | null,
   size: number,
+  unison: boolean,
 
   register(name: string, pos: number): void,
   unregister(): void,
@@ -32,4 +33,7 @@ export interface Component<T> {
   unsubscribe(
     callback: (group: EntityGroup, start: number, size: number) => void,
   ): void,
+
+  // Unison component
+  getOffset(data: T): number,
 }
