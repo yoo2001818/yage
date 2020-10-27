@@ -177,6 +177,7 @@ export class EntityStore {
       // Map the component array to 'signatures'. We must make sure that
       // we don't have any 'holes' ... but I think this will be enough for now.
       // TODO Properly generate signature array
+      // TODO This is no longer possible if unison component is present
       const signature: number[] = [];
       base.forEach((item) => {
         const component = typeof item === 'string'
@@ -198,6 +199,7 @@ export class EntityStore {
       const signature: number[] = [];
       Object.keys(base).forEach((key) => {
         const component = this.getComponent(key);
+        // TODO Check if unison component, and calculate proper offset if it is
         signature[component.pos!] = 0;
       });
       signature[this.idComponent.pos!] = 0;

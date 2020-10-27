@@ -67,6 +67,7 @@ export class Entity {
       this.add(componentInst);
       return;
     }
+    // TODO Throw an error if unison component
     this.float();
     addGroupComponent(this.group, component);
     component.markChanged(this.group);
@@ -118,6 +119,8 @@ export class Entity {
       this.set(componentInst, source);
       return;
     }
+    // TODO If the component is unison component, we need to float it
+    // nevertheless
     let offset = getGroupComponentOffset(this.group, component);
     if (offset === -1) {
       this.add(component);
