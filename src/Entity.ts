@@ -69,7 +69,7 @@ export class Entity {
     }
     // TODO Throw an error if unison component
     this.float();
-    addGroupComponent(this.group, component);
+    addGroupComponent(this.group, component, this.store);
     component.markChanged(this.group);
   }
 
@@ -79,7 +79,7 @@ export class Entity {
       this.remove(componentInst);
       return;
     }
-    removeGroupComponent(this.group, component);
+    removeGroupComponent(this.group, component, this.store);
     component.markChanged(this.group);
   }
 

@@ -14,9 +14,12 @@ export class EntityGroupContainer {
 
   freeGroups: EntityGroup[] = [];
 
-  init(components: number[]): void {
+  init(
+    components: number[],
+    store: EntityStore,
+  ): void {
     this.components = components;
-    this.hashCode = getGroupContainerHashCode(components);
+    this.hashCode = getGroupContainerHashCode(components, store);
   }
 
   createEntitySlot(store: EntityStore): [EntityGroup, number] {
@@ -40,7 +43,7 @@ export class EntityGroupContainer {
     // TODO This is not ideal
     for (let i = 0; i < this.components.length; i += 1) {
       if (this.components[i]) {
-        addGroupComponent(group, store.components[i]);
+        addGroupComponent(group, store.components[i], store);
       }
     }
     group.size += 1;

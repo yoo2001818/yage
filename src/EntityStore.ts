@@ -228,7 +228,7 @@ export class EntityStore {
   // bitset - but we'll do this right here for now, and accept
   // offsets array as an argument.
   getEntityGroupContainer(signature: number[]): EntityGroupContainer {
-    const hashCode = getGroupContainerHashCode(signature);
+    const hashCode = getGroupContainerHashCode(signature, this);
     // Bleh - we're full scanning the array! It's okay for now...
     let item = this.entityGroupContainers
       .find((v) => v.hashCode === hashCode);
