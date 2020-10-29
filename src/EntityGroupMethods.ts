@@ -56,6 +56,9 @@ export function addGroupComponent(
   store: EntityStore,
 ): void {
   const { pos } = component;
+  if (component.unison) {
+    throw new Error('Cannot add unison component without specifying value');
+  }
   if (pos == null) return;
   if (group.offsets.length > pos && group.offsets[pos] !== -1) return;
   group.offsets[pos] = component.allocate(group.maxSize);

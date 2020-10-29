@@ -8,6 +8,7 @@ import {
   getGroupComponentOffset,
   getGroupComponents,
   copyGroupComponents,
+  updateGroupHashCode,
 } from './EntityGroupMethods';
 
 export class Entity {
@@ -67,7 +68,9 @@ export class Entity {
       this.add(componentInst);
       return;
     }
-    // TODO Throw an error if unison component
+    if (component.unison) {
+      throw new Error('Cannot add unison component without specifying value');
+    }
     this.float();
     addGroupComponent(this.group, component, this.store);
     component.markChanged(this.group);
@@ -119,15 +122,19 @@ export class Entity {
       this.set(componentInst, source);
       return;
     }
-    // TODO If the component is unison component, we need to float it
-    // nevertheless
-    let offset = getGroupComponentOffset(this.group, component);
-    if (offset === -1) {
-      this.add(component);
-      offset = getGroupComponentOffset(this.group, component);
+    if (component.unison) {
+      this.float();
+      this.group.offsets[component.pos!] = component.getUnisonOffset(source);
+      updateGroupHashCode(this.group, this.store);
+    } else {
+      let offset = getGroupComponentOffset(this.group, component);
+      if (offset === -1) {
+        this.add(component);
+        offset = getGroupComponentOffset(this.group, component);
+      }
+      component.set(offset + this.index, source);
+      component.markChanged(this.group, this.index, 1);
     }
-    component.set(offset + this.index, source);
-    component.markChanged(this.group, this.index, 1);
   }
 
   copyTo<T>(

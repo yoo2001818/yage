@@ -35,5 +35,5 @@ export interface Component<T> {
   ): void,
 
   // Unison component
-  getOffset(data: T): number,
+  getUnisonOffset(data: T): number,
 }

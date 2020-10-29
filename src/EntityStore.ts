@@ -197,10 +197,14 @@ export class EntityStore {
       // we don't have any 'holes' ... but I think this will be enough for now.
       // TODO Properly generate signature array
       const signature: number[] = [];
+      const baseObj = base as { [key: string]: unknown };
       Object.keys(base).forEach((key) => {
         const component = this.getComponent(key);
-        // TODO Check if unison component, and calculate proper offset if it is
-        signature[component.pos!] = 0;
+        if (component.unison) {
+          signature[component.pos!] = component.getUnisonOffset(baseObj[key]);
+        } else {
+          signature[component.pos!] = 0;
+        }
       });
       signature[this.idComponent.pos!] = 0;
       const [group, index] = this.createEntitySlot(signature);
@@ -208,7 +212,7 @@ export class EntityStore {
       entity.set(this.idComponent, this.lastEntityId);
       this.lastEntityId += 1;
       Object.keys(base).forEach((key) => {
-        entity.set(key, (base as { [key: string]: unknown })[key]);
+        entity.set(key, baseObj[key]);
       });
       return entity;
     }
