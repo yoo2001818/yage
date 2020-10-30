@@ -10,6 +10,8 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   size: number = 0;
 
+  unison: boolean = false;
+
   allocator: ComponentAllocator;
 
   signal: Signal<[EntityGroup, number, number]>;
@@ -61,5 +63,9 @@ export abstract class AbstractComponent<T> implements Component<T> {
     callback: (group: EntityGroup, start: number, size: number) => void,
   ): void {
     this.signal.unsubscribe(callback);
+  }
+
+  getUnisonOffset(): number {
+    return -1;
   }
 }
