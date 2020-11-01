@@ -15,8 +15,11 @@ export class UnisonComponent<T> implements Component<T> {
 
   list: T[] = [];
 
-  constructor() {
+  isEqual: (a: T, b: T) => boolean;
+
+  constructor(isEqual: (a: T, b: T) => boolean) {
     this.signal = new Signal();
+    this.isEqual = isEqual;
   }
 
   register(name: string, pos: number): void {
@@ -70,7 +73,7 @@ export class UnisonComponent<T> implements Component<T> {
 
   getUnisonOffset(value: T): number {
     // TODO Make it faster (duh)
-    const index = this.list.findIndex((v) => v === value);
+    const index = this.list.findIndex((v) => this.isEqual(v, value));
     if (index !== -1) return index;
     this.list.push(value);
     return this.list.length - 1;
