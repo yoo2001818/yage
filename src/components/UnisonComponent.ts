@@ -1,6 +1,6 @@
 import { Component } from './Component';
 import { Signal } from '../Signal';
-import { EntityGroup } from '../EntityGroup';
+import { EntityGroup } from '../store/EntityGroup';
 
 export class UnisonComponent<T> implements Component<T> {
   name: string | null = null;

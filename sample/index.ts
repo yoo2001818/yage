@@ -1,6 +1,6 @@
 import { mat4 } from 'gl-matrix';
-import { EntityStore } from '../src/EntityStore';
-import { SystemStore } from '../src/SystemStore';
+import { EntityStore } from '../src/store/EntityStore';
+import { SystemStore } from '../src/store/SystemStore';
 import { MutableComponent } from '../src/components/MutableComponent';
 import { Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
 import { LocRotScaleIndex } from '../src/indexes/LocRotScaleIndex';

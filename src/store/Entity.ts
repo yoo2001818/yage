@@ -1,6 +1,6 @@
 import { EntityGroup } from './EntityGroup';
 import { EntityStore } from './EntityStore';
-import { Component } from './components/Component';
+import { Component } from '../components/Component';
 import {
   copyGroupEntity,
   addGroupComponent,

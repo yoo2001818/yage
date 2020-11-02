@@ -1,7 +1,7 @@
 import { Component } from './Component';
 import { ComponentAllocator } from './ComponentAllocator';
 import { Signal } from '../Signal';
-import { EntityGroup } from '../EntityGroup';
+import { EntityGroup } from '../store/EntityGroup';
 
 export abstract class AbstractComponent<T> implements Component<T> {
   name: string | null = null;

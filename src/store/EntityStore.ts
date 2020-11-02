@@ -1,17 +1,17 @@
-import { Component } from './components/Component';
-import { ImmutableComponent } from './components/ImmutableComponent';
+import { Component } from '../components/Component';
+import { ImmutableComponent } from '../components/ImmutableComponent';
 import { EntityGroup } from './EntityGroup';
 import { EntityGroupContainer } from './EntityGroupContainer';
 import { Entity } from './Entity';
-import { Signal } from './Signal';
+import { Signal } from '../Signal';
 import {
   getGroupContainerHashCode,
   removeGroupEntity,
   getGroupComponentOffset,
 } from './EntityGroupMethods';
-import { Index } from './indexes/Index';
-import { IdIndex } from './indexes/IdIndex';
-import { removeItem } from './utils/array';
+import { Index } from '../indexes/Index';
+import { IdIndex } from '../indexes/IdIndex';
+import { removeItem } from '../utils/array';
 
 export class EntityStore {
   components: Component<unknown>[] = [];
