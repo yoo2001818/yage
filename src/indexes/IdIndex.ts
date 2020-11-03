@@ -1,8 +1,8 @@
 import { Component } from '../components/Component';
-import { EntityGroup } from '../EntityGroup';
-import { getGroupComponentOffset } from '../EntityGroupMethods';
-import { EntityStore } from '../EntityStore';
-import { Entity } from '../Entity';
+import { EntityGroup } from '../store/EntityGroup';
+import { getGroupComponentOffset } from '../store/EntityGroupMethods';
+import { EntityStore } from '../store/EntityStore';
+import { Entity } from '../store/Entity';
 
 interface IdIndexEntry {
   group: EntityGroup,
