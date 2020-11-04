@@ -1,8 +1,8 @@
 import { mat4 } from 'gl-matrix';
 import { Float32ArrayComponent } from '../components/Float32ArrayComponent';
-import { EntityGroup } from '../EntityGroup';
-import { getGroupComponentOffset } from '../EntityGroupMethods';
-import { EntityStore } from '../EntityStore';
+import { EntityGroup } from '../store/EntityGroup';
+import { getGroupComponentOffset } from '../store/EntityGroupMethods';
+import { EntityStore } from '../store/EntityStore';
 
 const PAGE_SIZE = 65536;
 
