@@ -19,6 +19,7 @@
     "no-bitwise": "off",
     "class-methods-use-this": "off",
     "no-continue": "off",
-    "max-classes-per-file": "off"
+    "max-classes-per-file": "off",
+    "no-mixed-operators": "off"
   }
 }
