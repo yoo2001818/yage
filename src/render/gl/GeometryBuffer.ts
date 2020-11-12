@@ -66,5 +66,6 @@ export class GeometryBuffer {
 
   bind(shaderBuffer: ShaderBuffer): void {
     // Using shaderBuffer's attribute information, we have to map the buffers
+    // to attribute location
   }
 }
