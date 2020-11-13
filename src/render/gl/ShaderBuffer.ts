@@ -41,5 +41,16 @@ export class ShaderBuffer {
     this.shaders = [vertShader, fragShader];
 
     // Read uniform, attributes information
+    const nUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < nUniforms; i += 1) {
+      const uniform = gl.getActiveUniform(program, i)!;
+      const loc = gl.getUniformLocation(program, uniform.name);
+    }
+
+    const nAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+    for (let i = 0; i < nAttributes; i += 1) {
+      const attribute = gl.getActiveAttrib(program, i)!;
+      const loc = gl.getAttribLocation(program, attribute.name);
+    }
   }
 }
