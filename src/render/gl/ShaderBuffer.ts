@@ -7,6 +7,10 @@ export class ShaderBuffer {
 
   shaders: WebGLShader[] = [];
 
+  uniforms: unknown[];
+
+  attributes: unknown[];
+
   version: number = -1;
 
   constructor(gl: WebGLRenderingContext) {
@@ -42,15 +46,24 @@ export class ShaderBuffer {
 
     // Read uniform, attributes information
     const nUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    const uniforms = [];
     for (let i = 0; i < nUniforms; i += 1) {
       const uniform = gl.getActiveUniform(program, i)!;
       const loc = gl.getUniformLocation(program, uniform.name);
+
+      uniforms.push({ uniform, loc });
     }
 
     const nAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+    const attributes = [];
     for (let i = 0; i < nAttributes; i += 1) {
       const attribute = gl.getActiveAttrib(program, i)!;
       const loc = gl.getAttribLocation(program, attribute.name);
+
+      attributes.push({ attribute, loc });
     }
+
+    this.attributes = attributes;
+    this.uniforms = uniforms;
   }
 }
