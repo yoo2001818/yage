@@ -1,5 +1,19 @@
 import { Shader } from '../Shader';
 
+export interface UniformType {
+  name: string,
+  size: number,
+  type: number,
+  location: WebGLUniformLocation,
+}
+
+export interface AttributeType {
+  name: string,
+  size: number,
+  type: number,
+  location: number,
+}
+
 export class ShaderBuffer {
   gl: WebGLRenderingContext;
 
@@ -7,9 +21,9 @@ export class ShaderBuffer {
 
   shaders: WebGLShader[] = [];
 
-  uniforms: unknown[];
+  uniforms: Map<string, UniformType> = new Map();
 
-  attributes: unknown[];
+  attributes: Map<string, AttributeType> = new Map();
 
   version: number = -1;
 
@@ -46,24 +60,30 @@ export class ShaderBuffer {
 
     // Read uniform, attributes information
     const nUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-    const uniforms = [];
+    this.uniforms = new Map();
     for (let i = 0; i < nUniforms; i += 1) {
       const uniform = gl.getActiveUniform(program, i)!;
-      const loc = gl.getUniformLocation(program, uniform.name);
-
-      uniforms.push({ uniform, loc });
+      const loc = gl.getUniformLocation(program, uniform.name)!;
+      this.uniforms.set(uniform.name, {
+        location: loc,
+        name: uniform.name,
+        size: uniform.size,
+        type: uniform.type,
+      });
     }
 
     const nAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-    const attributes = [];
+    this.attributes = new Map();
     for (let i = 0; i < nAttributes; i += 1) {
       const attribute = gl.getActiveAttrib(program, i)!;
       const loc = gl.getAttribLocation(program, attribute.name);
 
-      attributes.push({ attribute, loc });
+      this.attributes.set(attribute.name, {
+        location: loc,
+        name: attribute.name,
+        size: attribute.size,
+        type: attribute.type,
+      });
     }
-
-    this.attributes = attributes;
-    this.uniforms = uniforms;
   }
 }
