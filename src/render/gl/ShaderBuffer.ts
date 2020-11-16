@@ -86,4 +86,9 @@ export class ShaderBuffer {
       });
     }
   }
+
+  bind(): void {
+    const { gl } = this;
+    gl.useProgram(this.program);
+  }
 }
