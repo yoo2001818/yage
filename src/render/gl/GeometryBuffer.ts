@@ -3,6 +3,7 @@ import { ShaderBuffer } from './ShaderBuffer';
 
 interface BufferEntry {
   buffer: WebGLBuffer | null,
+  size: number,
   version: number,
 }
 
@@ -25,6 +26,7 @@ export class GeometryBuffer {
       if (bufferEntry == null) {
         bufferEntry = {
           buffer: this.gl.createBuffer(),
+          size: 0,
           version: -1,
         };
         this.buffers.set(key, bufferEntry);
@@ -38,6 +40,8 @@ export class GeometryBuffer {
           entry.array,
           this.gl.STATIC_DRAW,
         );
+        bufferEntry.size = entry.array.length;
+        bufferEntry.version = entry.version;
       }
     });
     // Then the indices
@@ -47,6 +51,7 @@ export class GeometryBuffer {
       if (bufferEntry == null) {
         bufferEntry = {
           buffer: this.gl.createBuffer(),
+          size: 0,
           version: -1,
         };
         this.buffers.set(key, bufferEntry);
@@ -60,6 +65,8 @@ export class GeometryBuffer {
           entry.array,
           this.gl.STATIC_DRAW,
         );
+        bufferEntry.size = entry.array.length;
+        bufferEntry.version = entry.version;
       }
     });
   }
@@ -67,5 +74,20 @@ export class GeometryBuffer {
   bind(shaderBuffer: ShaderBuffer): void {
     // Using shaderBuffer's attribute information, we have to map the buffers
     // to attribute location
+    const { gl } = this;
+    this.buffers.forEach((value, key) => {
+      const descriptor = shaderBuffer.attributes.get(key);
+      if (descriptor == null) return;
+      gl.bindBuffer(gl.ARRAY_BUFFER, value.buffer);
+      gl.enableVertexAttribArray(descriptor.location);
+      gl.vertexAttribPointer(
+        descriptor.location,
+        descriptor.size,
+        gl.FLOAT,
+        false,
+        0,
+        0,
+      );
+    });
   }
 }
