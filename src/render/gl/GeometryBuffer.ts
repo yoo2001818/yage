@@ -12,7 +12,7 @@ export class GeometryBuffer {
 
   buffers: Map<string, BufferEntry> = new Map();
 
-  indexBuffers: Map<string, BufferEntry> = new Map();
+  elements: BufferEntry | null = null;
 
   constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
@@ -44,19 +44,17 @@ export class GeometryBuffer {
         bufferEntry.version = entry.version;
       }
     });
-    // Then the indices
-    geometry.indices.forEach((entry, key) => {
-      let bufferEntry = this.buffers.get(key);
-      // Create new buffer if needed
-      if (bufferEntry == null) {
-        bufferEntry = {
+    // Then the elements
+    if (geometry.elements != null) {
+      const entry = geometry.elements;
+      if (this.elements == null) {
+        this.elements = {
           buffer: this.gl.createBuffer(),
           size: 0,
           version: -1,
         };
-        this.buffers.set(key, bufferEntry);
       }
-      // Upload the data...
+      const bufferEntry = this.elements;
       if (bufferEntry.version !== entry.version) {
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, bufferEntry.buffer);
         // TODO: Allow subData, and allow usage type
@@ -68,7 +66,7 @@ export class GeometryBuffer {
         bufferEntry.size = entry.array.length;
         bufferEntry.version = entry.version;
       }
-    });
+    }
   }
 
   bind(shaderBuffer: ShaderBuffer): void {
@@ -89,5 +87,8 @@ export class GeometryBuffer {
         0,
       );
     });
+    if (this.elements != null) {
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.elements.buffer);
+    }
   }
 }

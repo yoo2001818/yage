@@ -8,7 +8,7 @@ export class Geometry {
   // be used inside a game engine?
   attributes: Map<string, AttributeEntry<Float32Array>> = new Map();
 
-  indices: Map<string, AttributeEntry<Uint32Array>> = new Map();
+  elements: AttributeEntry<Uint32Array> | null = null;
 
   getBuffer(name: string): Float32Array | null {
     const entry = this.attributes.get(name);
@@ -23,6 +23,20 @@ export class Geometry {
     } else {
       entry.array = value;
       entry.version += 1;
+    }
+  }
+
+  getElementsBuffer(): Uint32Array | null {
+    if (this.elements == null) return null;
+    return this.elements.array;
+  }
+
+  setElementsBuffer(value: Uint32Array): void {
+    if (this.elements == null) {
+      this.elements = { array: value, version: 0 };
+    } else {
+      this.elements.array = value;
+      this.elements.version += 1;
     }
   }
 }
