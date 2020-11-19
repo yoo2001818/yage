@@ -91,4 +91,16 @@ export class GeometryBuffer {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.elements.buffer);
     }
   }
+
+  render(): void {
+    const { gl } = this;
+    if (this.elements != null) {
+      gl.drawElements(
+        gl.TRIANGLES,
+        this.elements.size / 3 | 0,
+        gl.UNSIGNED_SHORT,
+        0,
+      );
+    }
+  }
 }
