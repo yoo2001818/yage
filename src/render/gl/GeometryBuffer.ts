@@ -14,6 +14,8 @@ export class GeometryBuffer {
 
   elements: BufferEntry | null = null;
 
+  size: number = 0;
+
   constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
   }
@@ -67,6 +69,7 @@ export class GeometryBuffer {
         bufferEntry.version = entry.version;
       }
     }
+    this.size = geometry.size;
   }
 
   bind(shaderBuffer: ShaderBuffer): void {
@@ -97,9 +100,15 @@ export class GeometryBuffer {
     if (this.elements != null) {
       gl.drawElements(
         gl.TRIANGLES,
-        this.elements.size / 3 | 0,
+        this.size,
         gl.UNSIGNED_SHORT,
         0,
+      );
+    } else {
+      gl.drawArrays(
+        gl.TRIANGLES,
+        0,
+        this.size,
       );
     }
   }

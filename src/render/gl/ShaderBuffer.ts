@@ -91,4 +91,19 @@ export class ShaderBuffer {
     const { gl } = this;
     gl.useProgram(this.program);
   }
+
+  setUniforms(uniforms: { [key: string]: unknown }, prefix = ''): void {
+    // Try to map uniforms object into key-value store.
+    for (const key in uniforms) {
+      if (Object.prototype.hasOwnProperty.call(uniforms, key)) {
+        const entry = uniforms[key];
+        // Entry can be...
+        // an array containing other arrays, e.g. [Float32Array, Float32Array]
+        // an object
+        // an array containing object
+        // etc....
+        // We have to map these to 'a.b.c[1].d'.
+      }
+    }
+  }
 }

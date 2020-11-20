@@ -10,6 +10,8 @@ export class Geometry {
 
   elements: AttributeEntry<Uint16Array> | null = null;
 
+  size: number = 0;
+
   getBuffer(name: string): Float32Array | null {
     const entry = this.attributes.get(name);
     if (entry == null) return null;
