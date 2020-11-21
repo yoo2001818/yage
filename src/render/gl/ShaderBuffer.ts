@@ -103,6 +103,8 @@ export class ShaderBuffer {
         // an array containing object
         // etc....
         // We have to map these to 'a.b.c[1].d'.
+        // It'd be better to make key-value list to a tree - that way we can
+        // throw an error if we can't traverse to the node.
       }
     }
   }
