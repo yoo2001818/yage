@@ -14,6 +14,18 @@ export interface AttributeType {
   location: number,
 }
 
+export interface UniformEntryObject {
+  type: 'object',
+  map: Map<string, UniformEntry>,
+}
+
+export interface UniformEntryArray {
+  type: 'array',
+  map: Map<string, UniformEntry>,
+}
+
+export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
+
 export class ShaderBuffer {
   gl: WebGLRenderingContext;
 
