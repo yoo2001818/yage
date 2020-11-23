@@ -26,6 +26,14 @@ export interface UniformEntryArray {
 
 export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
 
+function storeUniform(name: string, output: Map<string, UniformEntry>): void {
+  // Parse uniform name. The uniform name is separated using [] and .
+  // For example: abc.def[1].g
+  // We basically have to find "[" or "." token, and do something with it.
+  // The token will be: abc, null, def, 1, g.
+  const tokens = name.split(/\.|\[(\d+)\]/);
+}
+
 export class ShaderBuffer {
   gl: WebGLRenderingContext;
 
