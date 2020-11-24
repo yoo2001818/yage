@@ -32,6 +32,11 @@ function storeUniform(name: string, output: Map<string, UniformEntry>): void {
   // We basically have to find "[" or "." token, and do something with it.
   // The token will be: abc, null, def, 1, g.
   const tokens = name.split(/\.|\[(\d+)\]/);
+  let current: Map<string, UniformEntry> = output;
+  for (let i = 0; i < tokens.length; i += 2) {
+    const token = tokens[i];
+    const pos = tokens[i + 1];
+  }
 }
 
 export class ShaderBuffer {
