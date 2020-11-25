@@ -36,6 +36,15 @@ function storeUniform(name: string, output: Map<string, UniformEntry>): void {
   for (let i = 0; i < tokens.length; i += 2) {
     const token = tokens[i];
     const pos = tokens[i + 1];
+    if (i === tokens.length - 2) {
+
+    } else {
+      // Step into map
+      let next = current.get(token);
+      if (next == null) {
+        next = { type: 'object', map: new Map() };
+      }
+    }
   }
 }
 
