@@ -26,7 +26,11 @@ export interface UniformEntryArray {
 
 export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
 
-function storeUniform(name: string, output: Map<string, UniformEntry>): void {
+function storeUniform(
+  name: string,
+  type: UniformType,
+  output: Map<string, UniformEntry>,
+): void {
   // Parse uniform name. The uniform name is separated using [] and .
   // For example: abc.def[1].g
   // We basically have to find "[" or "." token, and do something with it.
@@ -37,7 +41,7 @@ function storeUniform(name: string, output: Map<string, UniformEntry>): void {
     const token = tokens[i];
     const pos = tokens[i + 1];
     if (i === tokens.length - 2) {
-
+      current.set(token, type);
     } else {
       // Step into map
       let next = current.get(token);
