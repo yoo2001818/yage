@@ -21,7 +21,7 @@ export interface UniformEntryObject {
 
 export interface UniformEntryArray {
   type: 'array',
-  map: Map<string, UniformEntry>,
+  map: Map<number, UniformEntry>,
 }
 
 export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
@@ -29,25 +29,52 @@ export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
 function storeUniform(
   name: string,
   type: UniformType,
-  output: Map<string, UniformEntry>,
+  output: UniformEntry,
 ): void {
   // Parse uniform name. The uniform name is separated using [] and .
   // For example: abc.def[1].g
   // We basically have to find "[" or "." token, and do something with it.
   // The token will be: abc, null, def, 1, g.
   const tokens = name.split(/\.|\[(\d+)\]/);
-  let current: Map<string, UniformEntry> = output;
+  let current: UniformEntry = output;
+  let prevKey: string | number | null = null;
+  let prevType: 'object' | 'array' = 'object'; 
+  function step(type: 'object' | 'array'): void {
+    if (current.type !== prevType) {
+      throw new Error('Type mismatch');
+    }
+    switch (current.type) {
+      case 'object':
+        break;
+      case 'array':
+        break;
+    }
+  }
   for (let i = 0; i < tokens.length; i += 2) {
+    // Token can be empty if something like "a[1][1].b" is provided.
+    // a, 1, "", 1, b, null
+    // In this case, the following structure must be made:
+    // a.1.1.b
+    // root (obj) -> a (arr) -> 1 (arr) -> 1 (obj) -> b (val)
+    // We can see that the value's type is determined by the next token.
+    // So, it'll be parsed like....
+    // $(obj)
+    // $(obj) a
+    // $->a(obj) 1
+    // a->1(arr) 1
+    // 1->1(obj) b
+    // 1->b(val) .
     const token = tokens[i];
     const pos = tokens[i + 1];
-    if (i === tokens.length - 2) {
-      current.set(token, type);
-    } else {
-      // Step into map
-      let next = current.get(token);
-      if (next == null) {
-        next = { type: 'object', map: new Map() };
-      }
+    if (token !== '') {
+      step('object');
+      prevKey = token;
+      prevType = 'object';
+    }
+    if (pos != null) {
+      step('array');
+      prevKey = parseInt(pos, 10);
+      prevType = 'array';
     }
   }
 }
