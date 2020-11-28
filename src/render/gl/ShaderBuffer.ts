@@ -38,16 +38,21 @@ function storeUniform(
   const tokens = name.split(/\.|\[(\d+)\]/);
   let current: UniformEntry = output;
   let prevKey: string | number | null = null;
-  let prevType: 'object' | 'array' = 'object'; 
+  let prevType: 'object' | 'array' = 'object';
   function step(type: 'object' | 'array'): void {
     if (current.type !== prevType) {
       throw new Error('Type mismatch');
     }
     switch (current.type) {
       case 'object':
+        if (typeof prevKey !== 'string') throw new Error('Type mismatch');
+        current.map.set(prevKey, { type: 'object', map: new Map() });
         break;
       case 'array':
+        if (typeof prevKey !== 'number') throw new Error('Type mismatch');
+        current.map.set(prevKey, { type: 'array', map: new Map() });
         break;
+      default:
     }
   }
   for (let i = 0; i < tokens.length; i += 2) {
