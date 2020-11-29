@@ -26,6 +26,11 @@ export interface UniformEntryArray {
 
 export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
 
+function getTokenType(type: string | number): 'object' | 'array' {
+  if (typeof type === 'string') return 'object';
+  return 'array';
+}
+
 function storeUniform(
   name: string,
   type: UniformType,
@@ -33,53 +38,36 @@ function storeUniform(
 ): void {
   // Parse uniform name. The uniform name is separated using [] and .
   // For example: abc.def[1].g
-  // We basically have to find "[" or "." token, and do something with it.
-  // The token will be: abc, null, def, 1, g.
-  const tokens = name.split(/\.|\[(\d+)\]/);
-  let current: UniformEntry = output;
-  let prevKey: string | number | null = null;
-  let prevType: 'object' | 'array' = 'object';
-  function step(type: 'object' | 'array'): void {
-    if (current.type !== prevType) {
-      throw new Error('Type mismatch');
-    }
-    switch (current.type) {
-      case 'object':
-        if (typeof prevKey !== 'string') throw new Error('Type mismatch');
-        current.map.set(prevKey, { type: 'object', map: new Map() });
-        break;
-      case 'array':
-        if (typeof prevKey !== 'number') throw new Error('Type mismatch');
-        current.map.set(prevKey, { type: 'array', map: new Map() });
-        break;
-      default:
+  // abc .def [1] .g
+  // first = \s
+  // keyword = '.' \s
+  // list = '[' \d ']'
+  // attr = keyword | list
+  // name = first attr+
+  //
+  // Considering this in mind, we can build a parser like...
+  const regex = /(?:^|\.)(\s+)|\[(\d+)\]/g;
+  // This way, we can convert the name to list of tokens.
+  let match;
+  const tokens: (string | number)[] = [];
+  // eslint-disable-next-line no-cond-assign
+  while (match = regex.exec(name)) {
+    if (match[1] != null) {
+      tokens.push(match[1]);
+    } else if (match[2] != null) {
+      tokens.push(parseInt(match[2], 10));
     }
   }
-  for (let i = 0; i < tokens.length; i += 2) {
-    // Token can be empty if something like "a[1][1].b" is provided.
-    // a, 1, "", 1, b, null
-    // In this case, the following structure must be made:
-    // a.1.1.b
-    // root (obj) -> a (arr) -> 1 (arr) -> 1 (obj) -> b (val)
-    // We can see that the value's type is determined by the next token.
-    // So, it'll be parsed like....
-    // $(obj)
-    // $(obj) a
-    // $->a(obj) 1
-    // a->1(arr) 1
-    // 1->1(obj) b
-    // 1->b(val) .
+  let current: UniformEntry = output;
+  // Using the tokens, we recursively step into the given value...
+  for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
-    const pos = tokens[i + 1];
-    if (token !== '') {
-      step('object');
-      prevKey = token;
-      prevType = 'object';
-    }
-    if (pos != null) {
-      step('array');
-      prevKey = parseInt(pos, 10);
-      prevType = 'array';
+    if (i < tokens.length - 1) {
+      const nextToken = tokens[i + 1];
+    } else {
+      const expectedType = getTokenType(token);
+      if (current.type !== expectedType) throw new Error('...');
+      current.map.set(token, output);
     }
   }
 }
