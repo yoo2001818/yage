@@ -1,7 +1,9 @@
+import { mat4 } from 'gl-matrix';
 import { ShaderBuffer } from '../gl/ShaderBuffer';
 import { GeometryBuffer } from '../gl/GeometryBuffer';
 import { MeshComponent } from '../components/MeshComponent';
 import { EntityStore } from '../../store/EntityStore';
+import { Entity } from '../../store/Entity';
 import { LocRotScaleIndex } from '../../indexes/LocRotScaleIndex';
 import { LocRotScaleComponent } from '../components/LocRotScaleComponent';
 import { MaterialComponent } from '../components/MaterialComponent';
@@ -9,6 +11,7 @@ import { GeometryComponent } from '../components/GeometryComponent';
 import { ShaderComponent } from '../components/ShaderComponent';
 import { Shader } from '../Shader';
 import { Geometry } from '../Geometry';
+import { Camera } from '../Camera';
 
 export class RenderSystem {
   gl: WebGLRenderingContext;
@@ -31,6 +34,8 @@ export class RenderSystem {
 
   locRotScaleIndex: LocRotScaleIndex;
 
+  cameraId: number | null;
+
   constructor(store: EntityStore, gl: WebGLRenderingContext) {
     this.gl = gl;
     this.shaders = new Map();
@@ -42,6 +47,46 @@ export class RenderSystem {
     this.geometryComponent = store.getComponent<GeometryComponent>('geometry');
     this.shaderComponent = store.getComponent<ShaderComponent>('shader');
     this.locRotScaleIndex = store.getIndex<LocRotScaleIndex>('locRotScale');
+    this.cameraId = null;
+  }
+
+  setCamera(entity: Entity): void {
+    this.cameraId = entity.get<number>('id');
+  }
+
+  getViewMatrix(): Float32Array {
+    const {
+      cameraId,
+      posComponent,
+      locRotScaleIndex,
+    } = this;
+    const output = mat4.create() as Float32Array;
+    if (cameraId == null) return output;
+    const entity = this.entityStore.getEntity(cameraId);
+    if (entity == null) return output;
+    const pos = locRotScaleIndex.get(entity.getPos(posComponent));
+    mat4.invert(output, pos);
+    return output;
+  }
+
+  getProjectionMatrix(): Float32Array {
+    const { cameraId } = this;
+    const output = mat4.create() as Float32Array;
+    if (cameraId == null) return output;
+    const entity = this.entityStore.getEntity(cameraId);
+    if (entity == null) return output;
+    const camera = entity.get<Camera>('camera');
+    if (camera == null) return output;
+    switch (camera.type) {
+      case 'orthgonal':
+        mat4.ortho(output, -1, 1, -1, 1, camera.near, camera.far);
+        break;
+      case 'perspective':
+        mat4.perspective(output, camera.fov, 1, camera.near, camera.far);
+        break;
+      default:
+    }
+    return output;
   }
 
   update(): void {
@@ -59,6 +104,8 @@ export class RenderSystem {
     gl.enable(gl.CULL_FACE);
     gl.depthFunc(gl.LESS);
     gl.cullFace(gl.FRONT);
+    const uView = this.getViewMatrix();
+    const uProjection = this.getProjectionMatrix();
     this.entityStore.forEachGroupWith([
       meshComponent,
       posComponent,
@@ -86,8 +133,18 @@ export class RenderSystem {
       // Then, set geometry
       const geometryBuf = this.getGeometryBuffer(geometryId, geometry);
       geometryBuf.bind(shaderBuf);
-      // TODO: Set up camera and lights, instancing
-      geometryBuf.render();
+      // TODO: Set up camera and lights, instancing.
+      shaderBuf.setUniforms({
+        uView,
+        uProjection,
+      });
+      // TODO: Instancing is not supported for now; we just pass model matrix
+      for (let i = 0; i < group.size; i += 1) {
+        shaderBuf.setUniforms({
+          uModel: pos.subarray(i * 16, i * 16 + 16),
+        });
+        geometryBuf.render();
+      }
     });
   }
 

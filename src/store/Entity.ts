@@ -94,6 +94,14 @@ export class Entity {
     return getGroupComponentOffset(this.group, component) !== -1;
   }
 
+  getPos<T>(component: Component<T> | string): number {
+    if (typeof component === 'string') {
+      const componentInst = this.store.getComponent(component);
+      return this.getPos(componentInst);
+    }
+    return getGroupComponentOffset(this.group, component);
+  }
+
   get<T>(component: Component<T> | string): T | null {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
