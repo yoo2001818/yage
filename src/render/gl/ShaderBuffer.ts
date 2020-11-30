@@ -3,7 +3,8 @@ import { Shader } from '../Shader';
 export interface UniformType {
   name: string,
   size: number,
-  type: number,
+  glType: number,
+  type: 'uniform',
   location: WebGLUniformLocation,
 }
 
@@ -25,11 +26,6 @@ export interface UniformEntryArray {
 }
 
 export type UniformEntry = UniformType | UniformEntryObject | UniformEntryArray;
-
-function getTokenType(type: string | number): 'object' | 'array' {
-  if (typeof type === 'string') return 'object';
-  return 'array';
-}
 
 function storeUniform(
   name: string,
@@ -62,12 +58,28 @@ function storeUniform(
   // Using the tokens, we recursively step into the given value...
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
+    // Assert the map to have same type as the token. This would require
+    // generics, so we'll just forcefully convert them to strings for now
+    const currentEntry = current as UniformEntryObject;
+    const currentToken = token as unknown as string;
     if (i < tokens.length - 1) {
       const nextToken = tokens[i + 1];
+      // Initialize store to be same type as next token.
+      let nextEntry = currentEntry.map.get(currentToken);
+      const nextType = typeof nextToken === 'string'
+        ? 'object' as const
+        : 'array' as const;
+      if (nextEntry == null) {
+        const newEntry = { type: nextType, map: new Map() };
+        currentEntry.map.set(currentToken, newEntry);
+        nextEntry = newEntry;
+      }
+      if (nextEntry != null && nextEntry.type !== nextType) {
+        throw new Error(`${token} type conflicts`);
+      }
+      current = nextEntry as UniformEntryObject | UniformEntryArray;
     } else {
-      const expectedType = getTokenType(token);
-      if (current.type !== expectedType) throw new Error('...');
-      current.map.set(token, output);
+      currentEntry.map.set(currentToken, output);
     }
   }
 }
@@ -79,7 +91,7 @@ export class ShaderBuffer {
 
   shaders: WebGLShader[] = [];
 
-  uniforms: Map<string, UniformType> = new Map();
+  uniforms: UniformEntryObject = { type: 'object', map: new Map() };
 
   attributes: Map<string, AttributeType> = new Map();
 
@@ -118,16 +130,17 @@ export class ShaderBuffer {
 
     // Read uniform, attributes information
     const nUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-    this.uniforms = new Map();
+    this.uniforms = { type: 'object', map: new Map() };
     for (let i = 0; i < nUniforms; i += 1) {
       const uniform = gl.getActiveUniform(program, i)!;
       const loc = gl.getUniformLocation(program, uniform.name)!;
-      this.uniforms.set(uniform.name, {
+      storeUniform(uniform.name, {
         location: loc,
         name: uniform.name,
         size: uniform.size,
-        type: uniform.type,
-      });
+        glType: uniform.type,
+        type: 'uniform',
+      }, this.uniforms);
     }
 
     const nAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
