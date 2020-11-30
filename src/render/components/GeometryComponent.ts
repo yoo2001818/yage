@@ -4,6 +4,6 @@ import { Geometry } from '../Geometry';
 
 export class GeometryComponent extends MutableComponent<Geometry> {
   constructor() {
-    super(() => ({}));
+    super(() => new Geometry());
   }
 }

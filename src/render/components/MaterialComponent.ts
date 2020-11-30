@@ -4,6 +4,6 @@ import { Material } from '../Material';
 
 export class MaterialComponent extends MutableComponent<Material> {
   constructor() {
-    super(() => ({ shader: null }));
+    super(() => ({ shaderId: 0, uniforms: {} }));
   }
 }

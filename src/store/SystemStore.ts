@@ -1,6 +1,8 @@
-export interface System {
-  (event: unknown): void,
-}
+export type System =
+  | ((event: unknown) => void)
+  | {
+    update(event: unknown): void,
+  };
 
 export class SystemStore {
   systems: System[];
@@ -16,7 +18,11 @@ export class SystemStore {
   run(event: unknown): void {
     for (let i = 0; i < this.systems.length; i += 1) {
       const system = this.systems[i];
-      system(event);
+      if (typeof system === 'function') {
+        system(event);
+      } else {
+        system.update(event);
+      }
     }
   }
 }
