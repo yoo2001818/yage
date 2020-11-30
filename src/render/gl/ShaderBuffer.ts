@@ -1,3 +1,9 @@
+import {
+  convertFloat,
+  convertFloatArray,
+  convertInt,
+  convertIntArray,
+} from '../utils/uniform';
 import { Shader } from '../Shader';
 
 export interface UniformType {
@@ -133,14 +139,29 @@ export class ShaderBuffer {
     this.uniforms = { type: 'object', map: new Map() };
     for (let i = 0; i < nUniforms; i += 1) {
       const uniform = gl.getActiveUniform(program, i)!;
-      const loc = gl.getUniformLocation(program, uniform.name)!;
-      storeUniform(uniform.name, {
-        location: loc,
-        name: uniform.name,
-        size: uniform.size,
-        glType: uniform.type,
-        type: 'uniform',
-      }, this.uniforms);
+      if (uniform.size > 1) {
+        // An array has been received; in this case WebGL only offers single
+        // position ([0]). We map each array value to an uniform.
+        for (let j = 0; j < uniform.size; j += 1) {
+          const newName = `${uniform.name.slice(0, -3)}[${j}]`;
+          storeUniform(newName, {
+            location: gl.getUniformLocation(program, newName)!,
+            name: newName,
+            size: 1,
+            glType: uniform.type,
+            type: 'uniform',
+          }, this.uniforms);
+        }
+      } else {
+        const loc = gl.getUniformLocation(program, uniform.name)!;
+        storeUniform(uniform.name, {
+          location: loc,
+          name: uniform.name,
+          size: uniform.size,
+          glType: uniform.type,
+          type: 'uniform',
+        }, this.uniforms);
+      }
     }
 
     const nAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
@@ -163,20 +184,102 @@ export class ShaderBuffer {
     gl.useProgram(this.program);
   }
 
-  setUniforms(uniforms: { [key: string]: unknown }, prefix = ''): void {
-    // Try to map uniforms object into key-value store.
-    for (const key in uniforms) {
-      if (Object.prototype.hasOwnProperty.call(uniforms, key)) {
-        const entry = uniforms[key];
-        // Entry can be...
-        // an array containing other arrays, e.g. [Float32Array, Float32Array]
-        // an object
-        // an array containing object
-        // etc....
-        // We have to map these to 'a.b.c[1].d'.
-        // It'd be better to make key-value list to a tree - that way we can
-        // throw an error if we can't traverse to the node.
+  _setUniforms(uniforms: unknown, entry: UniformEntry): void {
+    switch (entry.type) {
+      case 'uniform': {
+        const { gl } = this;
+        const value = uniforms as unknown;
+        // Assert the array according to the uniform's type.
+        switch (entry.glType) {
+          case gl.FLOAT:
+            gl.uniform1f(entry.location, convertFloat(value));
+            break;
+          case gl.FLOAT_VEC2:
+            gl.uniform2fv(entry.location, convertFloatArray(value, 2));
+            break;
+          case gl.FLOAT_VEC3:
+            gl.uniform3fv(entry.location, convertFloatArray(value, 3));
+            break;
+          case gl.FLOAT_VEC4:
+            gl.uniform4fv(entry.location, convertFloatArray(value, 4));
+            break;
+          case gl.FLOAT_MAT2:
+            gl.uniformMatrix2fv(
+              entry.location,
+              false,
+              convertFloatArray(value, 4),
+            );
+            break;
+          case gl.FLOAT_MAT3:
+            gl.uniformMatrix3fv(
+              entry.location,
+              false,
+              convertFloatArray(value, 9),
+            );
+            break;
+          case gl.FLOAT_MAT4:
+            gl.uniformMatrix4fv(
+              entry.location,
+              false,
+              convertFloatArray(value, 16),
+            );
+            break;
+          case gl.INT_VEC2:
+          case gl.BOOL_VEC2:
+            gl.uniform2iv(entry.location, convertIntArray(value, 2));
+            break;
+          case gl.INT_VEC3:
+          case gl.BOOL_VEC3:
+            gl.uniform3iv(entry.location, convertIntArray(value, 3));
+            break;
+          case gl.INT_VEC4:
+          case gl.BOOL_VEC4:
+            gl.uniform4iv(entry.location, convertIntArray(value, 4));
+            break;
+          case gl.BOOL:
+          case gl.BYTE:
+          case gl.UNSIGNED_BYTE:
+          case gl.SHORT:
+          case gl.UNSIGNED_SHORT:
+          case gl.INT:
+          case gl.UNSIGNED_INT:
+            gl.uniform1i(entry.location, convertInt(value));
+            break;
+          case gl.SAMPLER_2D:
+          case gl.SAMPLER_CUBE:
+          default:
+            throw new Error('Unsupported type');
+        }
+        break;
       }
+      case 'object': {
+        if (typeof uniforms !== 'object') throw new Error('Type mismatch');
+        const uniformMap = uniforms as { [key: string]: unknown };
+        const entryMap = entry.map;
+        // Try to map uniforms object into key-value store.
+        Object.keys(uniformMap).forEach((key) => {
+          const value = uniformMap[key];
+          const child = entryMap.get(key);
+          if (child == null) throw new Error(`Unknown uniform ${key}`);
+          this._setUniforms(value, child);
+        });
+        break;
+      }
+      case 'array': {
+        if (!Array.isArray(uniforms)) throw new Error('Type mismatch');
+        const entryMap = entry.map;
+        uniforms.forEach((value, key) => {
+          const child = entryMap.get(key);
+          if (child == null) throw new Error(`Unknown uniform ${key}`);
+          this._setUniforms(value, child);
+        });
+        break;
+      }
+      default:
     }
+  }
+
+  setUniforms(uniforms: unknown): void {
+    this._setUniforms(uniforms, this.uniforms);
   }
 }
