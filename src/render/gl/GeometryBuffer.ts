@@ -83,7 +83,7 @@ export class GeometryBuffer {
       gl.enableVertexAttribArray(descriptor.location);
       gl.vertexAttribPointer(
         descriptor.location,
-        descriptor.size,
+        3,
         gl.FLOAT,
         false,
         0,
@@ -98,15 +98,16 @@ export class GeometryBuffer {
   render(): void {
     const { gl } = this;
     if (this.elements != null) {
+      // TODO: This should be controllable by the geometry
       gl.drawElements(
-        gl.TRIANGLES,
+        gl.TRIANGLE_STRIP,
         this.size,
         gl.UNSIGNED_SHORT,
         0,
       );
     } else {
       gl.drawArrays(
-        gl.TRIANGLES,
+        gl.TRIANGLE_STRIP,
         0,
         this.size,
       );

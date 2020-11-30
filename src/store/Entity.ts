@@ -73,7 +73,6 @@ export class Entity {
     }
     this.float();
     addGroupComponent(this.group, component, this.store);
-    component.markChanged(this.group);
   }
 
   remove<T>(component: Component<T> | string): void {
@@ -141,6 +140,19 @@ export class Entity {
         offset = getGroupComponentOffset(this.group, component);
       }
       component.set(offset + this.index, source);
+      component.markChanged(this.group, this.index, 1);
+    }
+  }
+
+  markChanged<T>(
+    component: Component<T> | string,
+  ): void {
+    if (typeof component === 'string') {
+      const componentInst = this.store.getComponent(component);
+      this.markChanged(componentInst);
+      return;
+    }
+    if (!component.unison) {
       component.markChanged(this.group, this.index, 1);
     }
   }

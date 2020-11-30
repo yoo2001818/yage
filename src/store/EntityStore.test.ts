@@ -1,5 +1,5 @@
 import { EntityStore } from './EntityStore';
-import { MutableComponent } from './components/MutableComponent';
+import { MutableComponent } from '../components/MutableComponent';
 
 describe('EntityStore', () => {
   it('should be able to create entities', () => {

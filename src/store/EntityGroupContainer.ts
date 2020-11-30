@@ -1,7 +1,7 @@
 import { EntityGroup } from './EntityGroup';
 import { addGroupComponent, getGroupContainerHashCode, removeGroupEntity } from './EntityGroupMethods';
 import { EntityStore } from './EntityStore';
-import { removeItem } from './utils/array';
+import { removeItem } from '../utils/array';
 
 export class EntityGroupContainer {
   id: number = 0;

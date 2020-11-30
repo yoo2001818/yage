@@ -26,6 +26,8 @@ export class Geometry {
       entry.array = value;
       entry.version += 1;
     }
+    // TODO This is bad
+    this.size = value.length / 3;
   }
 
   getElementsBuffer(): Uint16Array | null {

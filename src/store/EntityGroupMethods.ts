@@ -1,6 +1,6 @@
 import { EntityGroup } from './EntityGroup';
 import { EntityStore } from './EntityStore';
-import { Component } from './components/Component';
+import { Component } from '../components/Component';
 
 // TODO: Fix order of store / group etc
 
@@ -61,6 +61,9 @@ export function addGroupComponent(
   }
   if (pos == null) return;
   if (group.offsets.length > pos && group.offsets[pos] !== -1) return;
+  for (let i = group.offsets.length; i < pos; i += 1) {
+    group.offsets[i] = -1;
+  }
   group.offsets[pos] = component.allocate(group.maxSize);
   updateGroupHashCode(group, store);
 }
@@ -84,7 +87,9 @@ export function getGroupComponentOffset(
 ): number {
   const { pos } = component;
   if (group.offsets.length <= pos!) return -1;
-  return group.offsets[pos!];
+  const offset = group.offsets[pos!];
+  if (offset == null) return -1;
+  return offset;
 }
 
 export function copyGroupComponents(

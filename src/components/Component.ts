@@ -1,4 +1,4 @@
-import { EntityGroup } from '../EntityGroup';
+import { EntityGroup } from '../store/EntityGroup';
 
 /**
  * Component maintains an array of each component. It stores actual data

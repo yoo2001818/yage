@@ -48,7 +48,7 @@ function storeUniform(
   // name = first attr+
   //
   // Considering this in mind, we can build a parser like...
-  const regex = /(?:^|\.)(\s+)|\[(\d+)\]/g;
+  const regex = /(?:^|\.)(\w+)|\[(\d+)\]/g;
   // This way, we can convert the name to list of tokens.
   let match;
   const tokens: (string | number)[] = [];
@@ -85,7 +85,7 @@ function storeUniform(
       }
       current = nextEntry as UniformEntryObject | UniformEntryArray;
     } else {
-      currentEntry.map.set(currentToken, output);
+      currentEntry.map.set(currentToken, type);
     }
   }
 }
@@ -120,8 +120,17 @@ export class ShaderBuffer {
 
     const vertShader = gl.createShader(gl.VERTEX_SHADER)!;
     gl.shaderSource(vertShader, shader.vertShader);
+    gl.compileShader(vertShader);
+    if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(vertShader)!);
+    }
     const fragShader = gl.createShader(gl.FRAGMENT_SHADER)!;
     gl.shaderSource(fragShader, shader.fragShader);
+    gl.compileShader(fragShader);
+    if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(fragShader)!);
+    }
+
     const program = gl.createProgram()!;
     gl.attachShader(program, vertShader);
     gl.attachShader(program, fragShader);
@@ -132,6 +141,7 @@ export class ShaderBuffer {
     }
 
     this.program = program;
+    this.version = shader.version;
     this.shaders = [vertShader, fragShader];
 
     // Read uniform, attributes information
@@ -260,7 +270,7 @@ export class ShaderBuffer {
         Object.keys(uniformMap).forEach((key) => {
           const value = uniformMap[key];
           const child = entryMap.get(key);
-          if (child == null) throw new Error(`Unknown uniform ${key}`);
+          if (child == null) return;
           this._setUniforms(value, child);
         });
         break;
@@ -270,7 +280,7 @@ export class ShaderBuffer {
         const entryMap = entry.map;
         uniforms.forEach((value, key) => {
           const child = entryMap.get(key);
-          if (child == null) throw new Error(`Unknown uniform ${key}`);
+          if (child == null) return;
           this._setUniforms(value, child);
         });
         break;

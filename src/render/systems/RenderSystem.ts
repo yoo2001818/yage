@@ -42,7 +42,7 @@ export class RenderSystem {
     this.geometries = new Map();
     this.entityStore = store;
     this.meshComponent = store.getComponent<MeshComponent>('mesh');
-    this.posComponent = store.getComponent<LocRotScaleComponent>('position');
+    this.posComponent = store.getComponent<LocRotScaleComponent>('pos');
     this.materialComponent = store.getComponent<MaterialComponent>('material');
     this.geometryComponent = store.getComponent<GeometryComponent>('geometry');
     this.shaderComponent = store.getComponent<ShaderComponent>('shader');
@@ -82,7 +82,7 @@ export class RenderSystem {
         mat4.ortho(output, -1, 1, -1, 1, camera.near, camera.far);
         break;
       case 'perspective':
-        mat4.perspective(output, camera.fov, 1, camera.near, camera.far);
+        mat4.perspective(output, camera.fov, 640 / 480, camera.near, camera.far);
         break;
       default:
     }
@@ -100,10 +100,12 @@ export class RenderSystem {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     // Enable bunch of test
+    /*
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.depthFunc(gl.LESS);
     gl.cullFace(gl.FRONT);
+    */
     const uView = this.getViewMatrix();
     const uProjection = this.getProjectionMatrix();
     this.entityStore.forEachGroupWith([

@@ -1,4 +1,4 @@
-import { EntityStore } from '../EntityStore';
+import { EntityStore } from '../store/EntityStore';
 
 export interface Index {
   register(entityStore: EntityStore): void;
