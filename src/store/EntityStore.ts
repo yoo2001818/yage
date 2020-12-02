@@ -50,7 +50,7 @@ export class EntityStore {
     this.addIndex('id', new IdIndex());
   }
 
-  addComponent<T>(name: string, component: Component<T>): Component<T> {
+  addComponent<T extends Component<any>>(name: string, component: T): T {
     // It should register component to registry; this should do the following:
     // 1. Check if component name conflicts.
     // 2. If not, using given component array, just create and append the
@@ -65,6 +65,15 @@ export class EntityStore {
     this.componentNames[name] = this.components.length;
     this.components.push(component);
     return component;
+  }
+
+  addComponents<T extends { [key: string]: Component<any> }>(
+    components: T,
+  ): void {
+    Object.keys(components).forEach((key) => {
+      const component = components[key];
+      this.addComponent(key, component);
+    });
   }
 
   getComponent<T extends Component<unknown>>(name: string): T {
