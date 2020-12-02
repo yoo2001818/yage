@@ -35,6 +35,7 @@ features, make it more robust, and revamp the API.
   directly, most of the code shouldn't do that. So, instead of returning
   Float32Array, it should return 'LocRotScale' object which provides all the
   manipulation functions.
+- Initialize without giving initial value.... requires an 'identity' value
 
 ## Renderer
 The renderer certainly needs an improvement too.

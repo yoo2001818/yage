@@ -105,6 +105,26 @@ function main() {
   quat.rotateX(cameraPos.subarray(4, 8), cameraPos.subarray(4, 8), -Math.PI / 8);
   camera.markChanged('pos');
 
+  /*
+  {
+    const camera = entityStore.createEntity({
+      pos: true,
+      camera: {
+        type: 'perspective',
+        near: 0.1,
+        far: 100,
+        fov: 90 / 180 * Math.PI,
+      },
+    });
+
+    const cameraPos = camera.get<LocRotScale>('pos');
+    cameraPos.setLocation([-5 / 2, 2.5 / 2, 5 / 2]);
+    // cameraPos.setRotationXYZ([-Math.PI / 8, -Math.PI / 4, 0 ]);
+    cameraPos.lookAt([0, 0, 0]);
+    camera.markChanged('pos');
+  }
+  */
+
   const renderer = new RenderSystem(entityStore, gl);
   renderer.setCamera(camera);
 

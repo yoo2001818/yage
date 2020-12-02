@@ -101,13 +101,15 @@ export class Entity {
     return getGroupComponentOffset(this.group, component);
   }
 
-  get<T>(component: Component<T> | string): T | null {
+  get<T>(component: Component<T> | string): T {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
-      return this.get(componentInst) as T | null;
+      return this.get(componentInst) as T;
     }
     const offset = getGroupComponentOffset(this.group, component);
-    if (offset === -1) return null;
+    if (offset === -1) {
+      throw new Error(`Component ${component.name} does not exist in entity`);
+    }
     return component.get(offset + this.index);
   }
 

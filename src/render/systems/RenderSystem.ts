@@ -118,16 +118,13 @@ export class RenderSystem {
       const geometryEnt = entityStore.getEntity(geometryId);
       if (geometryEnt == null) return;
       const geometry = geometryEnt.get(this.geometryComponent);
-      if (geometry == null) return;
       const materialEnt = entityStore.getEntity(materialId);
       if (materialEnt == null) return;
       const material = materialEnt.get(this.materialComponent);
-      if (material == null) return;
       // Acquire shader
       const shaderEnt = entityStore.getEntity(material.shaderId);
       if (shaderEnt == null) return;
       const shader = shaderEnt.get(this.shaderComponent);
-      if (shader == null) return;
       // Acquire shader buffer and use it
       const shaderBuf = this.getShaderBuffer(material.shaderId, shader);
       shaderBuf.bind();
