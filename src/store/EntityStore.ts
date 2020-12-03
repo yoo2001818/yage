@@ -265,6 +265,12 @@ export class EntityStore {
     return new Entity(this, group, index);
   }
 
+  getComponentOfEntity<T>(id: number, component: Component<T> | string): T {
+    const entity = this.getEntity(id);
+    if (entity == null) throw new Error(`Enttiy ${id} is missing`);
+    return entity.get(component);
+  }
+
   forEachGroup(callback: (group: EntityGroup) => void): void {
     this.entityGroupContainers.forEach((container) => {
       container.groups.forEach(callback);

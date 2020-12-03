@@ -115,16 +115,12 @@ export class RenderSystem {
       const [materialId, geometryId] = meshComponent.get(meshPos);
       const pos = locRotScaleIndex.getArrayOf(posPos);
       // Prepare geometry and material
-      const geometryEnt = entityStore.getEntity(geometryId);
-      if (geometryEnt == null) return;
-      const geometry = geometryEnt.get(this.geometryComponent);
-      const materialEnt = entityStore.getEntity(materialId);
-      if (materialEnt == null) return;
-      const material = materialEnt.get(this.materialComponent);
-      // Acquire shader
-      const shaderEnt = entityStore.getEntity(material.shaderId);
-      if (shaderEnt == null) return;
-      const shader = shaderEnt.get(this.shaderComponent);
+      const geometry = entityStore
+        .getComponentOfEntity(geometryId, this.geometryComponent);
+      const material = entityStore
+        .getComponentOfEntity(materialId, this.materialComponent);
+      const shader = entityStore
+        .getComponentOfEntity(material.shaderId, this.shaderComponent);
       // Acquire shader buffer and use it
       const shaderBuf = this.getShaderBuffer(material.shaderId, shader);
       shaderBuf.bind();
