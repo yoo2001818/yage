@@ -70,22 +70,28 @@ function main() {
   });
   box.set('material', { shaderId: boxId, uniforms: {} });
   box.set('geometry', new Geometry({
-    aPosition: new Float32Array([
-      -1, 1, 1,
-      1, 1, 1,
-      -1, -1, 1,
-      1, -1, 1,
-      1, -1, -1,
-      1, 1, 1,
-      1, 1, -1,
-      -1, 1, 1,
-      -1, 1, -1,
-      -1, -1, 1,
-      -1, -1, -1,
-      1, -1, -1,
-      -1, 1, -1,
-      1, 1, 1,
-    ]),
+    attributes: {
+      aPosition: {
+        data: new Float32Array([
+          -1, 1, 1,
+          1, 1, 1,
+          -1, -1, 1,
+          1, -1, 1,
+          1, -1, -1,
+          1, 1, 1,
+          1, 1, -1,
+          -1, 1, 1,
+          -1, 1, -1,
+          -1, -1, 1,
+          -1, -1, -1,
+          1, -1, -1,
+          -1, 1, -1,
+          1, 1, 1,
+        ]),
+        axis: 3,
+      },
+    },
+    mode: gl.TRIANGLE_STRIP,
   }));
 
   const camera = entityStore.createEntity({

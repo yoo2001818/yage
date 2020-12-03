@@ -3,18 +3,25 @@ import { ShaderBuffer } from './ShaderBuffer';
 
 interface BufferEntry {
   buffer: WebGLBuffer | null,
-  size: number,
   version: number,
+}
+
+interface AttributeBufferEntry extends BufferEntry {
+  axis: number,
+  stride: number,
+  offset: number,
 }
 
 export class GeometryBuffer {
   gl: WebGLRenderingContext;
 
-  buffers: Map<string, BufferEntry> = new Map();
+  buffers: Map<string, AttributeBufferEntry> = new Map();
 
   elements: BufferEntry | null = null;
 
-  size: number = 0;
+  count: number = 0;
+
+  mode: number = 0;
 
   constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
@@ -28,8 +35,10 @@ export class GeometryBuffer {
       if (bufferEntry == null) {
         bufferEntry = {
           buffer: this.gl.createBuffer(),
-          size: 0,
           version: -1,
+          axis: entry.axis,
+          stride: entry.stride,
+          offset: entry.offset,
         };
         this.buffers.set(key, bufferEntry);
       }
@@ -42,17 +51,18 @@ export class GeometryBuffer {
           entry.array,
           this.gl.STATIC_DRAW,
         );
-        bufferEntry.size = entry.array.length;
         bufferEntry.version = entry.version;
+        bufferEntry.axis = entry.axis;
+        bufferEntry.stride = entry.stride;
+        bufferEntry.offset = entry.offset;
       }
     });
     // Then the elements
-    if (geometry.elements != null) {
-      const entry = geometry.elements;
+    if (geometry.indices != null) {
+      const entry = geometry.indices;
       if (this.elements == null) {
         this.elements = {
           buffer: this.gl.createBuffer(),
-          size: 0,
           version: -1,
         };
       }
@@ -65,11 +75,11 @@ export class GeometryBuffer {
           entry.array,
           this.gl.STATIC_DRAW,
         );
-        bufferEntry.size = entry.array.length;
         bufferEntry.version = entry.version;
       }
     }
-    this.size = geometry.size;
+    this.count = geometry.count;
+    this.mode = geometry.mode;
   }
 
   bind(shaderBuffer: ShaderBuffer): void {
@@ -83,11 +93,11 @@ export class GeometryBuffer {
       gl.enableVertexAttribArray(descriptor.location);
       gl.vertexAttribPointer(
         descriptor.location,
-        3,
+        value.axis,
         gl.FLOAT,
         false,
-        0,
-        0,
+        value.stride,
+        value.offset,
       );
     });
     if (this.elements != null) {
@@ -100,16 +110,16 @@ export class GeometryBuffer {
     if (this.elements != null) {
       // TODO: This should be controllable by the geometry
       gl.drawElements(
-        gl.TRIANGLE_STRIP,
-        this.size,
+        this.mode,
+        this.count,
         gl.UNSIGNED_SHORT,
         0,
       );
     } else {
       gl.drawArrays(
-        gl.TRIANGLE_STRIP,
+        this.mode,
         0,
-        this.size,
+        this.count,
       );
     }
   }

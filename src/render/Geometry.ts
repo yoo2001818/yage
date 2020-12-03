@@ -1,53 +1,143 @@
-interface AttributeEntry<T> {
+interface GeometryAttribute {
+  data: number[] | number[][] | Float32Array,
+  axis: number,
+  stride?: number | null,
+  offset?: number | null,
+}
+
+interface GeometryDescriptor {
+  attributes: { [key: string]: GeometryAttribute | number[][] },
+  indices?: number[] | Uint16Array | null,
+  mode?: number,
+}
+
+interface BufferEntry<T> {
   array: T,
   version: number,
 }
 
+interface AttributeEntry extends BufferEntry<Float32Array> {
+  axis: number,
+  stride: number,
+  offset: number,
+}
+
+export function parseAttribute(
+  input: GeometryAttribute | number[][],
+): GeometryAttribute {
+  if (Array.isArray(input)) {
+    // Get vector axis size and attribute size
+    const axis = input[0].length;
+    const output = new Float32Array(axis * input.length);
+    let ptr = 0;
+    input.forEach((v) => {
+      for (let i = 0; i < axis; i += 1) {
+        output[ptr] = v[i];
+        ptr += 1;
+      }
+    });
+    return { axis, data: output };
+  }
+  return input;
+}
+
+export function flattenBuffer(
+  data: number[] | number[][] | Float32Array,
+): Float32Array {
+  if (data instanceof Float32Array) return data;
+  if (Array.isArray(data[0])) {
+    const axis = data[0].length;
+    const output = new Float32Array(data.length * axis);
+    for (let i = 0; i < data.length; i += 1) {
+      const entry = data[i] as number[];
+      for (let j = 0; j < axis; j += 1) {
+        output[i * axis + j] = entry[j];
+      }
+    }
+    return output;
+  }
+  return new Float32Array(data as number[]);
+}
+
+export const POINTS = 0;
+export const LINES = 1;
+export const LINE_LOOP = 2;
+export const LINE_STRIP = 3;
+export const TRIANGLES = 4;
+export const TRIANGLE_STRIP = 5;
+export const TRIANGLE_FAN = 6;
+
 export class Geometry {
   // TODO: The buffer can be a separate object; though I'm not sure that would
   // be used inside a game engine?
-  attributes: Map<string, AttributeEntry<Float32Array>> = new Map();
+  attributes: Map<string, AttributeEntry> = new Map();
 
-  elements: AttributeEntry<Uint16Array> | null = null;
+  indices: BufferEntry<Uint16Array> | null = null;
 
-  size: number = 0;
+  mode: number = 0;
 
-  constructor(values: { [key: string]: Float32Array } = {}) {
-    Object.keys(values).forEach((key) => {
-      const value = values[key];
-      this.setBuffer(key, value);
-    });
+  count: number = 0;
+
+  constructor(config?: GeometryDescriptor) {
+    if (config != null) this.set(config);
   }
 
-  getBuffer(name: string): Float32Array | null {
+  set(config: GeometryDescriptor): void {
+    const { attributes, indices, mode = TRIANGLES } = config;
+    Object.keys(attributes).forEach((key) => {
+      const attrib = attributes[key];
+      this.setAttribute(key, parseAttribute(attrib));
+    });
+    if (indices == null) {
+      this.setIndices(null);
+    } else {
+      this.setIndices(new Uint16Array(indices));
+    }
+    this.mode = mode;
+  }
+
+  getAttribute(name: string): AttributeEntry | null {
     const entry = this.attributes.get(name);
     if (entry == null) return null;
-    return entry.array;
+    return entry;
   }
 
-  setBuffer(name: string, value: Float32Array): void {
+  setAttribute(name: string, value: GeometryAttribute): void {
     const entry = this.attributes.get(name);
+    const array = flattenBuffer(value.data);
     if (entry == null) {
-      this.attributes.set(name, { array: value, version: 0 });
+      this.attributes.set(name, {
+        array,
+        version: 0,
+        axis: value.axis,
+        stride: value.stride || 0,
+        offset: value.offset || 0,
+      });
     } else {
-      entry.array = value;
+      entry.array = array;
       entry.version += 1;
+      entry.axis = value.axis;
+      entry.stride = value.stride || 0;
+      entry.offset = value.offset || 0;
     }
-    // TODO This is bad
-    this.size = value.length / 3;
+    this.count = array.length / value.axis | 0;
   }
 
-  getElementsBuffer(): Uint16Array | null {
-    if (this.elements == null) return null;
-    return this.elements.array;
+  getIndices(): Uint16Array | null {
+    if (this.indices == null) return null;
+    return this.indices.array;
   }
 
-  setElementsBuffer(value: Uint16Array): void {
-    if (this.elements == null) {
-      this.elements = { array: value, version: 0 };
+  setIndices(value: Uint16Array | null): void {
+    if (value == null) {
+      this.indices = null;
+      return;
+    }
+    if (this.indices == null) {
+      this.indices = { array: value, version: 0 };
     } else {
-      this.elements.array = value;
-      this.elements.version += 1;
+      this.indices.array = value;
+      this.indices.version += 1;
     }
   }
 }
