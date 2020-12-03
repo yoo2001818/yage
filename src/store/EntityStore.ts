@@ -12,7 +12,6 @@ import {
 } from './EntityGroupMethods';
 import { Index } from '../indexes/Index';
 import { IdIndex } from '../indexes/IdIndex';
-import { removeItem } from '../utils/array';
 
 export class EntityStore {
   components: Component<unknown>[] = [];

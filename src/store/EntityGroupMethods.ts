@@ -143,6 +143,7 @@ export function copyGroupEntity(
       srcOffset + srcIndex,
       destOffset + destIndex,
     );
+    component.markChanged(dest, destIndex, 1);
   }
 }
 

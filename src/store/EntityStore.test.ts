@@ -8,7 +8,7 @@ describe('EntityStore', () => {
     // Create new entity with position component
     const entity = store.createEntity();
     expect(entity.has('position')).toBe(false);
-    entity.add('position');
+    entity.set('position', [0, 0, 0]);
     // We must have position now... replace it
     expect(entity.has('position')).toBe(true);
     entity.set('position', [0, 0, 5]);
@@ -54,7 +54,6 @@ describe('EntityStore', () => {
     for (let i = 0; i < 100; i += 1) {
       // Create new entity with position component
       const entity = store.createEntity();
-      entity.add('position');
       entity.set('position', [0, 0, 5]);
       // Unfloat it many, many times
       entity.unfloat();
@@ -71,7 +70,7 @@ describe('EntityStore', () => {
     const store = new EntityStore();
     store.addComponent('position', new MutableComponent(() => [0, 0, 0]));
     const entity = store.createEntity();
-    entity.add('position');
+    entity.set('position', [0, 0, 5]);
     expect(entity.has('position')).toBe(true);
     entity.remove('position');
     expect(entity.has('position')).toBe(false);
@@ -80,7 +79,7 @@ describe('EntityStore', () => {
     const store = new EntityStore();
     store.addComponent('position', new MutableComponent(() => [0, 0, 0]));
     const entity = store.createEntity();
-    entity.add('position');
+    entity.set('position', [0, 0, 0]);
     expect(store.serialize()).toEqual([
       { id: 0, position: [0, 0, 0] },
     ]);
