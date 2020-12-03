@@ -1,9 +1,6 @@
-import { MutableComponent } from '../../components/MutableComponent';
+import { ImmutableComponent } from '../../components/ImmutableComponent';
 
 import { Light } from '../Light';
 
-export class LightComponent extends MutableComponent<Light> {
-  constructor() {
-    super(() => ({}));
-  }
+export class LightComponent extends ImmutableComponent<Light> {
 }

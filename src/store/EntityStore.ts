@@ -173,7 +173,12 @@ export class EntityStore {
     removeGroupEntity(this, group, index);
     if (group.size <= 0) {
       // Remove the entity group from the list.
-      removeItem(this.floatingEntityGroups, group.parentIndex);
+      // TODO: Erm, managing this would be an issue - index of this frequently
+      // changes. Assuming freeGroups won't contain data too much, we'll just
+      // iterate them...
+      this.floatingEntityGroups = this.floatingEntityGroups
+        .filter((v) => v !== group);
+      // removeItem(this.floatingEntityGroups, group.parentIndex);
       // Release the entity group.
       this.releaseEntityGroup(group);
     }
@@ -212,7 +217,7 @@ export class EntityStore {
         const component = this.getComponent(key);
         signature[component.pos!] = component.probeOffset(baseObj[key]);
       });
-      signature[this.idComponent.pos!] = 0;
+      signature[this.idComponent.pos!] = 1;
       const [group, index] = this.createEntitySlot(signature);
       const entity = new Entity(this, group, index);
       entity.set(this.idComponent, this.lastEntityId);

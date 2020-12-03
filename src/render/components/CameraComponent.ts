@@ -1,14 +1,6 @@
-import { MutableComponent } from '../../components/MutableComponent';
+import { ImmutableComponent } from '../../components/ImmutableComponent';
 
 import { Camera } from '../Camera';
 
-export class CameraComponent extends MutableComponent<Camera> {
-  constructor() {
-    super(() => ({
-      type: 'perspective',
-      far: 1000,
-      near: 0.1,
-      fov: 90 / 180 * Math.PI,
-    }));
-  }
+export class CameraComponent extends ImmutableComponent<Camera> {
 }

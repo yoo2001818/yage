@@ -34,7 +34,7 @@ export function getGroupContainerHashCode(
   let windPos = 0;
   for (let i = 0; i < components.length; i += 1) {
     const offset = components[i];
-    if (offset !== -1) {
+    if (isAllocated(offset)) {
       const component = store.components[i];
       for (let j = windPos; j < i; j += 1) {
         result = result * 31 | 0;
@@ -120,7 +120,7 @@ export function copyGroupComponents(
 ): void {
   for (let i = 0; i < offsets.length; i += 1) {
     const srcOffset = offsets[i];
-    if (srcOffset !== -1) {
+    if (isAllocated(srcOffset)) {
       addGroupComponentFromOffset(dest, store.components[i], srcOffset, store);
     }
   }

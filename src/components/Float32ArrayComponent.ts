@@ -3,10 +3,9 @@ import { ComponentAllocator } from './ComponentAllocator';
 
 const PAGE_SIZE = 65536;
 
-export class Float32ArrayComponent<T> extends AbstractComponent<T> {
+export class Float32ArrayComponent<T = Float32Array>
+  extends AbstractComponent<T> {
   onCreate: (buffer: Float32Array) => T;
-
-  onCopy: (from: T, to: T) => void;
 
   onGetBuffer: (value: T) => Float32Array;
 
@@ -21,12 +20,10 @@ export class Float32ArrayComponent<T> extends AbstractComponent<T> {
   constructor(
     dimensions: number,
     onCreate: (buffer: Float32Array) => T,
-    onCopy: (from: T, to: T) => void,
     onGetBuffer: (value: T) => Float32Array,
   ) {
     super();
     this.onCreate = onCreate;
-    this.onCopy = onCopy;
     this.onGetBuffer = onGetBuffer;
     this.dimensions = dimensions;
     this.arrays = [];
@@ -92,4 +89,14 @@ export class Float32ArrayComponent<T> extends AbstractComponent<T> {
       destOffset,
     );
   }
+}
+
+export function createFloat32ArrayComponent(
+  dimensions: number,
+): Float32ArrayComponent<Float32Array> {
+  return new Float32ArrayComponent(
+    dimensions,
+    (v) => v,
+    (v) => v,
+  );
 }

@@ -1,9 +1,6 @@
-import { MutableComponent } from '../../components/MutableComponent';
+import { ImmutableComponent } from '../../components/ImmutableComponent';
 
 import { Geometry } from '../Geometry';
 
-export class GeometryComponent extends MutableComponent<Geometry> {
-  constructor() {
-    super(() => new Geometry());
-  }
+export class GeometryComponent extends ImmutableComponent<Geometry> {
 }

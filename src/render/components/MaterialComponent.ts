@@ -1,9 +1,6 @@
-import { MutableComponent } from '../../components/MutableComponent';
+import { ImmutableComponent } from '../../components/ImmutableComponent';
 
 import { Material } from '../Material';
 
-export class MaterialComponent extends MutableComponent<Material> {
-  constructor() {
-    super(() => ({ shaderId: 0, uniforms: {} }));
-  }
+export class MaterialComponent extends ImmutableComponent<Material> {
 }

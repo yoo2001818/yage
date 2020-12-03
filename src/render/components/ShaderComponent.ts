@@ -1,9 +1,6 @@
-import { MutableComponent } from '../../components/MutableComponent';
+import { ImmutableComponent } from '../../components/ImmutableComponent';
 
 import { Shader } from '../Shader';
 
-export class ShaderComponent extends MutableComponent<Shader> {
-  constructor() {
-    super(() => new Shader('', ''));
-  }
+export class ShaderComponent extends ImmutableComponent<Shader> {
 }

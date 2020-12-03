@@ -119,8 +119,13 @@ export class Entity {
       return;
     }
     if (component.isUnison()) {
-      this.float();
-      addGroupComponent(this.group, component, source, this.store);
+      // TODO Warn the user if source is same to destination
+      const offset = getGroupComponentOffset(this.group, component);
+      const targetOffset = component.probeOffset(source);
+      if (targetOffset !== offset) {
+        this.float();
+        addGroupComponent(this.group, component, source, this.store);
+      }
     } else {
       let offset = getGroupComponentOffset(this.group, component);
       if (!isAllocated(offset)) {

@@ -12,6 +12,13 @@ export class Geometry {
 
   size: number = 0;
 
+  constructor(values: { [key: string]: Float32Array } = {}) {
+    Object.keys(values).forEach((key) => {
+      const value = values[key];
+      this.setBuffer(key, value);
+    });
+  }
+
   getBuffer(name: string): Float32Array | null {
     const entry = this.attributes.get(name);
     if (entry == null) return null;

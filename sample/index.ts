@@ -1,8 +1,8 @@
 import { quat, vec3 } from 'gl-matrix';
 import { EntityStore } from '../src/store/EntityStore';
 import { SystemStore } from '../src/store/SystemStore';
-import { Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
-import { LocRotScaleComponent } from '../src/render/components/LocRotScaleComponent';
+import { createFloat32ArrayComponent, Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
+// import { LocRotScaleComponent } from '../src/render/components/LocRotScaleComponent';
 import { MaterialComponent } from '../src/render/components/MaterialComponent';
 import { GeometryComponent } from '../src/render/components/GeometryComponent';
 import { ShaderComponent } from '../src/render/components/ShaderComponent';
@@ -31,13 +31,13 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponent('pos', new LocRotScaleComponent());
+  entityStore.addComponent('pos', createFloat32ArrayComponent(12));
   entityStore.addComponent('material', new MaterialComponent());
   entityStore.addComponent('geometry', new GeometryComponent());
   entityStore.addComponent('shader', new ShaderComponent());
   entityStore.addComponent('mesh', new MeshComponent());
   entityStore.addComponent('camera', new CameraComponent());
-  entityStore.addComponent('vel', new Float32ArrayComponent(3));
+  entityStore.addComponent('vel', createFloat32ArrayComponent(3));
 
   entityStore.addIndex('locRotScale', new LocRotScaleIndex('pos'));
 
@@ -69,10 +69,8 @@ function main() {
     `,
   });
   box.set('material', { shaderId: boxId, uniforms: {} });
-  box.add('geometry');
-  box.get<Geometry>('geometry')!.setBuffer(
-    'aPosition',
-    new Float32Array([
+  box.set('geometry', new Geometry({
+    aPosition: new Float32Array([
       -1, 1, 1,
       1, 1, 1,
       -1, -1, 1,
@@ -88,7 +86,7 @@ function main() {
       -1, 1, -1,
       1, 1, 1,
     ]),
-  );
+  }));
 
   const camera = entityStore.createEntity({
     pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
@@ -148,9 +146,8 @@ function main() {
     });
     */
   });
-  systemStore.addSystem((event) => {
-    if (event !== 'init') return;
-    for (let i = 0; i < 200; i += 1) {
+  systemStore.addSystem(() => {
+    for (let i = 0; i < 2; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;
@@ -217,14 +214,14 @@ function main() {
         const y = posArr[12 * i + 1];
         const z = posArr[12 * i + 2];
         if (x < -10 || x > 10 || y < -10 || y > 10 || z < -10 || z > 10) {
-          // deleteList.push(i);
+          deleteList.push(i);
           posArr[12 * i] = 0;
           posArr[12 * i + 1] = 0;
           posArr[12 * i + 2] = 0;
         }
       }
       for (let i = 0; i < deleteList.length; i += 1) {
-        // entityStore.getEntityOfGroup(group, deleteList[i]).destroy();
+        entityStore.getEntityOfGroup(group, deleteList[i]).destroy();
       }
     });
     /*
