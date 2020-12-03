@@ -41,6 +41,10 @@ export class MutableComponent<T> extends AbstractComponent<T> {
     return this.allocator.allocate(size);
   }
 
+  createOffsetFromOffset(offset: number, size: number): number {
+    return this.allocator.allocate(size);
+  }
+
   deleteOffset(offset: number, size: number): void {
     this.allocator.unallocate(offset, size);
   }

@@ -27,6 +27,14 @@ export class UnisonComponent<T> extends AbstractComponent<T> {
     return this.items.length - 1;
   }
 
+  createOffsetFromOffset(offset: number): number {
+    return offset;
+  }
+
+  probeOffset(value: T): number {
+    return this.createOffset(value);
+  }
+
   deleteOffset(): void {
     // TODO We can run clean-up routines here
   }
@@ -48,5 +56,18 @@ export class UnisonComponent<T> extends AbstractComponent<T> {
 
   copyBetween(): void {
     throw new Error('Unison data does not support copying');
+  }
+
+  getOffsetHash(offset: number): number {
+    if (offset === -1) return 0;
+    return offset + 1;
+  }
+
+  isOffsetCompatible(a: number, b: number): boolean {
+    return a === b;
+  }
+
+  isUnison(): boolean {
+    return true;
   }
 }

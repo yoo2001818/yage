@@ -13,7 +13,7 @@ describe.each([
     const array = create();
     expect(() => array.get(0)).toThrow();
     expect(array.size).toBe(0);
-    array.allocate(32);
+    array.createOffset({ value: 'a' }, 32);
     expect(array.size).toBe(32);
 
     array.get(3).value = 'abcd';
@@ -21,7 +21,7 @@ describe.each([
   });
   it('should be able to copy from/to values', () => {
     const array = create();
-    array.allocate(1);
+    array.createOffset({ value: 'a' }, 1);
 
     array.set(0, { value: 'a' });
     const result = { value: '' };

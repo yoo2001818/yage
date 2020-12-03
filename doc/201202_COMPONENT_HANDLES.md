@@ -109,3 +109,10 @@ The 'createOffset' function merges 'allocate', 'getUnisonOffset' functions
 together. 'getOffsetHash', 'isOffsetCompatible' can be used by entity logics
 to determine the corresponding entity group. Using this, 'unison' is no longer
 needed!
+
+... However, due to the presence of EntityGroupContainer, the actual object
+needs to be present to allocate new offset.... We'll provide
+'createOffsetFromOffset' method for this.
+
+... However, we need to float out when the user tries to set component, so
+unison distinguishing is indeed needed... 

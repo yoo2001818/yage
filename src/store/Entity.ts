@@ -8,7 +8,7 @@ import {
   getGroupComponentOffset,
   getGroupComponents,
   copyGroupComponents,
-  updateGroupHashCode,
+  isAllocated,
 } from './EntityGroupMethods';
 
 export class Entity {
@@ -32,7 +32,7 @@ export class Entity {
     // Create a single-sized entity group
     const [newGroup, newIndex] = this.store.createFloatingEntitySlot();
     // Copy oldGroup's signature onto new floating entity
-    copyGroupComponents(this.store, oldGroup, newGroup);
+    copyGroupComponents(this.store, oldGroup.offsets, newGroup);
     // Copy oldGroup's contents onto newGroup
     copyGroupEntity(
       this.store,
@@ -62,19 +62,6 @@ export class Entity {
     this.index = newIndex;
   }
 
-  add<T>(component: Component<T> | string): void {
-    if (typeof component === 'string') {
-      const componentInst = this.store.getComponent(component);
-      this.add(componentInst);
-      return;
-    }
-    if (component.unison) {
-      throw new Error('Cannot add unison component without specifying value');
-    }
-    this.float();
-    addGroupComponent(this.group, component, this.store);
-  }
-
   remove<T>(component: Component<T> | string): void {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
@@ -90,7 +77,7 @@ export class Entity {
       const componentInst = this.store.getComponent(component);
       return this.has(componentInst);
     }
-    return getGroupComponentOffset(this.group, component) !== -1;
+    return isAllocated(getGroupComponentOffset(this.group, component));
   }
 
   getPos<T>(component: Component<T> | string): number {
@@ -107,7 +94,7 @@ export class Entity {
       return this.get(componentInst) as T;
     }
     const offset = getGroupComponentOffset(this.group, component);
-    if (offset === -1) {
+    if (!isAllocated(offset)) {
       throw new Error(`Component ${component.name} does not exist in entity`);
     }
     return component.get(offset + this.index);
@@ -131,15 +118,14 @@ export class Entity {
       this.set(componentInst, source);
       return;
     }
-    if (component.unison) {
+    if (component.isUnison()) {
       this.float();
-      this.group.offsets[component.pos!] = component.getUnisonOffset(source);
-      updateGroupHashCode(this.group, this.store);
+      addGroupComponent(this.group, component, source, this.store);
     } else {
       let offset = getGroupComponentOffset(this.group, component);
-      if (offset === -1) {
-        this.add(component);
-        offset = getGroupComponentOffset(this.group, component);
+      if (!isAllocated(offset)) {
+        this.float();
+        offset = addGroupComponent(this.group, component, source, this.store);
       }
       component.set(offset + this.index, source);
       component.markChanged(this.group, this.index, 1);
@@ -154,9 +140,7 @@ export class Entity {
       this.markChanged(componentInst);
       return;
     }
-    if (!component.unison) {
-      component.markChanged(this.group, this.index, 1);
-    }
+    component.markChanged(this.group, this.index, 1);
   }
 
   copyTo<T>(
@@ -169,7 +153,7 @@ export class Entity {
       return;
     }
     const offset = getGroupComponentOffset(this.group, component);
-    if (offset === -1) return;
+    if (!isAllocated(offset)) return;
     component.copyTo(offset + this.index, target);
   }
 
@@ -189,9 +173,6 @@ export class Entity {
     // eslint-disable-next-line guard-for-in
     for (const name in value) {
       const component = this.store.getComponent(name);
-      if (!this.has(component)) {
-        this.add(component);
-      }
       this.set(component, valueTable[name]);
     }
   }

@@ -25,6 +25,13 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   abstract createOffset(value: T, size: number): number;
 
+  abstract createOffsetFromOffset(offset: number, size: number): number;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  probeOffset(value: T): number {
+    return 1;
+  }
+
   abstract deleteOffset(offset: number, size: number): void;
 
   abstract get(pos: number): T;
@@ -57,6 +64,10 @@ export abstract class AbstractComponent<T> implements Component<T> {
   }
 
   isOffsetCompatible(a: number, b: number): boolean {
-    return a === b;
+    return (a === -1) === (b === -1);
+  }
+
+  isUnison(): boolean {
+    return false;
   }
 }

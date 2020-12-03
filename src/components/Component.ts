@@ -17,6 +17,8 @@ export interface Component<T> {
   unregister(): void,
 
   createOffset(value: T, size: number): number,
+  createOffsetFromOffset(offset: number, size: number): number,
+  probeOffset(value: T): number,
   deleteOffset(offset: number, size: number): void,
 
   get(offset: number): T,
@@ -34,4 +36,5 @@ export interface Component<T> {
 
   getOffsetHash(offset: number): number,
   isOffsetCompatible(a: number, b: number): boolean,
+  isUnison(): boolean,
 }

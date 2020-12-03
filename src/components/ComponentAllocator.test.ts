@@ -3,7 +3,7 @@ import { ComponentAllocator } from './ComponentAllocator';
 describe('ComponentAllocator', () => {
   it('should manage chunks correctly', () => {
     let count = 0;
-    const allocator = new ComponentAllocator((size) => {
+    const allocator = new ComponentAllocator(16, (size) => {
       count += size;
       return count - size;
     });
@@ -16,7 +16,7 @@ describe('ComponentAllocator', () => {
   });
   it('should manage sandwiched chunks correctly', () => {
     let count = 0;
-    const allocator = new ComponentAllocator((size) => {
+    const allocator = new ComponentAllocator(16, (size) => {
       count += size;
       return count - size;
     });

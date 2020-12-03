@@ -14,6 +14,10 @@ export function getGroupComponentIds(group: EntityGroup): number[] {
   return output;
 }
 
+export function isAllocated(value: number | undefined | null): boolean {
+  return value != null && value !== -1;
+}
+
 export function getGroupComponents(
   group: EntityGroup,
   store: EntityStore,
@@ -36,7 +40,7 @@ export function getGroupContainerHashCode(
         result = result * 31 | 0;
       }
       windPos = i;
-      result = result * 31 + (component.unison ? offset : 1) | 0;
+      result = result * 31 + component.getOffsetHash(offset) | 0;
     }
   }
   return result;
@@ -50,21 +54,38 @@ export function updateGroupHashCode(
   group.hashCode = hashCode;
 }
 
-export function addGroupComponent(
+export function addGroupComponent<T>(
   group: EntityGroup,
-  component: Component<unknown>,
+  component: Component<T>,
+  value: T,
+  store: EntityStore,
+): number {
+  const { pos } = component;
+  if (pos == null) throw new Error('Invalid');
+  if (group.offsets.length > pos && group.offsets[pos] !== -1) {
+    return group.offsets[pos];
+  }
+  for (let i = group.offsets.length; i < pos; i += 1) {
+    group.offsets[i] = -1;
+  }
+  group.offsets[pos] = component.createOffset(value, group.maxSize);
+  updateGroupHashCode(group, store);
+  return group.offsets[pos];
+}
+
+export function addGroupComponentFromOffset<T>(
+  group: EntityGroup,
+  component: Component<T>,
+  offset: number,
   store: EntityStore,
 ): void {
   const { pos } = component;
-  if (component.unison) {
-    throw new Error('Cannot add unison component without specifying value');
-  }
   if (pos == null) return;
   if (group.offsets.length > pos && group.offsets[pos] !== -1) return;
   for (let i = group.offsets.length; i < pos; i += 1) {
     group.offsets[i] = -1;
   }
-  group.offsets[pos] = component.allocate(group.maxSize);
+  group.offsets[pos] = component.createOffsetFromOffset(offset, group.maxSize);
   updateGroupHashCode(group, store);
 }
 
@@ -76,7 +97,7 @@ export function removeGroupComponent(
   const { pos } = component;
   if (pos == null) return;
   if (group.offsets.length <= pos || group.offsets[pos] === -1) return;
-  component.unallocate(group.offsets[pos], group.maxSize);
+  component.deleteOffset(group.offsets[pos], group.maxSize);
   group.offsets[pos] = -1;
   updateGroupHashCode(group, store);
 }
@@ -94,13 +115,13 @@ export function getGroupComponentOffset(
 
 export function copyGroupComponents(
   store: EntityStore,
-  src: EntityGroup,
+  offsets: number[],
   dest: EntityGroup,
 ): void {
-  for (let i = 0; i < src.offsets.length; i += 1) {
-    const srcOffset = src.offsets[i];
+  for (let i = 0; i < offsets.length; i += 1) {
+    const srcOffset = offsets[i];
     if (srcOffset !== -1) {
-      addGroupComponent(dest, store.components[i], store);
+      addGroupComponentFromOffset(dest, store.components[i], srcOffset, store);
     }
   }
 }
@@ -117,6 +138,7 @@ export function copyGroupEntity(
     const destOffset = dest.offsets[i];
     if (srcOffset === -1 || destOffset === -1) continue;
     const component = store.components[i];
+    if (component.isUnison()) continue;
     component.copyBetween(
       srcOffset + srcIndex,
       destOffset + destIndex,
@@ -151,7 +173,7 @@ export function unallocateGroup(
   for (let i = 0; i < group.offsets.length; i += 1) {
     if (group.offsets[i] !== -1) {
       const component = store.components[i];
-      component.unallocate(group.offsets[i], group.maxSize);
+      component.deleteOffset(group.offsets[i], group.maxSize);
       group.offsets[i] = -1;
     }
   }

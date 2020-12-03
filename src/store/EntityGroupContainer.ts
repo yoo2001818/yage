@@ -1,12 +1,18 @@
 import { EntityGroup } from './EntityGroup';
-import { addGroupComponent, getGroupContainerHashCode, removeGroupEntity } from './EntityGroupMethods';
+import {
+  copyGroupComponents,
+  getGroupContainerHashCode,
+  removeGroupEntity,
+} from './EntityGroupMethods';
 import { EntityStore } from './EntityStore';
 import { removeItem } from '../utils/array';
 
 export class EntityGroupContainer {
   id: number = 0;
 
-  components: number[] = [];
+  // This contains the 'master' offset information used to initialize the other
+  // groups.
+  offsets: number[] = [];
 
   hashCode: number = 0;
 
@@ -15,11 +21,11 @@ export class EntityGroupContainer {
   freeGroups: EntityGroup[] = [];
 
   init(
-    components: number[],
+    offsets: number[],
     store: EntityStore,
   ): void {
-    this.components = components;
-    this.hashCode = getGroupContainerHashCode(components, store);
+    this.offsets = offsets;
+    this.hashCode = getGroupContainerHashCode(offsets, store);
   }
 
   createEntitySlot(store: EntityStore): [EntityGroup, number] {
@@ -40,12 +46,7 @@ export class EntityGroupContainer {
     group.maxSize = Math.min(2048, 2 ** this.groups.length);
     this.groups.push(group);
 
-    // TODO This is not ideal
-    for (let i = 0; i < this.components.length; i += 1) {
-      if (this.components[i]) {
-        addGroupComponent(group, store.components[i], store);
-      }
-    }
+    copyGroupComponents(store, this.offsets, group);
     group.size += 1;
     this.freeGroups.push(group);
 

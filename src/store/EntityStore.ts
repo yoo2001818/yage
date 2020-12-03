@@ -8,6 +8,7 @@ import {
   getGroupContainerHashCode,
   removeGroupEntity,
   getGroupComponentOffset,
+  isAllocated,
 } from './EntityGroupMethods';
 import { Index } from '../indexes/Index';
 import { IdIndex } from '../indexes/IdIndex';
@@ -45,7 +46,7 @@ export class EntityStore {
     this.removedSignal = new Signal();
     this.idComponent = this.addComponent(
       'id',
-      new ImmutableComponent<number>(() => 0),
+      new ImmutableComponent<number>(),
     );
     this.addIndex('id', new IdIndex());
   }
@@ -209,11 +210,7 @@ export class EntityStore {
       const baseObj = base as { [key: string]: unknown };
       Object.keys(base).forEach((key) => {
         const component = this.getComponent(key);
-        if (component.unison) {
-          signature[component.pos!] = component.getUnisonOffset(baseObj[key]);
-        } else {
-          signature[component.pos!] = 0;
-        }
+        signature[component.pos!] = component.probeOffset(baseObj[key]);
       });
       signature[this.idComponent.pos!] = 0;
       const [group, index] = this.createEntitySlot(signature);
@@ -228,7 +225,6 @@ export class EntityStore {
     // Create floating entity group. Any other logic directly goes to Entity
     const [group, index] = this.createFloatingEntitySlot();
     const entity = new Entity(this, group, index);
-    entity.add(this.idComponent);
     entity.set(this.idComponent, this.lastEntityId);
     this.lastEntityId += 1;
     return entity;
@@ -247,7 +243,7 @@ export class EntityStore {
       .find((v) => v.hashCode === hashCode);
     if (item == null) {
       item = this.createEntityGroupContainer();
-      item.components = signature;
+      item.offsets = signature;
       item.hashCode = hashCode;
     }
     return item;
@@ -280,7 +276,8 @@ export class EntityStore {
       const passed = components.every((component) => {
         const { pos } = component;
         if (pos == null) return false;
-        return container.components.length > pos && container.components[pos];
+        return container.offsets.length > pos
+          && isAllocated(container.offsets[pos]);
       });
       if (!passed) return;
       container.groups.forEach((group) => {
@@ -293,7 +290,7 @@ export class EntityStore {
       let passed = true;
       const offsets = components.map((component) => {
         const offset = getGroupComponentOffset(group, component);
-        if (offset === -1) passed = false;
+        if (!isAllocated(offset)) passed = false;
         return offset;
       });
       if (!passed) return;
