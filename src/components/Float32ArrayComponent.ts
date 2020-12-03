@@ -1,45 +1,71 @@
 import { AbstractComponent } from './AbstractComponent';
+import { ComponentAllocator } from './ComponentAllocator';
 
 const PAGE_SIZE = 65536;
 
-export class Float32ArrayComponent extends AbstractComponent<Float32Array> {
+export class Float32ArrayComponent<T> extends AbstractComponent<T> {
+  onCreate: (buffer: Float32Array) => T;
+
+  onCopy: (from: T, to: T) => void;
+
+  onGetBuffer: (value: T) => Float32Array;
+
   dimensions: number;
+
+  allocator: ComponentAllocator;
 
   arrays: Float32Array[];
 
-  constructor(dimensions: number) {
+  size: number;
+
+  constructor(
+    dimensions: number,
+    onCreate: (buffer: Float32Array) => T,
+    onCopy: (from: T, to: T) => void,
+    onGetBuffer: (value: T) => Float32Array,
+  ) {
     super();
+    this.onCreate = onCreate;
+    this.onCopy = onCopy;
+    this.onGetBuffer = onGetBuffer;
     this.dimensions = dimensions;
-    // The array is separated to pages.
     this.arrays = [];
+    this.size = 0;
+    this.allocator = new ComponentAllocator(PAGE_SIZE, (reqSize) => {
+      const start = this.size;
+      const end = start + reqSize;
+      const page = start / PAGE_SIZE | 0;
+      while (this.arrays.length <= page) {
+        this.arrays.push(new Float32Array(PAGE_SIZE * this.dimensions));
+      }
+      this.size = end;
+      return start;
+    });
   }
 
-  _allocateNew(size: number): number {
-    const start = this.size;
-    const end = start + size;
-    const page = start / PAGE_SIZE | 0;
-    while (this.arrays.length <= page) {
-      this.arrays.push(new Float32Array(PAGE_SIZE * this.dimensions));
-    }
-    this.size = end;
-    return start;
+  createOffset(value: T, size: number): number {
+    return this.allocator.allocate(size);
   }
 
-  get(pos: number): Float32Array {
+  deleteOffset(offset: number, size: number): void {
+    this.allocator.unallocate(offset, size);
+  }
+
+  get(pos: number): T {
     if (pos >= this.size) {
       throw new Error('Component overflown');
     }
     const page = pos / PAGE_SIZE | 0;
     const offset = (pos % PAGE_SIZE) * this.dimensions;
     const array = this.arrays[page];
-    return array.subarray(offset, offset + this.dimensions);
+    return this.onCreate(array.subarray(offset, offset + this.dimensions));
   }
 
-  set(pos: number, source: Float32Array | number[]): void {
+  set(pos: number, source: T): void {
     const page = pos / PAGE_SIZE | 0;
     const offset = (pos % PAGE_SIZE) * this.dimensions;
     const array = this.arrays[page];
-    array.set(source, offset);
+    array.set(this.onGetBuffer(source), offset);
   }
 
   getArrayOf(pos: number): Float32Array {
@@ -57,6 +83,9 @@ export class Float32ArrayComponent extends AbstractComponent<Float32Array> {
     const destPage = dest / PAGE_SIZE | 0;
     const destOffset = (dest % PAGE_SIZE) * this.dimensions;
     const destArray = this.arrays[destPage];
-    destArray.set(this.get(src), destOffset);
+    destArray.set(
+      this.getArrayOf(src).subarray(0, this.dimensions),
+      destOffset,
+    );
   }
 }

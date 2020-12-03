@@ -12,18 +12,16 @@ import { EntityGroup } from '../store/EntityGroup';
 export interface Component<T> {
   name: string | null,
   pos: number | null,
-  size: number,
-  unison: boolean,
 
   register(name: string, pos: number): void,
   unregister(): void,
 
-  allocate(size: number): number,
-  unallocate(offset: number, size: number): void,
+  createOffset(value: T, size: number): number,
+  deleteOffset(offset: number, size: number): void,
 
-  get(pos: number): T,
-  set(pos: number, source: T): void,
-  copyTo(pos: number, target: T): void,
+  get(offset: number): T,
+  set(offset: number, source: T): void,
+  copyTo(offset: number, target: T): void,
   copyBetween(src: number, dest: number): void,
 
   markChanged(group: EntityGroup, start?: number, size?: number): void,
@@ -34,6 +32,6 @@ export interface Component<T> {
     callback: (group: EntityGroup, start: number, size: number) => void,
   ): void,
 
-  // Unison component
-  getUnisonOffset(data: T): number,
+  getOffsetHash(offset: number): number,
+  isOffsetCompatible(a: number, b: number): boolean,
 }

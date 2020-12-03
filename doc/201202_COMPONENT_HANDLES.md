@@ -87,6 +87,10 @@ Float32ArrayComponent is very, very complicated - it would require size of
 each entity, a method to create a 'view' object, a method to copy from 'view'
 object to another 'view' object.
 
+Basically, for vectorized components, we need two separate implementations
+for it - one that stores vectors by itself, one that stores vectors inside the
+component.
+
 ## Checking if the component is compatiable
 Currently, calculating if the entity's shape is compatiable with each other...
 is hard coded. That is, the entity logic itself does everything now - from

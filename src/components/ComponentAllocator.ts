@@ -1,18 +1,23 @@
-const PAGE_SIZE = 65536;
-
 interface Chunk {
   start: number,
   end: number,
 }
 
 export class ComponentAllocator {
+  pageSize: number;
+
   chunks: Chunk[];
 
   onAllocate: (size: number) => number;
 
   constructor(
+    pageSize: number,
     onAllocate: (size: number) => number,
   ) {
+    // TODO: We need to be able to dynamically allocate pages;
+    // Currently it's fixed to maximum size of entity group, which is 2048.
+    // this.pageSize = pageSize;
+    this.pageSize = 2048;
     this.chunks = [];
     this.onAllocate = onAllocate;
   }
@@ -24,8 +29,8 @@ export class ComponentAllocator {
     let chunk: Chunk;
     if (chunkIndex === -1) {
       // There is no chunk available. Let's request for more...
-      const allocated = this.onAllocate(PAGE_SIZE);
-      chunk = { start: allocated, end: allocated + PAGE_SIZE };
+      const allocated = this.onAllocate(this.pageSize);
+      chunk = { start: allocated, end: allocated + this.pageSize };
       this.chunks.push(chunk);
       chunkIndex = this.chunks.length - 1;
     } else {

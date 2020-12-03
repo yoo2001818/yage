@@ -1,4 +1,5 @@
 import { AbstractComponent } from './AbstractComponent';
+import { ComponentAllocator } from './ComponentAllocator';
 
 function defaultOnCopy<T>(from: T, to: T): void {
   Object.assign(to, from);
@@ -11,6 +12,10 @@ export class MutableComponent<T> extends AbstractComponent<T> {
 
   items: T[];
 
+  allocator: ComponentAllocator;
+
+  size: number;
+
   constructor(
     onCreate: () => T,
     onCopy: (from: T, to: T) => void = defaultOnCopy,
@@ -19,32 +24,40 @@ export class MutableComponent<T> extends AbstractComponent<T> {
     this.onCreate = onCreate;
     this.onCopy = onCopy;
     this.items = [];
+    this.size = 0;
+    this.allocator = new ComponentAllocator(16, (reqSize) => {
+      const start = this.items.length;
+      const end = start + reqSize;
+      this.items.length = end;
+      this.size = end;
+      for (let i = start; i < end; i += 1) {
+        this.items[i] = this.onCreate();
+      }
+      return start;
+    });
   }
 
-  _allocateNew(size: number): number {
-    const start = this.items.length;
-    const end = start + size;
-    this.items.length = end;
-    this.size = end;
-    for (let i = start; i < end; i += 1) {
-      this.items[i] = this.onCreate();
-    }
-    return start;
+  createOffset(value: T, size: number): number {
+    return this.allocator.allocate(size);
   }
 
-  get(pos: number): T {
-    if (pos >= this.items.length) {
+  deleteOffset(offset: number, size: number): void {
+    this.allocator.unallocate(offset, size);
+  }
+
+  get(offset: number): T {
+    if (offset >= this.items.length) {
       throw new Error('Component overflown');
     }
-    return this.items[pos];
+    return this.items[offset];
   }
 
-  set(pos: number, source: T): void {
-    this.onCopy(source, this.get(pos));
+  set(offset: number, source: T): void {
+    this.onCopy(source, this.get(offset));
   }
 
-  copyTo(pos: number, target: T): void {
-    this.onCopy(this.get(pos), target);
+  copyTo(offset: number, target: T): void {
+    this.onCopy(this.get(offset), target);
   }
 
   copyBetween(src: number, dest: number): void {

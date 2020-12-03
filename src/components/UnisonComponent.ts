@@ -1,81 +1,52 @@
-import { Component } from './Component';
-import { Signal } from '../Signal';
-import { EntityGroup } from '../store/EntityGroup';
+import { AbstractComponent } from './AbstractComponent';
 
-export class UnisonComponent<T> implements Component<T> {
-  name: string | null = null;
-
-  pos: number | null = null;
-
+export class UnisonComponent<T> extends AbstractComponent<T> {
   size: number = 0;
 
-  unison: boolean = true;
+  items: T[];
 
-  signal: Signal<[EntityGroup, number, number]>;
+  equals: (a: T, b: T) => boolean;
 
-  list: T[] = [];
+  hashCode: (a: T) => number;
 
-  isEqual: (a: T, b: T) => boolean;
-
-  constructor(isEqual: (a: T, b: T) => boolean) {
-    this.signal = new Signal();
-    this.isEqual = isEqual;
+  constructor(
+    equals: (a: T, b: T) => boolean,
+    hashCode: (a: T) => number,
+  ) {
+    super();
+    this.items = [];
+    this.equals = equals;
+    this.hashCode = hashCode;
   }
 
-  register(name: string, pos: number): void {
-    this.name = name;
-    this.pos = pos;
+  createOffset(value: T): number {
+    // TODO Make it faster (duh)
+    const index = this.items.findIndex((v) => this.equals(v, value));
+    if (index !== -1) return index;
+    this.items.push(value);
+    return this.items.length - 1;
   }
 
-  unregister(): void {
-    this.name = null;
-    this.pos = null;
+  deleteOffset(): void {
+    // TODO We can run clean-up routines here
   }
 
-  allocate(): number {
-    return -1;
-  }
-
-  unallocate(): void {
-  }
-
-  get(pos: number): T {
-    return this.list[pos];
+  get(offset: number): T {
+    if (offset >= this.items.length) {
+      throw new Error('Component overflown');
+    }
+    return this.items[offset];
   }
 
   set(): void {
-    throw new Error('Setting is not supported for unison component');
+    // TODO Make this non-callable
   }
 
   copyTo(): void {
-    throw new Error('Setting is not supported for unison component');
+    throw new Error('Unison data does not support copying');
   }
 
   copyBetween(): void {
-    throw new Error('Setting is not supported for unison component');
-  }
-
-  markChanged(group: EntityGroup, start = 0): void {
-    this.signal.emit(group, start, 1);
-  }
-
-  subscribe(
-    callback: (group: EntityGroup, start: number, size: number) => void,
-  ): void {
-    this.signal.subscribe(callback);
-  }
-
-  unsubscribe(
-    callback: (group: EntityGroup, start: number, size: number) => void,
-  ): void {
-    this.signal.unsubscribe(callback);
-  }
-
-  getUnisonOffset(value: T): number {
-    // TODO Make it faster (duh)
-    const index = this.list.findIndex((v) => this.isEqual(v, value));
-    if (index !== -1) return index;
-    this.list.push(value);
-    return this.list.length - 1;
+    throw new Error('Unison data does not support copying');
   }
 }

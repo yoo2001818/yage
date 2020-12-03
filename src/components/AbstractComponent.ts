@@ -1,5 +1,4 @@
 import { Component } from './Component';
-import { ComponentAllocator } from './ComponentAllocator';
 import { Signal } from '../Signal';
 import { EntityGroup } from '../store/EntityGroup';
 
@@ -8,16 +7,9 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   pos: number | null = null;
 
-  size: number = 0;
-
-  unison: boolean = false;
-
-  allocator: ComponentAllocator;
-
   signal: Signal<[EntityGroup, number, number]>;
 
   constructor() {
-    this.allocator = new ComponentAllocator((size) => this._allocateNew(size));
     this.signal = new Signal();
   }
 
@@ -31,15 +23,9 @@ export abstract class AbstractComponent<T> implements Component<T> {
     this.pos = null;
   }
 
-  allocate(size: number): number {
-    return this.allocator.allocate(size);
-  }
+  abstract createOffset(value: T, size: number): number;
 
-  unallocate(offset: number, size: number): void {
-    this.allocator.unallocate(offset, size);
-  }
-
-  abstract _allocateNew(size: number): number;
+  abstract deleteOffset(offset: number, size: number): void;
 
   abstract get(pos: number): T;
 
@@ -65,7 +51,12 @@ export abstract class AbstractComponent<T> implements Component<T> {
     this.signal.unsubscribe(callback);
   }
 
-  getUnisonOffset(): number {
-    return -1;
+  getOffsetHash(offset: number): number {
+    if (offset === -1) return 0;
+    return 1;
+  }
+
+  isOffsetCompatible(a: number, b: number): boolean {
+    return a === b;
   }
 }
