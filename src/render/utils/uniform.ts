@@ -5,17 +5,18 @@ export function convertFloat(value: unknown): number {
   throw new Error(`Unexpect value ${value}`);
 }
 
-const floatBuf = new Float32Array(16);
+const floatBuf = Array.from({ length: 16 }, (_, i) => new Float32Array(i));
 
 export function convertFloatArray(
   value: unknown,
   size: number,
 ): Float32Array {
   if (Array.isArray(value)) {
+    const buf = floatBuf[size];
     for (let i = 0; i < size; i += 1) {
-      floatBuf[i] = value[i];
+      buf[i] = value[i];
     }
-    return floatBuf;
+    return buf;
   }
   if (value instanceof Float32Array) return value;
   throw new Error(`Unexpect value ${value}`);
@@ -30,17 +31,18 @@ export function convertInt(value: unknown): number {
   return value as number;
 }
 
-const intBuf = new Int32Array(16);
+const intBuf = Array.from({ length: 16 }, (_, i) => new Int32Array(i));
 
 export function convertIntArray(
   value: unknown,
   size: number,
 ): Int32Array {
   if (Array.isArray(value)) {
+    const buf = intBuf[size];
     for (let i = 0; i < size; i += 1) {
-      intBuf[i] = value[i];
+      buf[i] = value[i];
     }
-    return intBuf;
+    return buf;
   }
   if (value instanceof Int32Array) return value;
   throw new Error(`Unexpect value ${value}`);

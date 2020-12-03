@@ -12,6 +12,10 @@ import { LocRotScaleIndex } from '../src/indexes/LocRotScaleIndex';
 import { Geometry } from '../src/render/Geometry';
 import { RenderSystem } from '../src/render/systems/RenderSystem';
 
+import { box } from '../src/geom/box';
+import { uvSphere } from '../src/geom/uvSphere';
+import { calcNormals } from '../src/geom/calcNormals';
+
 function main() {
   // Initialize game renderer
   const canvas = document.createElement('canvas');
@@ -43,20 +47,24 @@ function main() {
 
   // Create generic material and geometry
 
-  const box = entityStore.createEntity();
-  const boxId = box.get<number>('id');
-  box.set('shader', {
+  const boxEnt = entityStore.createEntity();
+  const boxId = boxEnt.get<number>('id');
+  boxEnt.set('shader', {
     vertShader: `
     attribute vec3 aPosition;
+    attribute vec3 aNormal;
 
     uniform mat4 uView;
     uniform mat4 uProjection;
     uniform mat4 uModel;
+    uniform vec4 uColor;
 
     varying lowp vec3 vColor;
 
     void main() {
-      vColor = vec3(1.0, 1.0, 1.0);
+      vColor = uColor.xyz +
+        (normalize(uView * uModel * vec4(aNormal, 0.0)).xyz * 0.5 + 0.5) * uColor.w;
+      // vColor = vec3(1.0, 1.0, 1.0);
       gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
     }
     `,
@@ -68,31 +76,14 @@ function main() {
     }
     `,
   });
-  box.set('material', { shaderId: boxId, uniforms: {} });
-  box.set('geometry', new Geometry({
-    attributes: {
-      aPosition: {
-        data: new Float32Array([
-          -1, 1, 1,
-          1, 1, 1,
-          -1, -1, 1,
-          1, -1, 1,
-          1, -1, -1,
-          1, 1, 1,
-          1, 1, -1,
-          -1, 1, 1,
-          -1, 1, -1,
-          -1, -1, 1,
-          -1, -1, -1,
-          1, -1, -1,
-          -1, 1, -1,
-          1, 1, 1,
-        ]),
-        axis: 3,
-      },
-    },
-    mode: gl.TRIANGLE_STRIP,
-  }));
+  boxEnt.set('material', { shaderId: boxId, uniforms: { uColor: [0, 0, 0, 1] } });
+  boxEnt.set('geometry', new Geometry(calcNormals(box())));
+
+  const sphereEnt = entityStore.createEntity({
+    geometry: new Geometry(uvSphere(10, 10)),
+    material: { shaderId: boxId, uniforms: { uColor: [0, 0.8, 0, 0.2] } },
+  });
+  const sphereId = sphereEnt.get<number>('id');
 
   const camera = entityStore.createEntity({
     pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
@@ -165,7 +156,10 @@ function main() {
       entityStore.createEntity({
         pos: [0, 0, 0, 0, 0, 0, 0, 1, 0.1, 0.1, 0.1, 0],
         vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
-        mesh: [boxId, boxId],
+        mesh: [
+          Math.random() > 0.5 ? boxId : sphereId,
+          Math.random() > 0.5 ? boxId : sphereId,
+        ],
       });
     }
   });

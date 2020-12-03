@@ -100,12 +100,10 @@ export class RenderSystem {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     // Enable bunch of test
-    /*
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.depthFunc(gl.LESS);
-    gl.cullFace(gl.FRONT);
-    */
+    gl.cullFace(gl.BACK);
     const uView = this.getViewMatrix();
     const uProjection = this.getProjectionMatrix();
     this.entityStore.forEachGroupWith([
