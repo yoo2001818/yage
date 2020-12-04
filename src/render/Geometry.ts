@@ -15,6 +15,8 @@ interface AttributeEntry extends BufferEntry<Float32Array> {
   axis: number,
   stride: number,
   offset: number,
+  instanced: number,
+  count: number,
 }
 
 export class Geometry {
@@ -27,6 +29,8 @@ export class Geometry {
   mode: number = 0;
 
   count: number = 0;
+
+  inferredCount: number = 0;
 
   constructor(config?: GeometryDescriptor) {
     if (config != null) this.set(config);
@@ -62,6 +66,8 @@ export class Geometry {
         axis: value.axis,
         stride: value.stride || 0,
         offset: value.offset || 0,
+        instanced: value.instanced || 0,
+        count: array.length / value.axis | 0,
       });
     } else {
       entry.array = array;
@@ -69,9 +75,12 @@ export class Geometry {
       entry.axis = value.axis;
       entry.stride = value.stride || 0;
       entry.offset = value.offset || 0;
+      entry.instanced = value.instanced || 0;
+      entry.count = array.length / value.axis | 0;
     }
-    // TODO Calculate count at more deterministic time...?
-    this.count = array.length / value.axis | 0;
+    if (value.instanced == null || value.instanced === 0) {
+      this.inferredCount = array.length / value.axis | 0;
+    }
   }
 
   getIndices(): Uint16Array | null {
@@ -90,6 +99,10 @@ export class Geometry {
       this.indices.array = value;
       this.indices.version += 1;
     }
-    this.count = value.length;
+    this.inferredCount = value.length;
+  }
+
+  getCount(): number {
+    return this.inferredCount;
   }
 }

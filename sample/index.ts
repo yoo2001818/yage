@@ -146,7 +146,7 @@ function main() {
     */
   });
   systemStore.addSystem(() => {
-    for (let i = 0; i < 2; i += 1) {
+    for (let i = 0; i < 200; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;

@@ -7,6 +7,8 @@ import {
 import { EntityStore } from './EntityStore';
 import { removeItem } from '../utils/array';
 
+const ASSIGN_TABLE = [1, 4, 16, 64, 128, 256, 512, 1024, 2048];
+
 export class EntityGroupContainer {
   id: number = 0;
 
@@ -43,7 +45,9 @@ export class EntityGroupContainer {
     const group = store.createEntityGroup();
     group.parentId = this.id;
     group.parentIndex = this.groups.length;
-    group.maxSize = Math.min(2048, 2 ** this.groups.length);
+    group.maxSize = ASSIGN_TABLE.length > this.groups.length
+      ? ASSIGN_TABLE[this.groups.length]
+      : 2048;
     this.groups.push(group);
 
     copyGroupComponents(store, this.offsets, group);

@@ -3,6 +3,7 @@ export interface GeometryAttribute {
   axis: number,
   stride?: number | null,
   offset?: number | null,
+  instanced?: number | null,
 }
 
 export interface GeometryDescriptor {

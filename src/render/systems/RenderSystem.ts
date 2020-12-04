@@ -16,6 +16,8 @@ import { Camera } from '../Camera';
 export class RenderSystem {
   gl: WebGLRenderingContext;
 
+  instancedExt: ANGLE_instanced_arrays;
+
   shaders: Map<number, ShaderBuffer>;
 
   geometries: Map<number, GeometryBuffer>;
@@ -34,10 +36,13 @@ export class RenderSystem {
 
   locRotScaleIndex: LocRotScaleIndex;
 
+  instancedGeom: Geometry;
+
   cameraId: number | null;
 
   constructor(store: EntityStore, gl: WebGLRenderingContext) {
     this.gl = gl;
+    this.instancedExt = gl.getExtension('ANGLE_instanced_arrays')!;
     this.shaders = new Map();
     this.geometries = new Map();
     this.entityStore = store;
@@ -47,6 +52,7 @@ export class RenderSystem {
     this.geometryComponent = store.getComponent<GeometryComponent>('geometry');
     this.shaderComponent = store.getComponent<ShaderComponent>('shader');
     this.locRotScaleIndex = store.getIndex<LocRotScaleIndex>('locRotScale');
+    this.instancedGeom = new Geometry();
     this.cameraId = null;
   }
 
@@ -131,12 +137,27 @@ export class RenderSystem {
         uView,
         uProjection,
       });
-      // TODO: Instancing is not supported for now; we just pass model matrix
-      for (let i = 0; i < group.size; i += 1) {
-        shaderBuf.setUniforms({
-          uModel: pos.subarray(i * 16, i * 16 + 16),
+      // Set instanced geometry (if supported)
+      if (shaderBuf.attributes.has('aModel')) {
+        // TODO: Really?
+        this.instancedGeom.setAttribute('aModel', {
+          data: pos.subarray(0, group.size * 16),
+          axis: 16,
         });
-        geometryBuf.render();
+        const instancedBuf = this.getGeometryBuffer(
+          9999999,
+          this.instancedGeom,
+        );
+        const primCount = instancedBuf.bind(shaderBuf, 1);
+        geometryBuf.render(primCount);
+      } else {
+        // The shader doesn't support instancing, fall back to regular routine
+        for (let i = 0; i < group.size; i += 1) {
+          shaderBuf.setUniforms({
+            uModel: pos.subarray(i * 16, i * 16 + 16),
+          });
+          geometryBuf.render();
+        }
       }
     });
   }
@@ -154,7 +175,7 @@ export class RenderSystem {
   getGeometryBuffer(id: number, geometry: Geometry): GeometryBuffer {
     let buffer = this.geometries.get(id);
     if (buffer == null) {
-      buffer = new GeometryBuffer(this.gl);
+      buffer = new GeometryBuffer(this.gl, this.instancedExt);
       this.geometries.set(id, buffer);
     }
     buffer.sync(geometry);

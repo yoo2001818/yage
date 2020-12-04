@@ -10,10 +10,14 @@ interface AttributeBufferEntry extends BufferEntry {
   axis: number,
   stride: number,
   offset: number,
+  instanced: number,
+  count: number,
 }
 
 export class GeometryBuffer {
   gl: WebGLRenderingContext;
+
+  instancedExt: ANGLE_instanced_arrays;
 
   buffers: Map<string, AttributeBufferEntry> = new Map();
 
@@ -23,8 +27,12 @@ export class GeometryBuffer {
 
   mode: number = 0;
 
-  constructor(gl: WebGLRenderingContext) {
+  constructor(
+    gl: WebGLRenderingContext,
+    instancedExt: ANGLE_instanced_arrays,
+  ) {
     this.gl = gl;
+    this.instancedExt = instancedExt;
   }
 
   sync(geometry: Geometry): void {
@@ -39,6 +47,8 @@ export class GeometryBuffer {
           axis: entry.axis,
           stride: entry.stride,
           offset: entry.offset,
+          instanced: entry.instanced,
+          count: entry.count,
         };
         this.buffers.set(key, bufferEntry);
       }
@@ -55,6 +65,8 @@ export class GeometryBuffer {
         bufferEntry.axis = entry.axis;
         bufferEntry.stride = entry.stride;
         bufferEntry.offset = entry.offset;
+        bufferEntry.instanced = entry.instanced;
+        bufferEntry.count = entry.count;
       }
     });
     // Then the elements
@@ -78,48 +90,97 @@ export class GeometryBuffer {
         bufferEntry.version = entry.version;
       }
     }
-    this.count = geometry.count;
+    this.count = geometry.getCount();
     this.mode = geometry.mode;
   }
 
-  bind(shaderBuffer: ShaderBuffer): void {
+  bind(shaderBuffer: ShaderBuffer, primCount: number = 0): number {
     // Using shaderBuffer's attribute information, we have to map the buffers
     // to attribute location
-    const { gl } = this;
+    const { gl, instancedExt } = this;
+    let maxCount = primCount;
     this.buffers.forEach((value, key) => {
       const descriptor = shaderBuffer.attributes.get(key);
       if (descriptor == null) return;
-      gl.bindBuffer(gl.ARRAY_BUFFER, value.buffer);
-      gl.enableVertexAttribArray(descriptor.location);
-      gl.vertexAttribPointer(
-        descriptor.location,
-        value.axis,
-        gl.FLOAT,
-        false,
-        value.stride,
-        value.offset,
-      );
+      switch (descriptor.type) {
+        // TODO Support other than this
+        case gl.FLOAT_MAT4: {
+          gl.bindBuffer(gl.ARRAY_BUFFER, value.buffer);
+          for (let i = 0; i < 4; i += 1) {
+            gl.enableVertexAttribArray(descriptor.location + i);
+            gl.vertexAttribPointer(
+              descriptor.location + i,
+              4,
+              gl.FLOAT,
+              false,
+              (value.stride || 64),
+              (value.offset || 0) + i * 16,
+            );
+            if (value.instanced > 0 || primCount > 0) {
+              const divisor = (value.instanced || 1) * primCount;
+              instancedExt
+                .vertexAttribDivisorANGLE(descriptor.location + i, divisor);
+              maxCount = Math.max(maxCount, value.count * divisor);
+            }
+          }
+          break;
+        }
+        default:
+          gl.bindBuffer(gl.ARRAY_BUFFER, value.buffer);
+          gl.enableVertexAttribArray(descriptor.location);
+          gl.vertexAttribPointer(
+            descriptor.location,
+            value.axis,
+            gl.FLOAT,
+            false,
+            value.stride,
+            value.offset,
+          );
+          if (value.instanced > 0 || primCount > 0) {
+            const divisor = (value.instanced || 1) * primCount;
+            instancedExt.vertexAttribDivisorANGLE(descriptor.location, divisor);
+            maxCount = Math.max(maxCount, value.count * divisor);
+          }
+          break;
+      }
     });
     if (this.elements != null) {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.elements.buffer);
     }
+    return maxCount;
   }
 
-  render(): void {
-    const { gl } = this;
-    if (this.elements != null) {
-      // TODO: This should be controllable by the geometry
-      gl.drawElements(
+  render(primCount: number = 0): void {
+    const { gl, instancedExt } = this;
+    if (primCount === 0) {
+      if (this.elements != null) {
+        gl.drawElements(
+          this.mode,
+          this.count,
+          gl.UNSIGNED_SHORT,
+          0,
+        );
+      } else {
+        gl.drawArrays(
+          this.mode,
+          0,
+          this.count,
+        );
+      }
+    } else if (this.elements != null) {
+      instancedExt.drawElementsInstancedANGLE(
         this.mode,
         this.count,
         gl.UNSIGNED_SHORT,
         0,
+        primCount,
       );
     } else {
-      gl.drawArrays(
+      instancedExt.drawArraysInstancedANGLE(
         this.mode,
         0,
         this.count,
+        primCount,
       );
     }
   }
