@@ -1,4 +1,4 @@
-import { quat, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 import { EntityStore } from '../src/store/EntityStore';
 import { SystemStore } from '../src/store/SystemStore';
 import {
@@ -13,6 +13,7 @@ import { RenderSystem } from '../src/render/systems/RenderSystem';
 import { box } from '../src/geom/box';
 import { uvSphere } from '../src/geom/uvSphere';
 import { calcNormals } from '../src/geom/calcNormals';
+import { Transform } from '../src/render/Transform';
 
 function main() {
   // Initialize game renderer
@@ -36,7 +37,7 @@ function main() {
   entityStore.addComponents(createComponents());
   entityStore.addComponent('vel', createFloat32ArrayComponent(3));
 
-  entityStore.addIndex('locRotScale', new LocRotScaleIndex('pos'));
+  entityStore.addIndex('locRotScale', new LocRotScaleIndex('transform'));
 
   // Create generic material and geometry
 
@@ -81,7 +82,7 @@ function main() {
   const sphereId = sphereEnt.getId();
 
   const camera = entityStore.createEntity({
-    pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+    transform: new Transform(),
     camera: {
       type: 'perspective',
       near: 0.1,
@@ -89,16 +90,15 @@ function main() {
       fov: 90 / 180 * Math.PI,
     },
   });
-  const cameraPos = camera.get<Float32Array>('pos')!;
-  vec3.copy(cameraPos.subarray(0, 4), [-5 / 2, 2.5 / 2, 5 / 2]);
-  quat.rotateY(cameraPos.subarray(4, 8), cameraPos.subarray(4, 8), -Math.PI / 4);
-  quat.rotateX(cameraPos.subarray(4, 8), cameraPos.subarray(4, 8), -Math.PI / 8);
-  camera.markChanged('pos');
+  const cameraPos = camera.get<Transform>('transform')!;
+  cameraPos.translate([-5 / 2, 2.5 / 2, 5 / 2]);
+  cameraPos.lookAt([0, 0, 0], [0, 1, 0]);
+  camera.markChanged('transform');
 
   /*
   {
     const camera = entityStore.createEntity({
-      pos: true,
+      transform: true,
       camera: {
         type: 'perspective',
         near: 0.1,
@@ -107,11 +107,11 @@ function main() {
       },
     });
 
-    const cameraPos = camera.get<LocRotScale>('pos');
+    const cameraPos = camera.get<LocRotScale>('transform');
     cameraPos.setLocation([-5 / 2, 2.5 / 2, 5 / 2]);
     // cameraPos.setRotationXYZ([-Math.PI / 8, -Math.PI / 4, 0 ]);
     cameraPos.lookAt([0, 0, 0]);
-    camera.markChanged('pos');
+    camera.markChanged('transform');
   }
   */
 
@@ -127,12 +127,12 @@ function main() {
     if (event !== 'init') return;
     /*
     entityStore.createEntity({
-      pos: [0, 0, -1.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+      transform: [0, 0, -1.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
       vel: [0.01, 0],
       shape: {},
     });
     entityStore.createEntity({
-      pos: [0, 0, 2.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+      transform: [0, 0, 2.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
       vel: [-0.007, 0.007],
       shape: {},
     });
@@ -148,8 +148,10 @@ function main() {
       xDir /= dist;
       yDir /= dist;
       zDir /= dist;
+      const transform = new Transform();
+      vec3.set(transform.scale, 0.1, 0.1, 0.1);
       entityStore.createEntity({
-        pos: [0, 0, 0, 0, 0, 0, 0, 1, 0.1, 0.1, 0.1, 0],
+        transform,
         vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
         mesh: {
           materialId: Math.random() > 0.5 ? boxId : sphereId,
@@ -160,36 +162,36 @@ function main() {
   });
   systemStore.addSystem(() => {
     // Step
-    const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
+    const transform = entityStore.getComponent<Float32ArrayComponent>('transform');
     const vel = entityStore.getComponent<Float32ArrayComponent>('vel');
-    entityStore.forEachGroupWith([pos, vel], (group, posOffset, velOffset) => {
-      const posArr = pos.getArrayOf(posOffset);
+    entityStore.forEachGroupWith([transform, vel], (group, transformOffset, velOffset) => {
+      const transformArr = transform.getArrayOf(transformOffset);
       const velArr = vel.getArrayOf(velOffset);
       for (let i = 0; i < group.size; i += 1) {
-        posArr[12 * i] += velArr[3 * i];
-        posArr[12 * i + 1] += velArr[3 * i + 1];
-        posArr[12 * i + 2] += velArr[3 * i + 2];
+        transformArr[12 * i] += velArr[3 * i];
+        transformArr[12 * i + 1] += velArr[3 * i + 1];
+        transformArr[12 * i + 2] += velArr[3 * i + 2];
       }
-      pos.markChanged(group);
+      transform.markChanged(group);
     });
     /*
-    entityStore.forEachWith([pos, vel], (_, entityPos, entityVel) => {
+    entityStore.forEachWith([transform, vel], (_, entityPos, entityVel) => {
       entityPos[0] += entityVel[0];
       entityPos[1] += entityVel[1];
     });
     */
     /*
-    entityStore.forEach([pos, vel], (pos, vel) => {
-      pos[0] += vel[0];
-      pos[1] += vel[1];
+    entityStore.forEach([transform, vel], (transform, vel) => {
+      transform[0] += vel[0];
+      transform[1] += vel[1];
     });
     */
   });
   systemStore.addSystem(() => {
     // Respawn
     /*
-    const pos = entityStore.getComponent<Component<number[]>>('pos');
-    entityStore.forEachWith([pos], (entity, entityPos) => {
+    const transform = entityStore.getComponent<Component<number[]>>('transform');
+    entityStore.forEachWith([transform], (entity, entityPos) => {
       if (
         entityPos[0] < 0
         || entityPos[0] > 1
@@ -200,19 +202,19 @@ function main() {
       }
     });
     */
-    const pos = entityStore.getComponent<Float32ArrayComponent>('pos');
-    entityStore.forEachGroupWith([pos], (group, posOffset) => {
-      const posArr = pos.getArrayOf(posOffset);
+    const transform = entityStore.getComponent<Float32ArrayComponent>('transform');
+    entityStore.forEachGroupWith([transform], (group, transformOffset) => {
+      const transformArr = transform.getArrayOf(transformOffset);
       const deleteList = [];
       for (let i = 0; i < group.size; i += 1) {
-        const x = posArr[12 * i];
-        const y = posArr[12 * i + 1];
-        const z = posArr[12 * i + 2];
+        const x = transformArr[12 * i];
+        const y = transformArr[12 * i + 1];
+        const z = transformArr[12 * i + 2];
         if (x < -10 || x > 10 || y < -10 || y > 10 || z < -10 || z > 10) {
           deleteList.push(i);
-          posArr[12 * i] = 0;
-          posArr[12 * i + 1] = 0;
-          posArr[12 * i + 2] = 0;
+          transformArr[12 * i] = 0;
+          transformArr[12 * i + 1] = 0;
+          transformArr[12 * i + 2] = 0;
         }
       }
       for (let i = 0; i < deleteList.length; i += 1) {
@@ -220,11 +222,11 @@ function main() {
       }
     });
     /*
-    entityStore.forEach([pos], (pos) => {
-      if (pos[0] < 0) pos[0] = 1;
-      if (pos[0] > 1) pos[0] = 0;
-      if (pos[1] < 0) pos[1] = 1;
-      if (pos[1] > 1) pos[1] = 0;
+    entityStore.forEach([transform], (transform) => {
+      if (transform[0] < 0) transform[0] = 1;
+      if (transform[0] > 1) transform[0] = 0;
+      if (transform[1] < 0) transform[1] = 1;
+      if (transform[1] > 1) transform[1] = 0;
     });
     */
   });

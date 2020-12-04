@@ -5,7 +5,7 @@ import { MeshComponent } from '../components/MeshComponent';
 import { EntityStore } from '../../store/EntityStore';
 import { Entity } from '../../store/Entity';
 import { LocRotScaleIndex } from '../../indexes/LocRotScaleIndex';
-import { LocRotScaleComponent } from '../components/LocRotScaleComponent';
+import { TransformComponent } from '../components/TransformComponent';
 import { Shader } from '../Shader';
 import { Geometry } from '../Geometry';
 import { Camera } from '../Camera';
@@ -25,7 +25,7 @@ export class RenderSystem {
 
   meshComponent: MeshComponent;
 
-  posComponent: LocRotScaleComponent;
+  transformComponent: TransformComponent;
 
   materialComponent: Component<Material>;
 
@@ -46,7 +46,8 @@ export class RenderSystem {
     this.geometries = new Map();
     this.entityStore = store;
     this.meshComponent = store.getComponent<MeshComponent>('mesh');
-    this.posComponent = store.getComponent<LocRotScaleComponent>('pos');
+    this.transformComponent = store
+      .getComponent<TransformComponent>('transform');
     this.materialComponent = store
       .getComponent<Component<Material>>('material');
     this.geometryComponent = store
@@ -64,15 +65,15 @@ export class RenderSystem {
   getViewMatrix(): Float32Array {
     const {
       cameraId,
-      posComponent,
+      transformComponent,
       locRotScaleIndex,
     } = this;
     const output = mat4.create() as Float32Array;
     if (cameraId == null) return output;
     const entity = this.entityStore.getEntity(cameraId);
     if (entity == null) return output;
-    const pos = locRotScaleIndex.get(entity.getPos(posComponent));
-    mat4.invert(output, pos);
+    const transform = locRotScaleIndex.get(entity.getPos(transformComponent));
+    mat4.invert(output, transform);
     return output;
   }
 
@@ -101,7 +102,7 @@ export class RenderSystem {
       gl,
       entityStore,
       meshComponent,
-      posComponent,
+      transformComponent,
       locRotScaleIndex,
     } = this;
     gl.clearColor(0, 0, 0, 1);
@@ -115,10 +116,10 @@ export class RenderSystem {
     const uProjection = this.getProjectionMatrix();
     this.entityStore.forEachGroupWith([
       meshComponent,
-      posComponent,
-    ], (group, meshPos, posPos) => {
+      transformComponent,
+    ], (group, meshPos, transformPos) => {
       const { materialId, geometryId } = meshComponent.get(meshPos);
-      const pos = locRotScaleIndex.getArrayOf(posPos);
+      const transform = locRotScaleIndex.getArrayOf(transformPos);
       // Prepare geometry and material
       const geometry = entityStore
         .getComponentOfEntity(geometryId, this.geometryComponent);
@@ -142,7 +143,7 @@ export class RenderSystem {
       if (shaderBuf.attributes.has('aModel')) {
         // TODO: Really?
         this.instancedGeom.setAttribute('aModel', {
-          data: pos.subarray(0, group.size * 16),
+          data: transform.subarray(0, group.size * 16),
           axis: 16,
         });
         const instancedBuf = this.getGeometryBuffer(
@@ -155,7 +156,7 @@ export class RenderSystem {
         // The shader doesn't support instancing, fall back to regular routine
         for (let i = 0; i < group.size; i += 1) {
           shaderBuf.setUniforms({
-            uModel: pos.subarray(i * 16, i * 16 + 16),
+            uModel: transform.subarray(i * 16, i * 16 + 16),
           });
           geometryBuf.render();
         }

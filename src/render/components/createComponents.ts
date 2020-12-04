@@ -4,7 +4,7 @@ import { Geometry } from '../Geometry';
 import { Light } from '../Light';
 import { Material } from '../Material';
 import { Shader } from '../Shader';
-import { LocRotScaleComponent } from './LocRotScaleComponent';
+import { TransformComponent } from './TransformComponent';
 import { MeshComponent } from './MeshComponent';
 
 export function createComponents() {
@@ -12,7 +12,7 @@ export function createComponents() {
     camera: new ImmutableComponent<Camera>(),
     geometry: new ImmutableComponent<Geometry>(),
     light: new ImmutableComponent<Light>(),
-    pos: new LocRotScaleComponent(),
+    transform: new TransformComponent(),
     material: new ImmutableComponent<Material>(),
     mesh: new MeshComponent(),
     shader: new ImmutableComponent<Shader>(),
