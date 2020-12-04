@@ -1,11 +1,12 @@
 import { UnisonComponent } from '../../components/UnisonComponent';
+import { Mesh } from '../Mesh';
 
 // Material, Geometry
-export class MeshComponent extends UnisonComponent<[number, number]> {
+export class MeshComponent extends UnisonComponent<Mesh> {
   constructor() {
     super(
-      (a, b) => a[0] === b[0] && a[1] === b[1],
-      ([vid, gid]) => vid * 31 + gid,
+      (a, b) => a.geometryId === b.geometryId && a.materialId === b.materialId,
+      ({ geometryId, materialId }) => geometryId * 31 + materialId,
     );
   }
 }

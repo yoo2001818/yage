@@ -6,12 +6,11 @@ import { EntityStore } from '../../store/EntityStore';
 import { Entity } from '../../store/Entity';
 import { LocRotScaleIndex } from '../../indexes/LocRotScaleIndex';
 import { LocRotScaleComponent } from '../components/LocRotScaleComponent';
-import { MaterialComponent } from '../components/MaterialComponent';
-import { GeometryComponent } from '../components/GeometryComponent';
-import { ShaderComponent } from '../components/ShaderComponent';
 import { Shader } from '../Shader';
 import { Geometry } from '../Geometry';
 import { Camera } from '../Camera';
+import { Component } from '../../components/Component';
+import { Material } from '../Material';
 
 export class RenderSystem {
   gl: WebGLRenderingContext;
@@ -28,11 +27,11 @@ export class RenderSystem {
 
   posComponent: LocRotScaleComponent;
 
-  materialComponent: MaterialComponent;
+  materialComponent: Component<Material>;
 
-  geometryComponent: GeometryComponent;
+  geometryComponent: Component<Geometry>;
 
-  shaderComponent: ShaderComponent;
+  shaderComponent: Component<Shader>;
 
   locRotScaleIndex: LocRotScaleIndex;
 
@@ -48,9 +47,11 @@ export class RenderSystem {
     this.entityStore = store;
     this.meshComponent = store.getComponent<MeshComponent>('mesh');
     this.posComponent = store.getComponent<LocRotScaleComponent>('pos');
-    this.materialComponent = store.getComponent<MaterialComponent>('material');
-    this.geometryComponent = store.getComponent<GeometryComponent>('geometry');
-    this.shaderComponent = store.getComponent<ShaderComponent>('shader');
+    this.materialComponent = store
+      .getComponent<Component<Material>>('material');
+    this.geometryComponent = store
+      .getComponent<Component<Geometry>>('geometry');
+    this.shaderComponent = store.getComponent<Component<Shader>>('shader');
     this.locRotScaleIndex = store.getIndex<LocRotScaleIndex>('locRotScale');
     this.instancedGeom = new Geometry();
     this.cameraId = null;
@@ -116,7 +117,7 @@ export class RenderSystem {
       meshComponent,
       posComponent,
     ], (group, meshPos, posPos) => {
-      const [materialId, geometryId] = meshComponent.get(meshPos);
+      const { materialId, geometryId } = meshComponent.get(meshPos);
       const pos = locRotScaleIndex.getArrayOf(posPos);
       // Prepare geometry and material
       const geometry = entityStore

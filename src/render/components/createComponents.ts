@@ -1,19 +1,20 @@
-import { CameraComponent } from './CameraComponent';
-import { GeometryComponent } from './GeometryComponent';
-import { LightComponent } from './LightComponent';
+import { ImmutableComponent } from '../../components/ImmutableComponent';
+import { Camera } from '../Camera';
+import { Geometry } from '../Geometry';
+import { Light } from '../Light';
+import { Material } from '../Material';
+import { Shader } from '../Shader';
 import { LocRotScaleComponent } from './LocRotScaleComponent';
-import { MaterialComponent } from './MaterialComponent';
 import { MeshComponent } from './MeshComponent';
-import { ShaderComponent } from './ShaderComponent';
 
 export function createComponents() {
   return {
-    camera: new CameraComponent(),
-    geometry: new GeometryComponent(),
-    light: new LightComponent(),
+    camera: new ImmutableComponent<Camera>(),
+    geometry: new ImmutableComponent<Geometry>(),
+    light: new ImmutableComponent<Light>(),
     pos: new LocRotScaleComponent(),
-    material: new MaterialComponent(),
+    material: new ImmutableComponent<Material>(),
     mesh: new MeshComponent(),
-    shader: new ShaderComponent(),
+    shader: new ImmutableComponent<Shader>(),
   };
 }

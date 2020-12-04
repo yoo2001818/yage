@@ -1,13 +1,11 @@
 import { quat, vec3 } from 'gl-matrix';
 import { EntityStore } from '../src/store/EntityStore';
 import { SystemStore } from '../src/store/SystemStore';
-import { createFloat32ArrayComponent, Float32ArrayComponent } from '../src/components/Float32ArrayComponent';
-// import { LocRotScaleComponent } from '../src/render/components/LocRotScaleComponent';
-import { MaterialComponent } from '../src/render/components/MaterialComponent';
-import { GeometryComponent } from '../src/render/components/GeometryComponent';
-import { ShaderComponent } from '../src/render/components/ShaderComponent';
-import { MeshComponent } from '../src/render/components/MeshComponent';
-import { CameraComponent } from '../src/render/components/CameraComponent';
+import {
+  createFloat32ArrayComponent,
+  Float32ArrayComponent,
+} from '../src/components/Float32ArrayComponent';
+import { createComponents } from '../src/render/components/createComponents';
 import { LocRotScaleIndex } from '../src/indexes/LocRotScaleIndex';
 import { Geometry } from '../src/render/Geometry';
 import { RenderSystem } from '../src/render/systems/RenderSystem';
@@ -35,12 +33,7 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponent('pos', createFloat32ArrayComponent(12));
-  entityStore.addComponent('material', new MaterialComponent());
-  entityStore.addComponent('geometry', new GeometryComponent());
-  entityStore.addComponent('shader', new ShaderComponent());
-  entityStore.addComponent('mesh', new MeshComponent());
-  entityStore.addComponent('camera', new CameraComponent());
+  entityStore.addComponents(createComponents());
   entityStore.addComponent('vel', createFloat32ArrayComponent(3));
 
   entityStore.addIndex('locRotScale', new LocRotScaleIndex('pos'));
@@ -146,7 +139,7 @@ function main() {
     */
   });
   systemStore.addSystem(() => {
-    for (let i = 0; i < 200; i += 1) {
+    for (let i = 0; i < 20; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
       let yDir = Math.random() * 2 - 1;
@@ -158,10 +151,10 @@ function main() {
       entityStore.createEntity({
         pos: [0, 0, 0, 0, 0, 0, 0, 1, 0.1, 0.1, 0.1, 0],
         vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
-        mesh: [
-          Math.random() > 0.5 ? boxId : sphereId,
-          Math.random() > 0.5 ? boxId : sphereId,
-        ],
+        mesh: {
+          materialId: Math.random() > 0.5 ? boxId : sphereId,
+          geometryId: Math.random() > 0.5 ? boxId : sphereId,
+        },
       });
     }
   });
