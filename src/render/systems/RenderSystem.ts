@@ -4,7 +4,7 @@ import { GeometryBuffer } from '../gl/GeometryBuffer';
 import { MeshComponent } from '../components/MeshComponent';
 import { EntityStore } from '../../store/EntityStore';
 import { Entity } from '../../store/Entity';
-import { LocRotScaleIndex } from '../../indexes/LocRotScaleIndex';
+import { TransformIndex } from '../../indexes/TransformIndex';
 import { TransformComponent } from '../components/TransformComponent';
 import { Shader } from '../Shader';
 import { Geometry } from '../Geometry';
@@ -33,7 +33,7 @@ export class RenderSystem {
 
   shaderComponent: Component<Shader>;
 
-  locRotScaleIndex: LocRotScaleIndex;
+  transformIndex: TransformIndex;
 
   instancedGeom: Geometry;
 
@@ -53,7 +53,7 @@ export class RenderSystem {
     this.geometryComponent = store
       .getComponent<Component<Geometry>>('geometry');
     this.shaderComponent = store.getComponent<Component<Shader>>('shader');
-    this.locRotScaleIndex = store.getIndex<LocRotScaleIndex>('locRotScale');
+    this.transformIndex = store.getIndex<TransformIndex>('transform');
     this.instancedGeom = new Geometry();
     this.cameraId = null;
   }
@@ -66,13 +66,13 @@ export class RenderSystem {
     const {
       cameraId,
       transformComponent,
-      locRotScaleIndex,
+      transformIndex,
     } = this;
     const output = mat4.create() as Float32Array;
     if (cameraId == null) return output;
     const entity = this.entityStore.getEntity(cameraId);
     if (entity == null) return output;
-    const transform = locRotScaleIndex.get(entity.getPos(transformComponent));
+    const transform = transformIndex.get(entity.getPos(transformComponent));
     mat4.invert(output, transform);
     return output;
   }
@@ -103,7 +103,7 @@ export class RenderSystem {
       entityStore,
       meshComponent,
       transformComponent,
-      locRotScaleIndex,
+      transformIndex,
     } = this;
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -119,7 +119,7 @@ export class RenderSystem {
       transformComponent,
     ], (group, meshPos, transformPos) => {
       const { materialId, geometryId } = meshComponent.get(meshPos);
-      const transform = locRotScaleIndex.getArrayOf(transformPos);
+      const transform = transformIndex.getArrayOf(transformPos);
       // Prepare geometry and material
       const geometry = entityStore
         .getComponentOfEntity(geometryId, this.geometryComponent);

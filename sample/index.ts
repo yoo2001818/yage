@@ -6,7 +6,7 @@ import {
   Float32ArrayComponent,
 } from '../src/components/Float32ArrayComponent';
 import { createComponents } from '../src/render/components/createComponents';
-import { LocRotScaleIndex } from '../src/indexes/LocRotScaleIndex';
+import { TransformIndex } from '../src/indexes/TransformIndex';
 import { Geometry } from '../src/render/Geometry';
 import { RenderSystem } from '../src/render/systems/RenderSystem';
 
@@ -37,7 +37,7 @@ function main() {
   entityStore.addComponents(createComponents());
   entityStore.addComponent('vel', createFloat32ArrayComponent(3));
 
-  entityStore.addIndex('locRotScale', new LocRotScaleIndex('transform'));
+  entityStore.addIndex('transform', new TransformIndex('transform'));
 
   // Create generic material and geometry
 
@@ -121,23 +121,6 @@ function main() {
   // Initialize system store
   const systemStore = new SystemStore();
 
-  // Add bunch of systems
-  systemStore.addSystem((event) => {
-    // Game initializer
-    if (event !== 'init') return;
-    /*
-    entityStore.createEntity({
-      transform: [0, 0, -1.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-      vel: [0.01, 0],
-      shape: {},
-    });
-    entityStore.createEntity({
-      transform: [0, 0, 2.5, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-      vel: [-0.007, 0.007],
-      shape: {},
-    });
-    */
-  });
   systemStore.addSystem(() => {
     for (let i = 0; i < 20; i += 1) {
       // Spawn one more... Sort of?

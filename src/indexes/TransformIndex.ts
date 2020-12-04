@@ -6,7 +6,7 @@ import { EntityStore } from '../store/EntityStore';
 
 const PAGE_SIZE = 65536;
 
-export class LocRotScaleIndex {
+export class TransformIndex {
   store!: EntityStore;
 
   name: string;
