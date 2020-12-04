@@ -45,8 +45,12 @@ function main() {
   const boxId = boxEnt.getId();
   boxEnt.set('shader', {
     vertShader: `
+    #version 100
+    precision lowp float;
+
     attribute vec3 aPosition;
     attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
     // Instanced
     attribute mat4 aModel;
 
@@ -55,24 +59,149 @@ function main() {
     // uniform mat4 uModel;
     uniform vec4 uColor;
 
-    varying lowp vec3 vColor;
+    varying lowp vec3 vPosition;
+    varying lowp vec2 vTexCoord;
+    varying lowp vec3 vViewPos;
+    varying lowp vec3 vNormal;
+
+    vec3 getViewPosWorld() {
+      return -mat3(
+        uView[0].x, uView[1].x, uView[2].x,
+        uView[0].y, uView[1].y, uView[2].y,
+        uView[0].z, uView[1].z, uView[2].z
+        ) * uView[3].xyz;
+    }
 
     void main() {
-      vColor = uColor.xyz +
-        (normalize(uView * aModel * vec4(aNormal, 0.0)).xyz * 0.5 + 0.5) * uColor.w;
-      // vColor = vec3(1.0, 1.0, 1.0);
-      gl_Position = uProjection * uView * aModel * vec4(aPosition, 1.0);
+      vec4 fragPos = aModel * vec4(aPosition, 1.0);
+      gl_Position = uProjection * uView * fragPos;
+      vTexCoord = aTexCoord;
+      vPosition = fragPos.xyz;
+      // NOTE: This is not mathmatically accurate
+      mat3 normalMat = mat3(aModel[0].xyz, aModel[1].xyz, aModel[2].xyz);
+      vNormal = normalMat * aNormal;
+      vViewPos = getViewPosWorld();
     }
     `,
     fragShader: `
-    varying lowp vec3 vColor;
+    #version 100
+    precision lowp float;
+
+    varying lowp vec3 vPosition;
+    varying lowp vec3 vNormal;
+    varying lowp vec2 vTexCoord;
+    varying lowp vec3 vViewPos;
+
+    lowp vec3 normal;
+    lowp vec3 fragPos;
+
+    struct Material {
+      lowp vec3 ambient;
+      lowp vec3 diffuse;
+      lowp vec3 specular;
+
+      lowp float shininess;
+    };
+
+    struct MaterialColor {
+      lowp vec3 ambient;
+      lowp vec3 diffuse;
+      lowp vec3 specular;
+    };
+  
+    struct PointLight {
+      lowp vec3 position;
+
+      lowp vec3 color;
+      lowp vec4 intensity;
+    };
+
+    uniform PointLight uPointLight[1];
+
+    uniform Material uMaterial;
+
+    // It's Blinn-Phong actually.
+    lowp vec3 calcPhong(lowp vec3 lightDir, lowp vec3 viewDir) {
+      // Diffuse
+      lowp float lambertian = max(dot(lightDir, normal), 0.0);
+
+      // Specular
+      lowp float spec = 0.0;
+      lowp float fresnel = 0.0;
+      if (lambertian > 0.0) {
+        lowp vec3 halfDir = normalize(lightDir + viewDir);
+        lowp float specAngle = max(dot(halfDir, normal), 0.0);
+
+        spec = pow(specAngle, uMaterial.shininess);
+        fresnel = pow(1.0 - max(0.0, dot(halfDir, viewDir)), 5.0);
+      }
+
+      return vec3(lambertian, spec, fresnel);
+    }
+
+    lowp vec3 calcPoint(
+      PointLight light, MaterialColor matColor, lowp vec3 viewDir
+    ) {
+      lowp vec3 lightDir = light.position - fragPos;
+
+      lowp float distance = length(lightDir);
+      lightDir = lightDir / distance;
+
+      // Attenuation
+      lowp float attenuation = 1.0 / ( 1.0 +
+        light.intensity.w * (distance * distance));
+
+      lowp vec3 phong = calcPhong(lightDir, viewDir);
+
+      // Combine everything together
+      lowp vec3 result = matColor.diffuse * light.intensity.g * phong.x;
+      result += mix(matColor.specular, vec3(1.0), phong.z) *
+        light.intensity.b * phong.y;
+      result += matColor.ambient * light.intensity.r;
+      result *= attenuation;
+      result *= light.color;
+
+      return result;
+    }
 
     void main() {
-      gl_FragColor = vec4(vColor, 1.0);
+      fragPos = vPosition;
+      lowp vec3 viewDir = normalize(vViewPos - fragPos);
+      normal = normalize(vNormal);
+  
+      lowp vec2 texCoord = vTexCoord;
+
+      MaterialColor matColor;
+      matColor.ambient = uMaterial.ambient;
+      matColor.diffuse = uMaterial.diffuse;
+      matColor.specular = uMaterial.specular;
+
+      lowp vec3 result = vec3(0.0, 0.0, 0.0);
+
+      for (int i = 0; i < 1; ++i) {
+        result += calcPoint(uPointLight[i], matColor, viewDir);
+      }
+      
+      gl_FragColor = vec4(result, 1.0);
     }
     `,
   });
-  boxEnt.set('material', { shaderId: boxId, uniforms: { uColor: [0, 0, 0, 1] } });
+  boxEnt.set('material', {
+    shaderId: boxId,
+    uniforms: {
+      uMaterial: {
+        ambient: [0.0, 1.0, 0.0],
+        diffuse: [0.0, 1.0, 0.0],
+        specular: [1.0, 1.0, 1.0],
+        shininess: 50,
+      },
+      uPointLight: [{
+        position: [0, 10, 0],
+        color: [1, 1, 1],
+        intensity: [0.3, 0.7, 0.5, 0],
+      }],
+    },
+  });
   boxEnt.set('geometry', new Geometry(calcNormals(box())));
 
   const sphereEnt = entityStore.createEntity({
@@ -90,11 +219,6 @@ function main() {
       fov: 90 / 180 * Math.PI,
     },
   });
-  const cameraPos = camera.get<Transform>('transform')!;
-  cameraPos.translate([-5 / 2, 2.5 / 2, 5 / 2]);
-  cameraPos.lookAt([0, 0, 0], [0, 1, 0]);
-  camera.markChanged('transform');
-
   /*
   {
     const camera = entityStore.createEntity({
@@ -121,7 +245,13 @@ function main() {
   // Initialize system store
   const systemStore = new SystemStore();
 
+  let timer = 0;
   systemStore.addSystem(() => {
+    const cameraPos = camera.get<Transform>('transform')!;
+    cameraPos.setPosition([Math.cos(timer) * 5, 2.5 / 2, Math.sin(timer) * 5]);
+    cameraPos.lookAt([0, 0, 0], [0, 1, 0]);
+    camera.markChanged('transform');
+    timer += 0.01;
     for (let i = 0; i < 20; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
@@ -137,7 +267,8 @@ function main() {
         transform,
         vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
         mesh: {
-          materialId: Math.random() > 0.5 ? boxId : sphereId,
+          materialId: boxId,
+          // Math.random() > 0.5 ? boxId : sphereId,
           geometryId: Math.random() > 0.5 ? boxId : sphereId,
         },
       });
