@@ -119,6 +119,8 @@ function main() {
     uniform PointLight uPointLight[1];
 
     uniform Material uMaterial;
+    
+    lowp float gamma = 2.2;
 
     // It's Blinn-Phong actually.
     lowp vec3 calcPhong(lowp vec3 lightDir, lowp vec3 viewDir) {
@@ -172,9 +174,9 @@ function main() {
       lowp vec2 texCoord = vTexCoord;
 
       MaterialColor matColor;
-      matColor.ambient = uMaterial.ambient;
-      matColor.diffuse = uMaterial.diffuse;
-      matColor.specular = uMaterial.specular;
+      matColor.ambient = pow(uMaterial.ambient, vec3(gamma));
+      matColor.diffuse = pow(uMaterial.diffuse, vec3(gamma));
+      matColor.specular = pow(uMaterial.specular, vec3(gamma));
 
       lowp vec3 result = vec3(0.0, 0.0, 0.0);
 
@@ -182,7 +184,8 @@ function main() {
         result += calcPoint(uPointLight[i], matColor, viewDir);
       }
       
-      gl_FragColor = vec4(result, 1.0);
+      gl_FragColor = vec4(pow(result, vec3(1.0 / gamma)), 1.0);
+      // gl_FragColor = vec4(result, 1.0);
     }
     `,
   });
@@ -190,15 +193,15 @@ function main() {
     shaderId: boxId,
     uniforms: {
       uMaterial: {
-        ambient: [0.0, 1.0, 0.0],
-        diffuse: [0.0, 1.0, 0.0],
+        ambient: '#7DE1F8',
+        diffuse: '#7DE1F8',
         specular: [1.0, 1.0, 1.0],
         shininess: 50,
       },
       uPointLight: [{
-        position: [0, 10, 0],
+        position: [5, 10, 0],
         color: [1, 1, 1],
-        intensity: [0.3, 0.7, 0.5, 0],
+        intensity: [0.3, 0.7, 0.5, 0.001],
       }],
     },
   });
@@ -206,7 +209,22 @@ function main() {
 
   const sphereEnt = entityStore.createEntity({
     geometry: new Geometry(uvSphere(10, 10)),
-    material: { shaderId: boxId, uniforms: { uColor: [0, 0.8, 0, 0.2] } },
+    material: {
+      shaderId: boxId,
+      uniforms: {
+        uMaterial: {
+          ambient: '#FCF364',
+          diffuse: '#FCF364',
+          specular: [1.0, 1.0, 1.0],
+          shininess: 50,
+        },
+        uPointLight: [{
+          position: [5, 10, 0],
+          color: [1, 1, 1],
+          intensity: [0.3, 0.7, 0.5, 0.001],
+        }],
+      },
+    },
   });
   const sphereId = sphereEnt.getId();
 
@@ -251,7 +269,7 @@ function main() {
     cameraPos.setPosition([Math.cos(timer) * 5, 2.5 / 2, Math.sin(timer) * 5]);
     cameraPos.lookAt([0, 0, 0], [0, 1, 0]);
     camera.markChanged('transform');
-    timer += 0.01;
+    timer += 0.003;
     for (let i = 0; i < 20; i += 1) {
       // Spawn one more... Sort of?
       let xDir = Math.random() * 2 - 1;
@@ -267,8 +285,7 @@ function main() {
         transform,
         vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
         mesh: {
-          materialId: boxId,
-          // Math.random() > 0.5 ? boxId : sphereId,
+          materialId: Math.random() > 0.5 ? boxId : sphereId,
           geometryId: Math.random() > 0.5 ? boxId : sphereId,
         },
       });

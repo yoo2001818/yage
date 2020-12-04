@@ -19,6 +19,30 @@ export function convertFloatArray(
     return buf;
   }
   if (value instanceof Float32Array) return value;
+  if (typeof value === 'string' && size === 3) {
+    const buf = floatBuf[3];
+    buf[0] = parseInt(value.slice(1, 3), 16) / 255;
+    buf[1] = parseInt(value.slice(3, 5), 16) / 255;
+    buf[2] = parseInt(value.slice(5, 7), 16) / 255;
+    return buf;
+  }
+  if (typeof value === 'string' && size === 4) {
+    const buf = floatBuf[4];
+    if (value.length > 7) {
+      // RGBA
+      buf[0] = parseInt(value.slice(1, 3), 16) / 255;
+      buf[1] = parseInt(value.slice(3, 5), 16) / 255;
+      buf[2] = parseInt(value.slice(5, 7), 16) / 255;
+      buf[3] = parseInt(value.slice(7, 9), 16) / 255;
+      return buf;
+    }
+    // RGB
+    buf[0] = parseInt(value.slice(1, 3), 16) / 255;
+    buf[1] = parseInt(value.slice(3, 5), 16) / 255;
+    buf[2] = parseInt(value.slice(5, 7), 16) / 255;
+    buf[3] = 1;
+    return buf;
+  }
   throw new Error(`Unexpect value ${value}`);
 }
 
