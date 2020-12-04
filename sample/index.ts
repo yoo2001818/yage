@@ -48,24 +48,26 @@ function main() {
   // Create generic material and geometry
 
   const boxEnt = entityStore.createEntity();
-  const boxId = boxEnt.get<number>('id');
+  const boxId = boxEnt.getId();
   boxEnt.set('shader', {
     vertShader: `
     attribute vec3 aPosition;
     attribute vec3 aNormal;
+    // Instanced
+    attribute mat4 aModel;
 
     uniform mat4 uView;
     uniform mat4 uProjection;
-    uniform mat4 uModel;
+    // uniform mat4 uModel;
     uniform vec4 uColor;
 
     varying lowp vec3 vColor;
 
     void main() {
       vColor = uColor.xyz +
-        (normalize(uView * uModel * vec4(aNormal, 0.0)).xyz * 0.5 + 0.5) * uColor.w;
+        (normalize(uView * aModel * vec4(aNormal, 0.0)).xyz * 0.5 + 0.5) * uColor.w;
       // vColor = vec3(1.0, 1.0, 1.0);
-      gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
+      gl_Position = uProjection * uView * aModel * vec4(aPosition, 1.0);
     }
     `,
     fragShader: `
@@ -83,7 +85,7 @@ function main() {
     geometry: new Geometry(uvSphere(10, 10)),
     material: { shaderId: boxId, uniforms: { uColor: [0, 0.8, 0, 0.2] } },
   });
-  const sphereId = sphereEnt.get<number>('id');
+  const sphereId = sphereEnt.getId();
 
   const camera = entityStore.createEntity({
     pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],

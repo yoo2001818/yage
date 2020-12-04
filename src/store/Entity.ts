@@ -88,6 +88,10 @@ export class Entity {
     return getGroupComponentOffset(this.group, component);
   }
 
+  getId(): number {
+    return this.get(this.store.idComponent);
+  }
+
   get<T>(component: Component<T> | string): T {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
