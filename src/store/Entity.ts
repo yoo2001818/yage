@@ -92,6 +92,10 @@ export class Entity {
     return this.get(this.store.idComponent);
   }
 
+  get id(): number {
+    return this.get(this.store.idComponent);
+  }
+
   get<T>(component: Component<T> | string): T {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
