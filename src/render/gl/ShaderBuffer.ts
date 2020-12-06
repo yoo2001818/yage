@@ -5,6 +5,7 @@ import {
   convertIntArray,
 } from '../utils/uniform';
 import { Shader } from '../Shader';
+import { RenderSystem } from '../systems/RenderSystem';
 
 export interface UniformType {
   name: string,
@@ -194,7 +195,11 @@ export class ShaderBuffer {
     gl.useProgram(this.program);
   }
 
-  _setUniforms(uniforms: unknown, entry: UniformEntry): void {
+  _setUniforms(
+    renderSystem: RenderSystem,
+    uniforms: unknown,
+    entry: UniformEntry,
+  ): void {
     switch (entry.type) {
       case 'uniform': {
         const { gl } = this;
@@ -256,7 +261,17 @@ export class ShaderBuffer {
             gl.uniform1i(entry.location, convertInt(value));
             break;
           case gl.SAMPLER_2D:
-          case gl.SAMPLER_CUBE:
+          case gl.SAMPLER_CUBE: {
+            // Try to find the entity with given ID - however, if the texture
+            // is missing, we need to use "placeholder" texture.
+            // TODO Support placeholder texture
+            if (typeof value !== 'number') break;
+            const texture = renderSystem.getTextureBufferById(value);
+            if (texture == null) break;
+            const pos = renderSystem.bindTexture(texture);
+            gl.uniform1i(entry.location, pos);
+            break;
+          }
           default:
             throw new Error('Unsupported type');
         }
@@ -271,7 +286,7 @@ export class ShaderBuffer {
           const value = uniformMap[key];
           const child = entryMap.get(key);
           if (child == null) return;
-          this._setUniforms(value, child);
+          this._setUniforms(renderSystem, value, child);
         });
         break;
       }
@@ -281,7 +296,7 @@ export class ShaderBuffer {
         uniforms.forEach((value, key) => {
           const child = entryMap.get(key);
           if (child == null) return;
-          this._setUniforms(value, child);
+          this._setUniforms(renderSystem, value, child);
         });
         break;
       }
@@ -289,7 +304,10 @@ export class ShaderBuffer {
     }
   }
 
-  setUniforms(uniforms: unknown): void {
-    this._setUniforms(uniforms, this.uniforms);
+  setUniforms(
+    renderSystem: RenderSystem,
+    uniforms: unknown,
+  ): void {
+    this._setUniforms(renderSystem, uniforms, this.uniforms);
   }
 }

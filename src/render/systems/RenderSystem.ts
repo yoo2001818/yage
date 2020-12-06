@@ -11,6 +11,8 @@ import { Geometry } from '../Geometry';
 import { Camera } from '../Camera';
 import { Component } from '../../components/Component';
 import { Material } from '../Material';
+import { TextureBuffer } from '../gl/TextureBuffer';
+import { Texture } from '../Texture';
 
 export class RenderSystem {
   gl: WebGLRenderingContext;
@@ -20,6 +22,10 @@ export class RenderSystem {
   shaders: Map<number, ShaderBuffer>;
 
   geometries: Map<number, GeometryBuffer>;
+
+  textures: Map<number, TextureBuffer>;
+
+  boundTextures: TextureBuffer[];
 
   entityStore: EntityStore;
 
@@ -33,6 +39,8 @@ export class RenderSystem {
 
   shaderComponent: Component<Shader>;
 
+  textureComponent: Component<Texture>;
+
   transformIndex: TransformIndex;
 
   instancedGeom: Geometry;
@@ -44,6 +52,8 @@ export class RenderSystem {
     this.instancedExt = gl.getExtension('ANGLE_instanced_arrays')!;
     this.shaders = new Map();
     this.geometries = new Map();
+    this.textures = new Map();
+    this.boundTextures = [];
     this.entityStore = store;
     this.meshComponent = store.getComponent<MeshComponent>('mesh');
     this.transformComponent = store
@@ -53,6 +63,8 @@ export class RenderSystem {
     this.geometryComponent = store
       .getComponent<Component<Geometry>>('geometry');
     this.shaderComponent = store.getComponent<Component<Shader>>('shader');
+    this.textureComponent = store
+      .getComponent<Component<Texture>>('texture');
     this.transformIndex = store.getIndex<TransformIndex>('transform');
     this.instancedGeom = new Geometry();
     this.cameraId = null;
@@ -130,12 +142,13 @@ export class RenderSystem {
       // Acquire shader buffer and use it
       const shaderBuf = this.getShaderBuffer(material.shaderId, shader);
       shaderBuf.bind();
-      shaderBuf.setUniforms(material.uniforms);
+      this.clearBindTexture();
+      shaderBuf.setUniforms(this, material.uniforms);
       // Then, set geometry
       const geometryBuf = this.getGeometryBuffer(geometryId, geometry);
       geometryBuf.bind(shaderBuf);
       // TODO: Set up camera and lights, instancing.
-      shaderBuf.setUniforms({
+      shaderBuf.setUniforms(this, {
         uView,
         uProjection,
       });
@@ -155,7 +168,7 @@ export class RenderSystem {
       } else {
         // The shader doesn't support instancing, fall back to regular routine
         for (let i = 0; i < group.size; i += 1) {
-          shaderBuf.setUniforms({
+          shaderBuf.setUniforms(this, {
             uModel: transform.subarray(i * 16, i * 16 + 16),
           });
           geometryBuf.render();
@@ -182,5 +195,37 @@ export class RenderSystem {
     }
     buffer.sync(geometry);
     return buffer;
+  }
+
+  getTextureBuffer(id: number, texture: Texture): TextureBuffer {
+    let buffer = this.textures.get(id);
+    if (buffer == null) {
+      buffer = new TextureBuffer(this.gl);
+      this.textures.set(id, buffer);
+    }
+    buffer.sync(texture);
+    return buffer;
+  }
+
+  getTextureBufferById(id: number): TextureBuffer | null {
+    const entity = this.entityStore.getEntity(id);
+    if (entity == null) return null;
+    if (!entity.has(this.textureComponent)) return null;
+    const texture = entity.get(this.textureComponent);
+    return this.getTextureBuffer(id, texture);
+  }
+
+  bindTexture(texBuffer: TextureBuffer): number {
+    const len = this.boundTextures.length;
+    for (let i = 0; i < len; i += 1) {
+      if (this.boundTextures[i] === texBuffer) return i;
+    }
+    this.boundTextures.push(texBuffer);
+    texBuffer.bind(len);
+    return len;
+  }
+
+  clearBindTexture(): void {
+    this.boundTextures = [];
   }
 }

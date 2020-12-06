@@ -14,6 +14,9 @@ import { box } from '../src/geom/box';
 import { uvSphere } from '../src/geom/uvSphere';
 import { calcNormals } from '../src/geom/calcNormals';
 import { Transform } from '../src/render/Transform';
+import { Texture } from '../src/render/Texture';
+
+import textureImg from './logobg.png';
 
 function main() {
   // Initialize game renderer
@@ -120,6 +123,8 @@ function main() {
 
     uniform Material uMaterial;
     
+    uniform sampler2D uDiffuseMap;
+    
     lowp float gamma = 2.2;
 
     // It's Blinn-Phong actually.
@@ -178,6 +183,10 @@ function main() {
       matColor.diffuse = pow(uMaterial.diffuse, vec3(gamma));
       matColor.specular = pow(uMaterial.specular, vec3(gamma));
 
+      lowp vec3 diffuseTex = pow(texture2D(uDiffuseMap, texCoord).xyz, vec3(gamma));
+      matColor.ambient *= diffuseTex;
+      matColor.diffuse *= diffuseTex;
+
       lowp vec3 result = vec3(0.0, 0.0, 0.0);
 
       for (int i = 0; i < 1; ++i) {
@@ -189,12 +198,15 @@ function main() {
     }
     `,
   });
+  const boxImg = new Image();
+  boxImg.src = textureImg;
+  boxEnt.set('texture', new Texture(boxImg));
   boxEnt.set('material', {
     shaderId: boxId,
     uniforms: {
       uMaterial: {
-        ambient: '#7DE1F8',
-        diffuse: '#7DE1F8',
+        ambient: '#FFFFFF',
+        diffuse: '#FFFFFF',
         specular: [1.0, 1.0, 1.0],
         shininess: 50,
       },
@@ -203,6 +215,7 @@ function main() {
         color: [1, 1, 1],
         intensity: [0.3, 0.7, 0.5, 0.001],
       }],
+      uDiffuseMap: boxId,
     },
   });
   boxEnt.set('geometry', new Geometry(calcNormals(box())));
@@ -223,6 +236,7 @@ function main() {
           color: [1, 1, 1],
           intensity: [0.3, 0.7, 0.5, 0.001],
         }],
+        uDiffuseMap: boxId,
       },
     },
   });

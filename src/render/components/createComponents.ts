@@ -6,6 +6,7 @@ import { Material } from '../Material';
 import { Shader } from '../Shader';
 import { TransformComponent } from './TransformComponent';
 import { MeshComponent } from './MeshComponent';
+import { Texture } from '../Texture';
 
 export function createComponents() {
   return {
@@ -16,5 +17,6 @@ export function createComponents() {
     material: new ImmutableComponent<Material>(),
     mesh: new MeshComponent(),
     shader: new ImmutableComponent<Shader>(),
+    texture: new ImmutableComponent<Texture>(),
   };
 }
