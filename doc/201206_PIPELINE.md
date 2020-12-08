@@ -67,3 +67,6 @@ Basically, we'd end up something like this:
 }
 ```
 
+However, this means that the actual "shader" object and pipeline shader is
+separated - we need to manage internal shader instances, which is derived from
+shader, created by the pipeline.
