@@ -70,3 +70,19 @@ Basically, we'd end up something like this:
 However, this means that the actual "shader" object and pipeline shader is
 separated - we need to manage internal shader instances, which is derived from
 shader, created by the pipeline.
+
+Therefore, we need to distinguish them; The Shader object is created by the
+game and passed to the pipeline. The pipeline will create "GLShader" object
+according to the spec of Shader and the pipeline.
+
+This means that we have to propagate updates to the render object. Since
+multiple render systems can exist on single engine, the Shader object shouldn't
+contain any info about the renderer. Instead, the Shader object uses version or
+UUID to identify itself. 
+
+The renderer object simply passes everything to the pipeline object - Since the
+entire rendering pipeline must be handled by pipeline object, the renderer
+simply helps the allocation of WebGL related buffers.
+
+Therefore, this would kind of resemble cached propagation - Could this utilize
+functional programming?
