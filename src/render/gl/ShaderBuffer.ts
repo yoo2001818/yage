@@ -4,7 +4,7 @@ import {
   convertInt,
   convertIntArray,
 } from '../utils/uniform';
-import { Shader } from '../Shader';
+import { LowShader } from '../LowShader';
 import { RenderSystem } from '../systems/RenderSystem';
 
 export interface UniformType {
@@ -108,7 +108,7 @@ export class ShaderBuffer {
     this.gl = gl;
   }
 
-  sync(shader: Shader): void {
+  sync(shader: LowShader): void {
     const { gl } = this;
     if (shader.version === this.version) return;
     if (this.program != null) {
