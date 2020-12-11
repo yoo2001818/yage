@@ -102,7 +102,7 @@ export class ShaderBuffer {
 
   attributes: Map<string, AttributeType> = new Map();
 
-  version: number = -1;
+  current: LowShader | null = null;
 
   constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
@@ -110,7 +110,7 @@ export class ShaderBuffer {
 
   sync(shader: LowShader): void {
     const { gl } = this;
-    if (shader.version === this.version) return;
+    if (shader === this.current) return;
     if (this.program != null) {
       // Destroy previous program
       gl.deleteProgram(this.program);
@@ -142,7 +142,7 @@ export class ShaderBuffer {
     }
 
     this.program = program;
-    this.version = shader.version;
+    this.current = shader;
     this.shaders = [vertShader, fragShader];
 
     // Read uniform, attributes information
