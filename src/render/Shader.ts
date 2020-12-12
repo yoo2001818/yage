@@ -1,13 +1,3 @@
-export class Shader {
-  vertShader: string;
+import { ShaderDescriptor } from '../types/Shader';
 
-  fragShader: string;
-
-  version: number;
-
-  constructor(vertShader: string, fragShader: string) {
-    this.vertShader = vertShader;
-    this.fragShader = fragShader;
-    this.version = 0;
-  }
-}
+export type Shader = ShaderDescriptor;

@@ -13,6 +13,7 @@ import { Component } from '../../components/Component';
 import { Material } from '../Material';
 import { TextureBuffer } from '../gl/TextureBuffer';
 import { Texture } from '../Texture';
+import { LowShader } from '../LowShader';
 
 export class RenderSystem {
   gl: WebGLRenderingContext;
@@ -177,7 +178,7 @@ export class RenderSystem {
     });
   }
 
-  getShaderBuffer(id: number, shader: Shader): ShaderBuffer {
+  getShaderBuffer(id: number, shader: LowShader): ShaderBuffer {
     let buffer = this.shaders.get(id);
     if (buffer == null) {
       buffer = new ShaderBuffer(this.gl);
