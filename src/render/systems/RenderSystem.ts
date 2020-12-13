@@ -14,13 +14,15 @@ import { Material } from '../Material';
 import { TextureBuffer } from '../gl/TextureBuffer';
 import { Texture } from '../Texture';
 import { LowShader } from '../LowShader';
+import { Pipeline } from '../pipelines/Pipeline';
+import { ForwardPipeline } from '../pipelines/ForwardPipeline';
 
 export class RenderSystem {
   gl: WebGLRenderingContext;
 
   instancedExt: ANGLE_instanced_arrays;
 
-  shaders: Map<number, ShaderBuffer>;
+  lowShaders: Map<number, ShaderBuffer>;
 
   geometries: Map<number, GeometryBuffer>;
 
@@ -44,14 +46,18 @@ export class RenderSystem {
 
   transformIndex: TransformIndex;
 
-  instancedGeom: Geometry;
+  pipeline: Pipeline | null = null;
 
   cameraId: number | null;
 
-  constructor(store: EntityStore, gl: WebGLRenderingContext) {
+  constructor(
+    store: EntityStore,
+    gl: WebGLRenderingContext,
+    pipeline: Pipeline = new ForwardPipeline(),
+  ) {
     this.gl = gl;
     this.instancedExt = gl.getExtension('ANGLE_instanced_arrays')!;
-    this.shaders = new Map();
+    this.lowShaders = new Map();
     this.geometries = new Map();
     this.textures = new Map();
     this.boundTextures = [];
@@ -67,8 +73,16 @@ export class RenderSystem {
     this.textureComponent = store
       .getComponent<Component<Texture>>('texture');
     this.transformIndex = store.getIndex<TransformIndex>('transform');
-    this.instancedGeom = new Geometry();
     this.cameraId = null;
+    this.setPipeline(pipeline);
+  }
+
+  setPipeline(pipeline: Pipeline): void {
+    if (this.pipeline != null) {
+      this.pipeline.unregister();
+    }
+    this.pipeline = pipeline;
+    this.pipeline.register(this);
   }
 
   setCamera(entity: Entity): void {
@@ -111,78 +125,18 @@ export class RenderSystem {
   }
 
   update(): void {
-    const {
-      gl,
-      entityStore,
-      meshComponent,
-      transformComponent,
-      transformIndex,
-    } = this;
-    gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // Enable bunch of test
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.depthFunc(gl.LESS);
-    gl.cullFace(gl.BACK);
-    const uView = this.getViewMatrix();
-    const uProjection = this.getProjectionMatrix();
-    this.entityStore.forEachGroupWith([
-      meshComponent,
-      transformComponent,
-    ], (group, meshPos, transformPos) => {
-      const { materialId, geometryId } = meshComponent.get(meshPos);
-      const transform = transformIndex.getArrayOf(transformPos);
-      // Prepare geometry and material
-      const geometry = entityStore
-        .getComponentOfEntity(geometryId, this.geometryComponent);
-      const material = entityStore
-        .getComponentOfEntity(materialId, this.materialComponent);
-      const shader = entityStore
-        .getComponentOfEntity(material.shaderId, this.shaderComponent);
-      // Acquire shader buffer and use it
-      const shaderBuf = this.getShaderBuffer(material.shaderId, shader);
-      shaderBuf.bind();
-      this.clearBindTexture();
-      shaderBuf.setUniforms(this, material.uniforms);
-      // Then, set geometry
-      const geometryBuf = this.getGeometryBuffer(geometryId, geometry);
-      geometryBuf.bind(shaderBuf);
-      // TODO: Set up camera and lights, instancing.
-      shaderBuf.setUniforms(this, {
-        uView,
-        uProjection,
-      });
-      // Set instanced geometry (if supported)
-      if (shaderBuf.attributes.has('aModel')) {
-        // TODO: Really?
-        this.instancedGeom.setAttribute('aModel', {
-          data: transform.subarray(0, group.size * 16),
-          axis: 16,
-        });
-        const instancedBuf = this.getGeometryBuffer(
-          9999999,
-          this.instancedGeom,
-        );
-        const primCount = instancedBuf.bind(shaderBuf, 1);
-        geometryBuf.render(primCount);
-      } else {
-        // The shader doesn't support instancing, fall back to regular routine
-        for (let i = 0; i < group.size; i += 1) {
-          shaderBuf.setUniforms(this, {
-            uModel: transform.subarray(i * 16, i * 16 + 16),
-          });
-          geometryBuf.render();
-        }
-      }
-    });
+    // Delegate everything to the pipeline
+    if (this.pipeline == null) {
+      throw new Error('Pipeline is null');
+    }
+    this.pipeline?.render();
   }
 
   getShaderBuffer(id: number, shader: LowShader): ShaderBuffer {
-    let buffer = this.shaders.get(id);
+    let buffer = this.lowShaders.get(id);
     if (buffer == null) {
       buffer = new ShaderBuffer(this.gl);
-      this.shaders.set(id, buffer);
+      this.lowShaders.set(id, buffer);
     }
     buffer.sync(shader);
     return buffer;
