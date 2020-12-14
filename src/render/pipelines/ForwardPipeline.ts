@@ -1,4 +1,6 @@
 import { Geometry } from '../Geometry';
+import { LowShader } from '../LowShader';
+import { Shader } from '../Shader';
 import { Pipeline } from './Pipeline';
 
 export class ForwardPipeline extends Pipeline {
@@ -7,6 +9,10 @@ export class ForwardPipeline extends Pipeline {
   constructor() {
     super();
     this.instancedGeom = new Geometry();
+  }
+
+  bakeShader(shader: Shader): LowShader {
+
   }
 
   render(): void {
