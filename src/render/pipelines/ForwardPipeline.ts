@@ -1,6 +1,7 @@
+import { ShaderPassDescriptor } from 'src/types/Shader';
 import { Geometry } from '../Geometry';
+import { ShaderBuffer } from '../gl/ShaderBuffer';
 import { LowShader } from '../LowShader';
-import { Shader } from '../Shader';
 import { Pipeline } from './Pipeline';
 
 export class ForwardPipeline extends Pipeline {
@@ -11,8 +12,55 @@ export class ForwardPipeline extends Pipeline {
     this.instancedGeom = new Geometry();
   }
 
-  bakeShader(shader: Shader): LowShader {
+  bakeShaderPass(
+    shaderId: number,
+    passId: number,
+    shader: ShaderPassDescriptor,
+  ): LowShader {
+    return { vertShader: '', fragShader: '' };
+  }
 
+  renderGeometry(
+    uView: Float32Array,
+    uProjection: Float32Array,
+    transform: Float32Array,
+    geometryId: number,
+    geometry: Geometry,
+    shaderBuf: ShaderBuffer,
+    size: number,
+  ): void {
+    const { renderSystem } = this;
+    if (renderSystem == null) return;
+    // Then, set geometry
+    const geometryBuf = renderSystem.getGeometryBuffer(geometryId, geometry);
+    geometryBuf.bind(shaderBuf);
+    // TODO: Set up camera and lights, instancing.
+    shaderBuf.setUniforms(renderSystem, {
+      uView,
+      uProjection,
+    });
+    // Set instanced geometry (if supported)
+    if (shaderBuf.attributes.has('aModel')) {
+      // TODO: Really?
+      this.instancedGeom.setAttribute('aModel', {
+        data: transform.subarray(0, size * 16),
+        axis: 16,
+      });
+      const instancedBuf = renderSystem.getGeometryBuffer(
+        9999999,
+        this.instancedGeom,
+      );
+      const primCount = instancedBuf.bind(shaderBuf, 1);
+      geometryBuf.render(primCount);
+    } else {
+      // The shader doesn't support instancing, fall back to regular routine
+      for (let i = 0; i < size; i += 1) {
+        shaderBuf.setUniforms(renderSystem, {
+          uModel: transform.subarray(i * 16, i * 16 + 16),
+        });
+        geometryBuf.render();
+      }
+    }
   }
 
   render(): void {
@@ -47,41 +95,32 @@ export class ForwardPipeline extends Pipeline {
         .getComponentOfEntity(materialId, renderSystem.materialComponent);
       const shader = entityStore
         .getComponentOfEntity(material.shaderId, renderSystem.shaderComponent);
-      // Acquire shader buffer and use it
-      const shaderBuf = renderSystem.getShaderBuffer(material.shaderId, shader);
-      shaderBuf.bind();
-      renderSystem.clearBindTexture();
-      shaderBuf.setUniforms(renderSystem, material.uniforms);
-      // Then, set geometry
-      const geometryBuf = renderSystem.getGeometryBuffer(geometryId, geometry);
-      geometryBuf.bind(shaderBuf);
-      // TODO: Set up camera and lights, instancing.
-      shaderBuf.setUniforms(renderSystem, {
-        uView,
-        uProjection,
-      });
-      // Set instanced geometry (if supported)
-      if (shaderBuf.attributes.has('aModel')) {
-        // TODO: Really?
-        this.instancedGeom.setAttribute('aModel', {
-          data: transform.subarray(0, group.size * 16),
-          axis: 16,
-        });
-        const instancedBuf = renderSystem.getGeometryBuffer(
-          9999999,
-          this.instancedGeom,
+      shader.passes.forEach((pass, passId) => {
+        if (pass.type === 'combined') return;
+        // Prepare shader
+        // TODO Caching
+        const lowShader = this.bakeShaderPass(
+          material.shaderId,
+          passId,
+          pass,
         );
-        const primCount = instancedBuf.bind(shaderBuf, 1);
-        geometryBuf.render(primCount);
-      } else {
-        // The shader doesn't support instancing, fall back to regular routine
-        for (let i = 0; i < group.size; i += 1) {
-          shaderBuf.setUniforms(renderSystem, {
-            uModel: transform.subarray(i * 16, i * 16 + 16),
-          });
-          geometryBuf.render();
-        }
-      }
+        const shaderBuf = renderSystem.getShaderBuffer(
+          material.shaderId * 100 + passId,
+          lowShader,
+        );
+        shaderBuf.bind();
+        renderSystem.clearBindTexture();
+        shaderBuf.setUniforms(renderSystem, material.uniforms);
+        this.renderGeometry(
+          uView,
+          uProjection,
+          transform,
+          geometryId,
+          geometry,
+          shaderBuf,
+          group.size,
+        );
+      });
     });
   }
 }
