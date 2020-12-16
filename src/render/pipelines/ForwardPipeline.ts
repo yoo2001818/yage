@@ -5,10 +5,13 @@ import { LowShader } from '../LowShader';
 import { Pipeline } from './Pipeline';
 
 export class ForwardPipeline extends Pipeline {
+  lowShaders: Map<number, { value: LowShader, key: ShaderPassDescriptor }>;
+
   instancedGeom: Geometry;
 
   constructor() {
     super();
+    this.lowShaders = new Map();
     this.instancedGeom = new Geometry();
   }
 
@@ -17,7 +20,20 @@ export class ForwardPipeline extends Pipeline {
     passId: number,
     shader: ShaderPassDescriptor,
   ): LowShader {
-    return { vertShader: '', fragShader: '' };
+    const id = shaderId * 100 + passId;
+    const item = this.lowShaders.get(id);
+    if (item == null || item.key !== shader) {
+      const newItem = {
+        key: shader,
+        value: {
+          vertShader: shader.vert,
+          fragShader: shader.frag,
+        },
+      };
+      this.lowShaders.set(id, newItem);
+      return newItem.value;
+    }
+    return item.value;
   }
 
   renderGeometry(
