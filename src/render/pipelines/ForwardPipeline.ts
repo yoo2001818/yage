@@ -36,6 +36,117 @@ export class ForwardPipeline extends Pipeline {
     return item.value;
   }
 
+  setShaderOptions(pass: ShaderPassDescriptor): void {
+    if (pass.type === 'combined') return;
+    const { options = {} } = pass;
+    const { gl } = this.renderSystem!;
+    if (options.blend) {
+      const { color, equation, func } = options.blend;
+      gl.enable(gl.BLEND);
+      gl.blendColor(color[0], color[1], color[2], color[3]);
+      if (typeof equation === 'number') {
+        gl.blendEquation(equation);
+      } else {
+        gl.blendEquationSeparate(equation[0], equation[1]);
+      }
+      if (typeof func[0] === 'number') {
+        const arr = func as [number, number];
+        gl.blendFunc(arr[0], arr[1]);
+      } else {
+        const arr = func as [[number, number], [number, number]];
+        gl.blendFuncSeparate(arr[0][0], arr[0][1], arr[1][0], arr[1][1]);
+      }
+    } else {
+      gl.disable(gl.BLEND);
+    }
+    if (options.colorMask) {
+      const { colorMask } = options;
+      gl.colorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
+    } else {
+      gl.colorMask(true, true, true, true);
+    }
+    if (options.depthMask) {
+      const { depthMask } = options;
+      gl.depthMask(depthMask);
+    } else {
+      gl.depthMask(true);
+    }
+    if (options.stencilMask) {
+      const { stencilMask } = options;
+      if (typeof stencilMask === 'number') {
+        gl.stencilMask(stencilMask);
+      } else {
+        gl.stencilMaskSeparate(gl.FRONT, stencilMask[0]);
+        gl.stencilMaskSeparate(gl.BACK, stencilMask[1]);
+      }
+    } else {
+      gl.stencilMask(0x7FFFFFFF);
+    }
+    if (options.cull) {
+      gl.enable(gl.CULL_FACE);
+      gl.cullFace(options.cull);
+    } else {
+      gl.disable(gl.CULL_FACE);
+    }
+    if (options.depth) {
+      const { depth } = options;
+      gl.enable(gl.DEPTH_TEST);
+      if (typeof depth === 'number') {
+        gl.depthFunc(depth);
+        gl.depthRange(0, 1);
+      } else {
+        gl.depthFunc(depth.func);
+        gl.depthRange(depth.range[0], depth.range[1]);
+      }
+    }
+    if (options.dither) {
+      gl.enable(gl.DITHER);
+    } else {
+      gl.disable(gl.DITHER);
+    }
+    if (options.stencil) {
+      const { func, op } = options.stencil;
+      gl.enable(gl.STENCIL_TEST);
+      if (typeof func[0] === 'number') {
+        const arr = func as number[];
+        gl.stencilFunc(arr[0], arr[1], arr[2]);
+      } else {
+        const arr = func as number[][];
+        gl.stencilFuncSeparate(gl.FRONT, arr[0][0], arr[0][1], arr[0][2]);
+        gl.stencilFuncSeparate(gl.BACK, arr[1][0], arr[1][1], arr[1][2]);
+      }
+      if (typeof op[0] === 'number') {
+        const arr = op as number[];
+        gl.stencilOp(arr[0], arr[1], arr[2]);
+      } else {
+        const arr = op as number[][];
+        gl.stencilOpSeparate(gl.FRONT, arr[0][0], arr[0][1], arr[0][2]);
+        gl.stencilOpSeparate(gl.BACK, arr[1][0], arr[1][1], arr[1][2]);
+      }
+    } else {
+      gl.disable(gl.STENCIL_TEST);
+    }
+    if (options.viewport) {
+      const { viewport } = options;
+      gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    } else {
+      // TODO: We can't reset this without canvas object!!
+    }
+    if (options.scissor) {
+      const { scissor } = options;
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+    } else {
+      gl.disable(gl.SCISSOR_TEST);
+    }
+    if (options.polygonOffset) {
+      const { polygonOffset } = options;
+      gl.polygonOffset(polygonOffset[0], polygonOffset[1]);
+    } else {
+      gl.polygonOffset(0, 0);
+    }
+  }
+
   renderGeometry(
     uView: Float32Array,
     uProjection: Float32Array,
@@ -127,6 +238,7 @@ export class ForwardPipeline extends Pipeline {
         shaderBuf.bind();
         renderSystem.clearBindTexture();
         shaderBuf.setUniforms(renderSystem, material.uniforms);
+        this.setShaderOptions(pass);
         this.renderGeometry(
           uView,
           uProjection,
