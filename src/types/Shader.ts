@@ -8,7 +8,7 @@ export interface ShaderOptions {
   blend?: ShaderBlendOptions | false,
   colorMask?: boolean[],
   depthMask?: boolean,
-  stencilMask?: boolean | [boolean, boolean],
+  stencilMask?: number | [number, number],
   cull?: false | number,
   depth?: false | number | { func: number, range: [number, number] },
   dither?: boolean,
@@ -17,7 +17,6 @@ export interface ShaderOptions {
     | [[number, number, number], [number, number, number]],
     op: [number, number, number]
     | [[number, number, number], [number, number, number]],
-
   }
   viewport?: false | [number, number, number, number],
   scissor?: false | [number, number, number, number],

@@ -129,7 +129,7 @@ export class RenderSystem {
     if (this.pipeline == null) {
       throw new Error('Pipeline is null');
     }
-    this.pipeline?.render();
+    this.pipeline.render();
   }
 
   getShaderBuffer(id: number, shader: LowShader): ShaderBuffer {

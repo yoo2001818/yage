@@ -98,6 +98,8 @@ export class ForwardPipeline extends Pipeline {
         gl.depthFunc(depth.func);
         gl.depthRange(depth.range[0], depth.range[1]);
       }
+    } else {
+      gl.disable(gl.DEPTH_TEST);
     }
     if (options.dither) {
       gl.enable(gl.DITHER);

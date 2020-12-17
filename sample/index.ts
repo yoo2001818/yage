@@ -15,6 +15,7 @@ import { uvSphere } from '../src/geom/uvSphere';
 import { calcNormals } from '../src/geom/calcNormals';
 import { Transform } from '../src/render/Transform';
 import { Texture } from '../src/render/Texture';
+import { Shader } from '../src/render/Shader';
 
 import textureImg from './logobg.png';
 
@@ -46,8 +47,14 @@ function main() {
 
   const boxEnt = entityStore.createEntity();
   const boxId = boxEnt.getId();
-  boxEnt.set('shader', {
-    vertShader: `
+  boxEnt.set<Shader>('shader', {
+    passes: [{
+      type: 'forward',
+      options: {
+        cull: gl.BACK,
+        depth: gl.LESS,
+      },
+      vert: `
     #version 100
     precision lowp float;
 
@@ -86,7 +93,7 @@ function main() {
       vViewPos = getViewPosWorld();
     }
     `,
-    fragShader: `
+      frag: `
     #version 100
     precision lowp float;
 
@@ -197,6 +204,7 @@ function main() {
       // gl_FragColor = vec4(result, 1.0);
     }
     `,
+    }],
   });
   const boxImg = new Image();
   boxImg.src = textureImg;
