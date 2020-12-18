@@ -25,6 +25,10 @@ module.exports = {
         test: /\.png$/,
         use: ['file-loader'],
       },
+      {
+        test: /\.vert$|\.frag$/,
+        use: ['raw-loader'],
+      },
     ],
   },
   plugins: [
