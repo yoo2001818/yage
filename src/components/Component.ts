@@ -26,6 +26,13 @@ export interface Component<T> {
   copyTo(offset: number, target: T): void,
   copyBetween(src: number, dest: number): void,
 
+  fromJSON(
+    offset: number,
+    payload: unknown,
+    mapId?: (id: unknown) => number | null,
+  ): void,
+  toJSON(offset: number, mapId?: (id: number | null) => unknown): unknown,
+
   markChanged(group: EntityGroup, start?: number, size?: number): void,
   subscribe(
     callback: (group: EntityGroup, start: number, size: number) => void,

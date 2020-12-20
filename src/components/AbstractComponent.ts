@@ -42,6 +42,17 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   abstract copyBetween(src: number, dest: number): void;
 
+  abstract fromJSON(
+    offset: number,
+    payload: unknown,
+    mapId?: (id: unknown) => number | null,
+  ): void;
+
+  abstract toJSON(
+    offset: number,
+    mapId?: (id: number | null) => unknown,
+  ): unknown;
+
   markChanged(group: EntityGroup, start = 0, size = group.size): void {
     this.signal.emit(group, start, size);
   }
