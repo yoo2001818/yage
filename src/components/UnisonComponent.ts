@@ -1,4 +1,10 @@
 import { AbstractComponent } from './AbstractComponent';
+import {
+  ComponentFromJSON,
+  ComponentToJSON,
+  defaultComponentFromJSON,
+  defaultComponentToJSON,
+} from './Component';
 
 export class UnisonComponent<T> extends AbstractComponent<T> {
   size: number = 0;
@@ -12,8 +18,10 @@ export class UnisonComponent<T> extends AbstractComponent<T> {
   constructor(
     equals: (a: T, b: T) => boolean,
     hashCode: (a: T) => number,
+    fromJSON: ComponentFromJSON<T> = defaultComponentFromJSON,
+    toJSON: ComponentToJSON<T> = defaultComponentToJSON,
   ) {
-    super();
+    super(fromJSON, toJSON);
     this.items = [];
     this.equals = equals;
     this.hashCode = hashCode;

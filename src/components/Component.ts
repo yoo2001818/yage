@@ -27,11 +27,10 @@ export interface Component<T> {
   copyBetween(src: number, dest: number): void,
 
   fromJSON(
-    offset: number,
     payload: unknown,
     mapId?: (id: unknown) => number | null,
-  ): void,
-  toJSON(offset: number, mapId?: (id: number | null) => unknown): unknown,
+  ): T,
+  toJSON(value: T, mapId?: (id: number | null) => unknown): unknown,
 
   markChanged(group: EntityGroup, start?: number, size?: number): void,
   subscribe(
@@ -44,4 +43,20 @@ export interface Component<T> {
   getOffsetHash(offset: number): number,
   isOffsetCompatible(a: number, b: number): boolean,
   isUnison(): boolean,
+}
+
+export interface ComponentFromJSON<T> {
+  (payload: unknown, mapId?: (id: unknown) => number | null): T,
+}
+
+export interface ComponentToJSON<T> {
+  (item: T, mapId?: (id: number | null) => unknown): unknown,
+}
+
+export function defaultComponentFromJSON<T>(payload: unknown): T {
+  return payload as T;
+}
+
+export function defaultComponentToJSON<T>(item: T): unknown {
+  return item;
 }

@@ -1,4 +1,10 @@
 import { AbstractComponent } from './AbstractComponent';
+import {
+  ComponentFromJSON,
+  ComponentToJSON,
+  defaultComponentFromJSON,
+  defaultComponentToJSON,
+} from './Component';
 import { ComponentAllocator } from './ComponentAllocator';
 
 const PAGE_SIZE = 65536;
@@ -21,8 +27,10 @@ export class Float32ArrayComponent<T = Float32Array>
     dimensions: number,
     onCreate: (buffer: Float32Array) => T,
     onGetBuffer: (value: T) => Float32Array,
+    fromJSON: ComponentFromJSON<T> = defaultComponentFromJSON,
+    toJSON: ComponentToJSON<T> = defaultComponentToJSON,
   ) {
-    super();
+    super(fromJSON, toJSON);
     this.onCreate = onCreate;
     this.onGetBuffer = onGetBuffer;
     this.dimensions = dimensions;

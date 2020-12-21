@@ -1,4 +1,10 @@
 import { AbstractComponent } from './AbstractComponent';
+import {
+  ComponentFromJSON,
+  ComponentToJSON,
+  defaultComponentFromJSON,
+  defaultComponentToJSON,
+} from './Component';
 import { ComponentAllocator } from './ComponentAllocator';
 
 export class ImmutableComponent<T> extends AbstractComponent<T> {
@@ -8,8 +14,11 @@ export class ImmutableComponent<T> extends AbstractComponent<T> {
 
   size: number;
 
-  constructor() {
-    super();
+  constructor(
+    fromJSON: ComponentFromJSON<T> = defaultComponentFromJSON,
+    toJSON: ComponentToJSON<T> = defaultComponentToJSON,
+  ) {
+    super(fromJSON, toJSON);
     this.items = [];
     this.size = 0;
     this.allocator = new ComponentAllocator(16, (reqSize) => {

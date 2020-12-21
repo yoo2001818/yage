@@ -1,4 +1,10 @@
-import { Component } from './Component';
+import {
+  Component,
+  ComponentFromJSON,
+  ComponentToJSON,
+  defaultComponentFromJSON,
+  defaultComponentToJSON,
+} from './Component';
 import { Signal } from '../Signal';
 import { EntityGroup } from '../store/EntityGroup';
 
@@ -9,8 +15,17 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   signal: Signal<[EntityGroup, number, number]>;
 
-  constructor() {
+  itemFromJSON: ComponentFromJSON<T>;
+
+  itemToJSON: ComponentToJSON<T>;
+
+  constructor(
+    fromJSON: ComponentFromJSON<T> = defaultComponentFromJSON,
+    toJSON: ComponentToJSON<T> = defaultComponentToJSON,
+  ) {
     this.signal = new Signal();
+    this.itemFromJSON = fromJSON;
+    this.itemToJSON = toJSON;
   }
 
   register(name: string, pos: number): void {
@@ -42,16 +57,19 @@ export abstract class AbstractComponent<T> implements Component<T> {
 
   abstract copyBetween(src: number, dest: number): void;
 
-  abstract fromJSON(
-    offset: number,
+  fromJSON(
     payload: unknown,
     mapId?: (id: unknown) => number | null,
-  ): void;
+  ): T {
+    return this.itemFromJSON(payload, mapId);
+  }
 
-  abstract toJSON(
-    offset: number,
+  toJSON(
+    item: T,
     mapId?: (id: number | null) => unknown,
-  ): unknown;
+  ): unknown {
+    return this.itemToJSON(item, mapId);
+  }
 
   markChanged(group: EntityGroup, start = 0, size = group.size): void {
     this.signal.emit(group, start, size);

@@ -1,4 +1,10 @@
 import { AbstractComponent } from './AbstractComponent';
+import {
+  ComponentFromJSON,
+  ComponentToJSON,
+  defaultComponentFromJSON,
+  defaultComponentToJSON,
+} from './Component';
 import { ComponentAllocator } from './ComponentAllocator';
 
 function defaultOnCopy<T>(from: T, to: T): void {
@@ -19,8 +25,10 @@ export class MutableComponent<T> extends AbstractComponent<T> {
   constructor(
     onCreate: () => T,
     onCopy: (from: T, to: T) => void = defaultOnCopy,
+    fromJSON: ComponentFromJSON<T> = defaultComponentFromJSON,
+    toJSON: ComponentToJSON<T> = defaultComponentToJSON,
   ) {
-    super();
+    super(fromJSON, toJSON);
     this.onCreate = onCreate;
     this.onCopy = onCopy;
     this.items = [];
@@ -35,6 +43,8 @@ export class MutableComponent<T> extends AbstractComponent<T> {
       }
       return start;
     });
+    this.itemFromJSON = fromJSON;
+    this.itemToJSON = toJSON;
   }
 
   createOffset(value: T, size: number): number {
