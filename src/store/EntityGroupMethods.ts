@@ -62,7 +62,7 @@ export function addGroupComponent<T>(
 ): number {
   const { pos } = component;
   if (pos == null) throw new Error('Invalid');
-  if (group.offsets.length > pos && group.offsets[pos] !== -1) {
+  if (group.offsets.length > pos && isAllocated(group.offsets[pos])) {
     return group.offsets[pos];
   }
   for (let i = group.offsets.length; i < pos; i += 1) {
@@ -81,7 +81,7 @@ export function addGroupComponentFromOffset<T>(
 ): void {
   const { pos } = component;
   if (pos == null) return;
-  if (group.offsets.length > pos && group.offsets[pos] !== -1) return;
+  if (group.offsets.length > pos && isAllocated(group.offsets[pos])) return;
   for (let i = group.offsets.length; i < pos; i += 1) {
     group.offsets[i] = -1;
   }
@@ -96,7 +96,7 @@ export function removeGroupComponent(
 ): void {
   const { pos } = component;
   if (pos == null) return;
-  if (group.offsets.length <= pos || group.offsets[pos] === -1) return;
+  if (group.offsets.length <= pos || !isAllocated(group.offsets[pos])) return;
   component.deleteOffset(group.offsets[pos], group.maxSize);
   group.offsets[pos] = -1;
   updateGroupHashCode(group, store);
@@ -136,7 +136,7 @@ export function copyGroupEntity(
   for (let i = 0; i < dest.offsets.length; i += 1) {
     const srcOffset = src.offsets[i];
     const destOffset = dest.offsets[i];
-    if (srcOffset === -1 || destOffset === -1) continue;
+    if (!isAllocated(srcOffset) || !isAllocated(destOffset)) continue;
     const component = store.components[i];
     if (component.isUnison()) continue;
     component.copyBetween(
@@ -172,10 +172,28 @@ export function unallocateGroup(
   store: EntityStore,
 ): void {
   for (let i = 0; i < group.offsets.length; i += 1) {
-    if (group.offsets[i] !== -1) {
+    if (isAllocated(group.offsets[i])) {
       const component = store.components[i];
       component.deleteOffset(group.offsets[i], group.maxSize);
       group.offsets[i] = -1;
     }
   }
+}
+
+export function toJSONGroupEntity(
+  store: EntityStore,
+  group: EntityGroup,
+  index: number,
+  mapId?: (id: number | null) => unknown,
+): unknown {
+  const result: { [key: string]: unknown } = {};
+  for (let i = 0; i < group.offsets.length; i += 1) {
+    const offset = group.offsets[i];
+    if (isAllocated(offset)) {
+      const component = store.components[i];
+      const value = component.get(offset + index);
+      result[component.name!] = component.toJSON(value, mapId);
+    }
+  }
+  return result;
 }

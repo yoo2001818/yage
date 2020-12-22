@@ -9,6 +9,7 @@ import {
   getGroupComponents,
   copyGroupComponents,
   isAllocated,
+  toJSONGroupEntity,
 } from './EntityGroupMethods';
 
 export class Entity {
@@ -170,14 +171,10 @@ export class Entity {
     component.copyTo(offset + this.index, target);
   }
 
-  serialize(): unknown {
-    const output: Record<string, unknown> = {};
-    const components = this.getComponents();
-    for (let i = 0; i < components.length; i += 1) {
-      const component = components[i];
-      output[component.name!] = this.get(component);
-    }
-    return output;
+  toJSON(
+    mapId?: (id: number | null) => unknown,
+  ): unknown {
+    return toJSONGroupEntity(this.store, this.group, this.index, mapId);
   }
 
   deserialize(value: unknown): void {
