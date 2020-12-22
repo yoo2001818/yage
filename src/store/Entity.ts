@@ -177,13 +177,16 @@ export class Entity {
     return toJSONGroupEntity(this.store, this.group, this.index, mapId);
   }
 
-  deserialize(value: unknown): void {
+  fromJSON(
+    value: unknown,
+    mapId?: (id: unknown) => number | null,
+  ): void {
     if (typeof value !== 'object' || value == null) return;
     const valueTable = value as Record<string, unknown>;
     // eslint-disable-next-line guard-for-in
     for (const name in value) {
       const component = this.store.getComponent(name);
-      this.set(component, valueTable[name]);
+      this.set(component, component.fromJSON(valueTable[name], mapId));
     }
   }
 }

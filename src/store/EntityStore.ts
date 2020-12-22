@@ -334,18 +334,24 @@ export class EntityStore {
     });
   }
 
-  serialize(): unknown[] {
+  toJSON(
+    mapId?: (id: number | null) => unknown,
+  ): unknown[] {
     const output: unknown[] = [];
     this.forEach((entity) => {
-      output.push(entity.serialize());
+      output.push(entity.toJSON(mapId));
     });
     return output;
   }
 
-  deserialize(input: unknown[]): void {
+  fromJSON(
+    input: unknown[],
+    mapId?: (id: unknown) => number | null,
+  ): void {
     input.forEach((entry) => {
       const entity = this.createEntity();
-      entity.deserialize(entry);
+      entity.fromJSON(entry, mapId);
+      entity.unfloat();
     });
   }
 }
