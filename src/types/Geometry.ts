@@ -12,6 +12,11 @@ export interface GeometryDescriptor {
   mode?: number,
 }
 
+export interface ChannelGeometryDescriptor {
+  attributes: { [key: string]: GeometryAttribute | number[][] },
+  indices: { [key: string]: number[] },
+}
+
 export const POINTS = 0;
 export const LINES = 1;
 export const LINE_LOOP = 2;
