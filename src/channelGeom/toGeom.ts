@@ -7,7 +7,12 @@ import { parseAttribute, flattenBuffer } from '../utils/parseAttribute';
 import { parseIndices } from '../utils/parseIndices';
 
 export function toGeom(input: ChannelGeometryDescriptor): GeometryDescriptor {
-  const indicesArr: unknown[] = [];
+  const indicesArr: {
+    indices: number[],
+    data: Float32Array,
+    axis: number,
+    outData: number[],
+  }[] = [];
   let indicesSize = -1;
 
   let indicesCache = {};
