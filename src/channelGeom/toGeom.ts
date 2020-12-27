@@ -1,36 +1,37 @@
 import {
   GeometryDescriptor,
   ChannelGeometryDescriptor,
+  GeometryAttribute,
 } from '../types/Geometry';
 
 import { parseAttribute, flattenBuffer } from '../utils/parseAttribute';
-import { parseIndices } from '../utils/parseIndices';
+import { parseIndicesNumber } from '../utils/parseIndices';
 
 export function toGeom(input: ChannelGeometryDescriptor): GeometryDescriptor {
   const indicesArr: {
     indices: number[],
     data: Float32Array,
     axis: number,
-    outData: number[],
+    outData: number[][],
   }[] = [];
   let indicesSize = -1;
 
-  let indicesCache = {};
+  const indicesCache = new Map<number, number>();
   let vertexCount = 0;
 
-  const outputAttribs: { [key: string]: number[] } = {};
+  const outputAttribs: { [key: string]: number[][] } = {};
   const outputIndices: number[] = [];
   Object.keys(input.indices).forEach((key) => {
     const attribute = parseAttribute(input.attributes[key]);
     if (attribute == null) {
       throw new Error(`Attribute ${key} does not exist`);
     }
-    const indices = parseIndices(input.indices[key]);
+    const indices = parseIndicesNumber(input.indices[key]);
     if (indices == null) return;
     outputAttribs[key] = [];
     indicesArr.push({
       indices,
-      data: attribute.data,
+      data: flattenBuffer(attribute.data),
       axis: attribute.axis,
       outData: outputAttribs[key],
     });
@@ -47,24 +48,35 @@ export function toGeom(input: ChannelGeometryDescriptor): GeometryDescriptor {
   // Populate indices array while generating attributes data.
   for (let i = 0; i < indicesSize; i += 1) {
     // Validate cache
-    let key = indicesArr.map(({indices}) => indices[i]).join('/');
-    let index = indicesCache[key];
+    const key = indicesArr.reduce((
+      prev,
+      { indices },
+    ) => indices[i] + prev * indices.length, 0);
+    let index = indicesCache.get(key);
     if (index == null) {
-      indicesArr.forEach(({ indices, axis, data, outData }) => {
-        let offset = indices[i] * axis;
+      indicesArr.forEach(({
+        indices, axis, data, outData,
+      }) => {
+        const offset = indices[i] * axis;
         if ((offset + axis) > data.length) {
-          outData.push(new Float32Array(axis));
+          outData.push(Array.from({ length: axis }, () => 0));
         } else {
-          outData.push(data.subarray(offset, offset + axis));
+          outData.push([...data.subarray(offset, offset + axis)]);
         }
       });
-      index = indicesCache[key] = vertexCount;
-      vertexCount ++;
+      index = vertexCount;
+      indicesCache.set(key, vertexCount);
+      vertexCount += 1;
     }
     outputIndices.push(index);
   }
-  return Object.assign({}, input, {
-    attributes: parseAttributes(outputAttribs),
-    indices: parseIndices(outputIndices)
+  const parsedAttribs: { [key: string]: GeometryAttribute } = {};
+  Object.keys(outputAttribs).forEach((key) => {
+    parsedAttribs[key] = parseAttribute(outputAttribs[key]);
   });
+  return {
+    ...input,
+    attributes: parsedAttribs,
+    indices: outputIndices,
+  };
 }
