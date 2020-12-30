@@ -1,6 +1,9 @@
 import { Mesh } from '../render/Mesh';
 import { Material } from '../render/Material';
-import { GeometryDescriptor } from '../types/Geometry';
+import {
+  ChannelGeometryDescriptor,
+  GeometryDescriptor,
+} from '../types/Geometry';
 
 export interface ObjEntity {
   pos: number[],
@@ -22,5 +25,6 @@ export function parseObj(input: string): ObjEntity[] {
     // mtllib
     // usemtl
     // s off -> Normal smoothing
+    let geometry: ChannelGeometryDescriptor;
   });
 }
