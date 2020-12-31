@@ -25,6 +25,39 @@ export function parseObj(input: string): ObjEntity[] {
     // mtllib
     // usemtl
     // s off -> Normal smoothing
-    let geometry: ChannelGeometryDescriptor;
+    switch (words[0]) {
+      case 'v':
+        // Vertex coords: v 0 0 0
+        break;
+      case 'vn':
+        // Normals: vn 0 0 0
+        break;
+      case 'vt':
+        // TexCoords: vt 0 0
+        break;
+      case 'p':
+        // Point
+        break;
+      case 'l':
+        // Line
+        break;
+      case 'f':
+        // Face: f 0/0/0 0/0/0 0/0/0
+        // Arbitrary amount of points are possible; we must triangluate them
+        break;
+      case 'o':
+        // Finalize object if exists; otherwise specify its name
+        break;
+      case 'usemtl':
+        // Nothing yet..
+        break;
+      case 'g':
+        // Put the object in group if exists
+        break;
+      case 's':
+        // Smoothing: s off / s 0 / s on / s 1
+        break;
+      default:
+    }
   });
 }
