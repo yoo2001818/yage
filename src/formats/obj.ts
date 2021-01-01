@@ -25,16 +25,33 @@ export function parseObj(input: string): ObjEntity[] {
     // mtllib
     // usemtl
     // s off -> Normal smoothing
+    let positions: number[][] = [];
+    let normals: number[][] = [];
+    let texCoords: number[][] = [];
     switch (words[0]) {
-      case 'v':
+      case 'v': {
         // Vertex coords: v 0 0 0
+        const x = parseFloat(words[1]);
+        const y = parseFloat(words[2]);
+        const z = parseFloat(words[3]);
+        positions.push([x, y, z]);
         break;
-      case 'vn':
+      }
+      case 'vn': {
         // Normals: vn 0 0 0
+        const x = parseFloat(words[1]);
+        const y = parseFloat(words[2]);
+        const z = parseFloat(words[3]);
+        normals.push([x, y, z]);
         break;
-      case 'vt':
+      }
+      case 'vt': {
         // TexCoords: vt 0 0
+        const x = parseFloat(words[1]);
+        const y = parseFloat(words[2]);
+        texCoords.push([x, y]);
         break;
+      }
       case 'p':
         // Point
         break;
