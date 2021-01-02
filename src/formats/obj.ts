@@ -28,6 +28,9 @@ export function parseObj(input: string): ObjEntity[] {
     let positions: number[][] = [];
     let normals: number[][] = [];
     let texCoords: number[][] = [];
+    let posIndices: number[] = [];
+    let normalIndices: number[] = [];
+    let texCoordIndices: number[] = [];
     switch (words[0]) {
       case 'v': {
         // Vertex coords: v 0 0 0
@@ -58,10 +61,25 @@ export function parseObj(input: string): ObjEntity[] {
       case 'l':
         // Line
         break;
-      case 'f':
+      case 'f': {
         // Face: f 0/0/0 0/0/0 0/0/0
         // Arbitrary amount of points are possible; we must triangluate them
+        const points = words.slice(1).map((arg) => {
+          const [pos, tex, normal] = arg.split('/');
+          return {
+            pos: parseInt(pos, 10),
+            tex: parseInt(tex, 10),
+            normal: parseInt(normal, 10),
+          };
+        });
+        for (let i = 1; i < points.length - 1; i += 1) {
+          posIndices.push(points[0].pos);
+          addFaceIndex(points[0]);
+          addFaceIndex(points[i]);
+          addFaceIndex(points[i + 1]);
+        }
         break;
+      }
       case 'o':
         // Finalize object if exists; otherwise specify its name
         break;
