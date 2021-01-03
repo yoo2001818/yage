@@ -8,7 +8,7 @@ export interface GeometryAttribute {
 
 export interface GeometryDescriptor {
   attributes: { [key: string]: GeometryAttribute | number[][] },
-  indices?: number[] | Uint16Array | null,
+  indices?: number[] | Uint8Array | Uint16Array | Uint32Array | null,
   mode?: number,
 }
 
