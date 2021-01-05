@@ -96,4 +96,9 @@ export class GeometryBuilder {
       this.faces = faces;
     }
   }
+
+  toGeometry(): GeometryDescriptor {
+    throw new Error('Not implemented');
+  }
+
 }
