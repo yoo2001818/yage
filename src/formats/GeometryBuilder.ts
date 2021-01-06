@@ -101,4 +101,9 @@ export class GeometryBuilder {
     throw new Error('Not implemented');
   }
 
+  getAttribute(name: string): GeometryBuilderAttribute | null {
+    const index = this.attributeNames.get(name);
+    if (index == null) return null;
+    return this.attributes[index];
+  }
 }
