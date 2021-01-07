@@ -27,7 +27,7 @@ export class GeometryBuilder {
   // By storing faces's indices, we can quickly derive edges too.
 
   // ['aPosition', 'aNormal', 'aTexCoord']
-  attributeNames: Map<string, number>;
+  attributeNames: string[];
 
   // [[[0, 0, 1], [0, 1, 1], [2, 2, 2], ...], ...]
   attributes: GeometryBuilderAttribute[];
@@ -37,13 +37,13 @@ export class GeometryBuilder {
   faces: number[][][];
 
   constructor() {
-    this.attributeNames = new Map();
+    this.attributeNames = [];
     this.attributes = [];
     this.faces = [];
   }
 
   clear() {
-    this.attributeNames = new Map();
+    this.attributeNames = [];
     this.attributes = [];
     this.faces = [];
   }
@@ -55,7 +55,7 @@ export class GeometryBuilder {
     Object.keys(geometry.attributes).forEach((name) => {
       const attribute = parseAttribute(geometry.attributes[name]);
       const index = this.attributes.length;
-      this.attributeNames.set(name, index);
+      this.attributeNames[index] = name;
       // Convert data into attributes 3D array
       const buffer = flattenBufferToArray(attribute.data);
       this.attributes.push({ axis: attribute.axis, data: buffer });
@@ -102,8 +102,21 @@ export class GeometryBuilder {
   }
 
   getAttribute(name: string): GeometryBuilderAttribute | null {
-    const index = this.attributeNames.get(name);
-    if (index == null) return null;
+    const index = this.attributeNames.indexOf(name);
+    if (index === -1) return null;
     return this.attributes[index];
+  }
+
+  setAttributes(names: string[], axises: number[]): void {
+    this.attributeNames = names;
+    this.attributes = axises.map((v) => ({
+      data: [],
+      axis: v,
+    }));
+  }
+
+  addAttribute(index: number, value: number[]): void {
+    const attribute = this.attributes[index];
+    attribute.data.push(value);
   }
 }
