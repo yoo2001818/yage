@@ -107,7 +107,7 @@ export class GeometryBuilder {
     return this.attributes[index];
   }
 
-  setAttributes(names: string[], axises: number[]): void {
+  clearAttributes(names: string[], axises: number[]): void {
     this.attributeNames = names;
     this.attributes = axises.map((v) => ({
       data: [],
@@ -117,6 +117,12 @@ export class GeometryBuilder {
 
   addAttribute(index: number, value: number[]): void {
     const attribute = this.attributes[index];
-    attribute.data.push(value);
+    for (let i = 0; i < value.length; i += 1) {
+      attribute.data.push(value[i]);
+    }
+  }
+
+  addFace(vertexes: number[][]): void {
+    this.faces.push(vertexes);
   }
 }
