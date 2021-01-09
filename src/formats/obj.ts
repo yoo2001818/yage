@@ -1,9 +1,13 @@
 import { Mesh } from '../render/Mesh';
 import { Material } from '../render/Material';
+import GeometryBuilder from './GeometryBuilder';
 import {
-  ChannelGeometryDescriptor,
   GeometryDescriptor,
 } from '../types/Geometry';
+
+const POSITION = 0;
+const NORMAL = 1;
+const TEXCOORD = 2;
 
 export interface ObjEntity {
   pos: number[],
@@ -25,19 +29,15 @@ export function parseObj(input: string): ObjEntity[] {
     // mtllib
     // usemtl
     // s off -> Normal smoothing
-    let positions: number[][] = [];
-    let normals: number[][] = [];
-    let texCoords: number[][] = [];
-    let posIndices: number[] = [];
-    let normalIndices: number[] = [];
-    let texCoordIndices: number[] = [];
+    let builder = new GeometryBuilder();
+    builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
     switch (words[0]) {
       case 'v': {
         // Vertex coords: v 0 0 0
         const x = parseFloat(words[1]);
         const y = parseFloat(words[2]);
         const z = parseFloat(words[3]);
-        positions.push([x, y, z]);
+        builder.addAttribute(POSITION, [x, y, z]);
         break;
       }
       case 'vn': {
@@ -45,14 +45,14 @@ export function parseObj(input: string): ObjEntity[] {
         const x = parseFloat(words[1]);
         const y = parseFloat(words[2]);
         const z = parseFloat(words[3]);
-        normals.push([x, y, z]);
+        builder.addAttribute(NORMAL, [x, y, z]);
         break;
       }
       case 'vt': {
         // TexCoords: vt 0 0
         const x = parseFloat(words[1]);
         const y = parseFloat(words[2]);
-        texCoords.push([x, y]);
+        builder.addAttribute(TEXCOORD, [x, y]);
         break;
       }
       case 'p':
@@ -66,17 +66,18 @@ export function parseObj(input: string): ObjEntity[] {
         // Arbitrary amount of points are possible; we must triangluate them
         const points = words.slice(1).map((arg) => {
           const [pos, tex, normal] = arg.split('/');
-          return {
-            pos: parseInt(pos, 10),
-            tex: parseInt(tex, 10),
-            normal: parseInt(normal, 10),
-          };
+          return [
+            parseInt(pos, 10),
+            parseInt(normal, 10),
+            parseInt(tex, 10),
+          ];
         });
         for (let i = 1; i < points.length - 1; i += 1) {
-          posIndices.push(points[0].pos);
-          addFaceIndex(points[0]);
-          addFaceIndex(points[i]);
-          addFaceIndex(points[i + 1]);
+          builder.addFace([
+            points[0],
+            points[i],
+            points[i + 1],
+          ]);
         }
         break;
       }
