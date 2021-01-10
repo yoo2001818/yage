@@ -1,9 +1,7 @@
 import { Mesh } from '../render/Mesh';
 import { Material } from '../render/Material';
-import GeometryBuilder from './GeometryBuilder';
-import {
-  GeometryDescriptor,
-} from '../types/Geometry';
+import { GeometryBuilder } from './GeometryBuilder';
+import { GeometryDescriptor } from '../types/Geometry';
 
 const POSITION = 0;
 const NORMAL = 1;
@@ -12,11 +10,12 @@ const TEXCOORD = 2;
 export interface ObjEntity {
   pos: number[],
   geometry: GeometryDescriptor,
-  material: Material,
-  mesh: Mesh,
+  material?: Material,
+  mesh?: Mesh,
 }
 
 export function parseObj(input: string): ObjEntity[] {
+  const output: ObjEntity[] = [];
   input.split('\n').forEach((line) => {
     if (line[0] === '#') return;
     const words = line.split(/\s+/g);
@@ -29,6 +28,7 @@ export function parseObj(input: string): ObjEntity[] {
     // mtllib
     // usemtl
     // s off -> Normal smoothing
+    let objectName: string | null = null;
     let builder = new GeometryBuilder();
     builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
     switch (words[0]) {
@@ -81,9 +81,20 @@ export function parseObj(input: string): ObjEntity[] {
         }
         break;
       }
-      case 'o':
+      case 'o': {
         // Finalize object if exists; otherwise specify its name
+        if (builder.faces.length > 0) {
+          // Finalize the object and convert it to ECS entity
+          output.push({
+            // TODO Make this better
+            pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+            geometry: builder.toGeometry(),
+          });
+        }
+        objectName = words.slice(1).join(' ');
+        builder = new GeometryBuilder();
         break;
+      }
       case 'usemtl':
         // Nothing yet..
         break;
@@ -96,4 +107,5 @@ export function parseObj(input: string): ObjEntity[] {
       default:
     }
   });
+  return output;
 }
