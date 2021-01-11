@@ -1,4 +1,4 @@
-import { flattenBufferToArray, parseAttribute } from 'src/utils/parseAttribute';
+import { flattenBufferToArray, parseAttribute } from '../utils/parseAttribute';
 import { GeometryAttribute, GeometryDescriptor } from '../types/Geometry';
 
 // TODO: Move this to somewhere else...
@@ -139,7 +139,7 @@ export class GeometryBuilder {
       });
       // Then, register all points as triangles (Do we need to support other
       // than triangles?)
-      for (let i = 0; i < points.length - 1; i += 1) {
+      for (let i = 1; i < points.length - 1; i += 1) {
         outputIndices.push(points[0]);
         outputIndices.push(points[i]);
         outputIndices.push(points[i + 1]);

@@ -26,7 +26,7 @@ module.exports = {
         use: ['file-loader'],
       },
       {
-        test: /\.vert$|\.frag$/,
+        test: /\.vert$|\.frag$|\.mtl$|\.obj$/,
         use: ['raw-loader'],
       },
     ],

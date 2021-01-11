@@ -1,7 +1,7 @@
 import { Mesh } from '../render/Mesh';
 import { Material } from '../render/Material';
 import { GeometryBuilder } from './GeometryBuilder';
-import { GeometryDescriptor } from '../types/Geometry';
+import { Geometry } from '../render/Geometry';
 
 const POSITION = 0;
 const NORMAL = 1;
@@ -9,7 +9,7 @@ const TEXCOORD = 2;
 
 export interface ObjEntity {
   pos: number[],
-  geometry: GeometryDescriptor,
+  geometry: Geometry,
   material?: Material,
   mesh?: Mesh,
 }
@@ -82,11 +82,12 @@ export function parseObj(input: string): ObjEntity[] {
           output.push({
             // TODO Make this better
             pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-            geometry: builder.toGeometry(),
+            geometry: new Geometry(builder.toGeometry()),
           });
         }
         objectName = words.slice(1).join(' ');
         builder = new GeometryBuilder();
+        builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
         break;
       }
       case 'usemtl':
@@ -107,7 +108,7 @@ export function parseObj(input: string): ObjEntity[] {
     output.push({
       // TODO Make this better
       pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-      geometry: builder.toGeometry(),
+      geometry: new Geometry(builder.toGeometry()),
     });
   }
   return output;

@@ -16,10 +16,12 @@ import { calcNormals } from '../src/geom/calcNormals';
 import { Transform } from '../src/render/Transform';
 import { Texture } from '../src/render/Texture';
 import { Shader } from '../src/render/Shader';
+import { parseObj } from '../src/formats/obj';
 
 import textureImg from './logobg.png';
 import phongVert from './phong.vert';
 import phongFrag from './phong.frag';
+import suzanneObj from './suzanne.obj';
 
 function main() {
   // Initialize game renderer
@@ -82,8 +84,11 @@ function main() {
   });
   boxEnt.set('geometry', new Geometry(calcNormals(box())));
 
+  const objParsed = parseObj(suzanneObj);
+
   const sphereEnt = entityStore.createEntity({
-    geometry: new Geometry(uvSphere(10, 10)),
+    // geometry: new Geometry(uvSphere(10, 10)),
+    geometry: objParsed[0].geometry,
     material: {
       shaderId: boxId,
       uniforms: {
