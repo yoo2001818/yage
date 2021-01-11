@@ -16,6 +16,9 @@ export interface ObjEntity {
 
 export function parseObj(input: string): ObjEntity[] {
   const output: ObjEntity[] = [];
+  let objectName: string | null = null;
+  let builder = new GeometryBuilder();
+  builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
   input.split('\n').forEach((line) => {
     if (line[0] === '#') return;
     const words = line.split(/\s+/g);
@@ -28,9 +31,6 @@ export function parseObj(input: string): ObjEntity[] {
     // mtllib
     // usemtl
     // s off -> Normal smoothing
-    let objectName: string | null = null;
-    let builder = new GeometryBuilder();
-    builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
     switch (words[0]) {
       case 'v': {
         // Vertex coords: v 0 0 0
@@ -72,13 +72,7 @@ export function parseObj(input: string): ObjEntity[] {
             parseInt(tex, 10),
           ];
         });
-        for (let i = 1; i < points.length - 1; i += 1) {
-          builder.addFace([
-            points[0],
-            points[i],
-            points[i + 1],
-          ]);
-        }
+        builder.addFace(points);
         break;
       }
       case 'o': {
@@ -107,5 +101,14 @@ export function parseObj(input: string): ObjEntity[] {
       default:
     }
   });
+  // Finalize the object
+  if (builder.faces.length > 0) {
+    // Finalize the object and convert it to ECS entity
+    output.push({
+      // TODO Make this better
+      pos: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+      geometry: builder.toGeometry(),
+    });
+  }
   return output;
 }
