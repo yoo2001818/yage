@@ -7,15 +7,13 @@ import {
 } from '../src/components/Float32ArrayComponent';
 import { createComponents } from '../src/render/components/createComponents';
 import { TransformIndex } from '../src/indexes/TransformIndex';
-import { Geometry } from '../src/render/Geometry';
 import { RenderSystem } from '../src/render/systems/RenderSystem';
 
-import { box } from '../src/geom/box';
-import { uvSphere } from '../src/geom/uvSphere';
-import { calcNormals } from '../src/geom/calcNormals';
 import { Transform } from '../src/render/Transform';
 import { Texture } from '../src/render/Texture';
 import { Shader } from '../src/render/Shader';
+import { Material } from '../src/render/Material';
+import { Mesh } from '../src/render/Mesh';
 import { parseObj } from '../src/formats/obj';
 
 import textureImg from './logobg.png';
@@ -49,9 +47,17 @@ function main() {
 
   // Create generic material and geometry
 
-  const boxEnt = entityStore.createEntity();
-  const boxId = boxEnt.getId();
-  boxEnt.set<Shader>('shader', {
+  const objParsed = parseObj(suzanneObj);
+
+  const sphereEnt = entityStore.createEntity({
+    geometry: objParsed[0].geometry,
+    transform: new Transform(),
+  });
+  const boxImg = new Image();
+  boxImg.src = textureImg;
+  sphereEnt.set('texture', new Texture(boxImg));
+  const sphereId = sphereEnt.getId();
+  sphereEnt.set<Shader>('shader', {
     passes: [{
       type: 'forward',
       options: {
@@ -62,15 +68,12 @@ function main() {
       frag: phongFrag,
     }],
   });
-  const boxImg = new Image();
-  boxImg.src = textureImg;
-  boxEnt.set('texture', new Texture(boxImg));
-  boxEnt.set('material', {
-    shaderId: boxId,
+  sphereEnt.set<Material>('material', {
+    shaderId: sphereId,
     uniforms: {
       uMaterial: {
-        ambient: '#FFFFFF',
-        diffuse: '#FFFFFF',
+        ambient: '#FCF364',
+        diffuse: '#FCF364',
         specular: [1.0, 1.0, 1.0],
         shininess: 50,
       },
@@ -79,35 +82,10 @@ function main() {
         color: [1, 1, 1],
         intensity: [0.3, 0.7, 0.5, 0.001],
       }],
-      uDiffuseMap: boxId,
+      uDiffuseMap: sphereId,
     },
   });
-  boxEnt.set('geometry', new Geometry(calcNormals(box())));
-
-  const objParsed = parseObj(suzanneObj);
-
-  const sphereEnt = entityStore.createEntity({
-    // geometry: new Geometry(uvSphere(10, 10)),
-    geometry: objParsed[0].geometry,
-    material: {
-      shaderId: boxId,
-      uniforms: {
-        uMaterial: {
-          ambient: '#FCF364',
-          diffuse: '#FCF364',
-          specular: [1.0, 1.0, 1.0],
-          shininess: 50,
-        },
-        uPointLight: [{
-          position: [5, 10, 0],
-          color: [1, 1, 1],
-          intensity: [0.3, 0.7, 0.5, 0.001],
-        }],
-        uDiffuseMap: boxId,
-      },
-    },
-  });
-  const sphereId = sphereEnt.getId();
+  sphereEnt.set<Mesh>('mesh', { materialId: sphereId, geometryId: sphereId });
 
   const camera = entityStore.createEntity({
     transform: new Transform(),
@@ -151,96 +129,6 @@ function main() {
     cameraPos.lookAt([0, 0, 0], [0, 1, 0]);
     camera.markChanged('transform');
     timer += 0.003;
-    for (let i = 0; i < 20; i += 1) {
-      // Spawn one more... Sort of?
-      let xDir = Math.random() * 2 - 1;
-      let yDir = Math.random() * 2 - 1;
-      let zDir = Math.random() * 2 - 1;
-      const dist = Math.sqrt(xDir * xDir + yDir * yDir + zDir * zDir);
-      xDir /= dist;
-      yDir /= dist;
-      zDir /= dist;
-      const transform = new Transform();
-      vec3.set(transform.scale, 0.1, 0.1, 0.1);
-      entityStore.createEntity({
-        transform,
-        vel: [xDir * 0.03, yDir * 0.03, zDir * 0.03],
-        mesh: {
-          materialId: Math.random() > 0.5 ? boxId : sphereId,
-          geometryId: Math.random() > 0.5 ? boxId : sphereId,
-        },
-      });
-    }
-  });
-  systemStore.addSystem(() => {
-    // Step
-    const transform = entityStore.getComponent<Float32ArrayComponent>('transform');
-    const vel = entityStore.getComponent<Float32ArrayComponent>('vel');
-    entityStore.forEachGroupWith([transform, vel], (group, transformOffset, velOffset) => {
-      const transformArr = transform.getArrayOf(transformOffset);
-      const velArr = vel.getArrayOf(velOffset);
-      for (let i = 0; i < group.size; i += 1) {
-        transformArr[12 * i] += velArr[3 * i];
-        transformArr[12 * i + 1] += velArr[3 * i + 1];
-        transformArr[12 * i + 2] += velArr[3 * i + 2];
-      }
-      transform.markChanged(group);
-    });
-    /*
-    entityStore.forEachWith([transform, vel], (_, entityPos, entityVel) => {
-      entityPos[0] += entityVel[0];
-      entityPos[1] += entityVel[1];
-    });
-    */
-    /*
-    entityStore.forEach([transform, vel], (transform, vel) => {
-      transform[0] += vel[0];
-      transform[1] += vel[1];
-    });
-    */
-  });
-  systemStore.addSystem(() => {
-    // Respawn
-    /*
-    const transform = entityStore.getComponent<Component<number[]>>('transform');
-    entityStore.forEachWith([transform], (entity, entityPos) => {
-      if (
-        entityPos[0] < 0
-        || entityPos[0] > 1
-        || entityPos[1] < 0
-        || entityPos[1] > 1
-      ) {
-        entity.destroy();
-      }
-    });
-    */
-    const transform = entityStore.getComponent<Float32ArrayComponent>('transform');
-    entityStore.forEachGroupWith([transform], (group, transformOffset) => {
-      const transformArr = transform.getArrayOf(transformOffset);
-      const deleteList = [];
-      for (let i = 0; i < group.size; i += 1) {
-        const x = transformArr[12 * i];
-        const y = transformArr[12 * i + 1];
-        const z = transformArr[12 * i + 2];
-        if (x < -10 || x > 10 || y < -10 || y > 10 || z < -10 || z > 10) {
-          deleteList.push(i);
-          transformArr[12 * i] = 0;
-          transformArr[12 * i + 1] = 0;
-          transformArr[12 * i + 2] = 0;
-        }
-      }
-      for (let i = 0; i < deleteList.length; i += 1) {
-        entityStore.getEntityOfGroup(group, deleteList[i]).destroy();
-      }
-    });
-    /*
-    entityStore.forEach([transform], (transform) => {
-      if (transform[0] < 0) transform[0] = 1;
-      if (transform[0] > 1) transform[0] = 0;
-      if (transform[1] < 0) transform[1] = 1;
-      if (transform[1] > 1) transform[1] = 0;
-    });
-    */
   });
   systemStore.addSystem(renderer);
 
