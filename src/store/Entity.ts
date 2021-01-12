@@ -28,7 +28,7 @@ export class Entity {
   // We have to maintain underlying structure from here.
   float(): void {
     if (this.index === -1) return;
-    if (this.group.maxSize === 1) return;
+    if (this.group.parentId === 1) return;
     const oldGroup = this.group;
     // Create a single-sized entity group
     const [newGroup, newIndex] = this.store.createFloatingEntitySlot();
@@ -48,7 +48,7 @@ export class Entity {
   }
 
   unfloat(): void {
-    if (this.group.maxSize !== 1) return;
+    if (this.group.parentId !== 1) return;
     const oldGroup = this.group;
     const [newGroup, newIndex] = this.store.createEntitySlot(oldGroup.offsets);
     copyGroupEntity(

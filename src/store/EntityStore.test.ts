@@ -80,18 +80,18 @@ describe('EntityStore', () => {
     store.addComponent('position', new MutableComponent(() => [0, 0, 0]));
     const entity = store.createEntity();
     entity.set('position', [0, 0, 0]);
-    expect(store.serialize()).toEqual([
+    expect(store.toJSON()).toEqual([
       { id: 0, position: [0, 0, 0] },
     ]);
   });
   it('should be able to deserialize state', () => {
     const store = new EntityStore();
     store.addComponent('position', new MutableComponent(() => [0, 0, 0]));
-    expect(store.deserialize([
+    expect(store.fromJSON([
       { id: 0, position: [5, 0, 0] },
       { id: 1, position: [6, 0, 0] },
     ]));
-    expect(store.serialize()).toEqual([
+    expect(store.toJSON()).toEqual([
       { id: 0, position: [5, 0, 0] },
       { id: 1, position: [6, 0, 0] },
     ]);

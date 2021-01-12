@@ -50,9 +50,10 @@ function main() {
   const objParsed = parseObj(suzanneObj);
 
   const sphereEnt = entityStore.createEntity({
-    geometry: objParsed[0].geometry,
     transform: new Transform(),
+    geometry: objParsed[0].geometry,
   });
+  sphereEnt.get<Transform>('transform').setScale([2, 2, 2]);
   const boxImg = new Image();
   boxImg.src = textureImg;
   sphereEnt.set('texture', new Texture(boxImg));
@@ -61,7 +62,7 @@ function main() {
     passes: [{
       type: 'forward',
       options: {
-        cull: gl.BACK,
+        cull: gl.FRONT,
         depth: gl.LESS,
       },
       vert: phongVert,
@@ -86,6 +87,9 @@ function main() {
     },
   });
   sphereEnt.set<Mesh>('mesh', { materialId: sphereId, geometryId: sphereId });
+  // TODO: Transform don't work if specified here
+  // sphereEnt.get<Transform>('transform').setScale([2, 2, 2]);
+  // sphereEnt.unfloat();
 
   const camera = entityStore.createEntity({
     transform: new Transform(),
