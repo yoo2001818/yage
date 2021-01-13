@@ -62,7 +62,7 @@ function main() {
     passes: [{
       type: 'forward',
       options: {
-        cull: gl.FRONT,
+        cull: gl.BACK,
         depth: gl.LESS,
       },
       vert: phongVert,

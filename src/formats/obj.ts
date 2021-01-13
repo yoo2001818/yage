@@ -67,9 +67,9 @@ export function parseObj(input: string): ObjEntity[] {
         const points = words.slice(1).map((arg) => {
           const [pos, tex, normal] = arg.split('/');
           return [
-            parseInt(pos, 10),
-            parseInt(normal, 10),
-            parseInt(tex, 10),
+            parseInt(pos, 10) - 1,
+            parseInt(normal, 10) - 1,
+            parseInt(tex, 10) - 1,
           ];
         });
         builder.addFace(points);
