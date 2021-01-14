@@ -94,9 +94,9 @@ void main() {
   matColor.diffuse = pow(uMaterial.diffuse, vec3(gamma));
   matColor.specular = pow(uMaterial.specular, vec3(gamma));
 
-  lowp vec3 diffuseTex = pow(texture2D(uDiffuseMap, texCoord).xyz, vec3(gamma));
-  matColor.ambient *= diffuseTex;
-  matColor.diffuse *= diffuseTex;
+  // lowp vec3 diffuseTex = pow(texture2D(uDiffuseMap, texCoord).xyz, vec3(gamma));
+  // matColor.ambient *= diffuseTex;
+  // matColor.diffuse *= diffuseTex;
 
   lowp vec3 result = vec3(0.0, 0.0, 0.0);
 
