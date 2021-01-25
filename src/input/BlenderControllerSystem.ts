@@ -22,16 +22,35 @@ export class BlenderControllerSystem {
     this.targets = [];
     this.targetComponent = store
       .getComponent<Component<BlenderControllerTarget>>('blenderController');
+    this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleMouseUp = this.handleMouseUp.bind(this);
   }
 
   enable(): void {
     if (this.enabled) return;
     this.enabled = true;
+
+    this.canvas.addEventListener('mousedown', this.handleMouseDown);
   }
 
   disable(): void {
     if (!this.enabled) return;
     this.enabled = false;
+
+    this.canvas.removeEventListener('mousedown', this.handleMouseDown);
+  }
+
+  handleMouseDown(e: MouseEvent): void {
+
+  }
+
+  handleMouseMove(e: MouseEvent): void {
+
+  }
+
+  handleMouseUp(e: MouseEvent): void {
+
   }
 
   update(): void {
