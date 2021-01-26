@@ -1,6 +1,9 @@
+import { quat, vec3 } from 'gl-matrix';
+
 import { Component } from '../components/Component';
 import { EntityStore } from '../store/EntityStore';
 import { BlenderControllerTarget } from './BlenderControllerTarget';
+import { Transform } from '../render/Transform';
 
 export class BlenderControllerSystem {
   entityStore: EntityStore;
@@ -12,6 +15,10 @@ export class BlenderControllerSystem {
   targetComponent: Component<BlenderControllerTarget>;
 
   enabled = false;
+
+  lastX = 0;
+
+  lastY = 0;
 
   constructor(
     store: EntityStore,
@@ -42,15 +49,55 @@ export class BlenderControllerSystem {
   }
 
   handleMouseDown(e: MouseEvent): void {
+    // Memorize current position;
+    this.lastX = e.clientX;
+    this.lastY = e.clientY;
 
+    // Register events to the window.
+    window.addEventListener('mousemove', this.handleMouseMove);
+    window.addEventListener('mouseup', this.handleMouseUp);
   }
 
   handleMouseMove(e: MouseEvent): void {
+    const deltaX = e.clientX - this.lastX;
+    const deltaY = e.clientY - this.lastY;
 
+    this.lastX = e.clientX;
+    this.lastY = e.clientY;
+
+    // Rotate the object with given coordinates; we aim to implement
+    // "trackball" style navigation.
+    this.targets.forEach((id) => {
+      const entity = this.entityStore.getEntity(id);
+      if (entity == null) return;
+      const transform = entity.get<Transform>('transform');
+      const blenderController = entity.get<BlenderControllerTarget>(
+        'blenderController',
+      );
+      const rot = quat.create();
+      quat.rotateY(rot, rot, Math.PI / 180 * -deltaX / 4);
+      quat.multiply(transform.rotation, rot, transform.rotation);
+      quat.rotateX(transform.rotation, transform.rotation,
+        Math.PI / 180 * -deltaY / 4);
+      // Move the object according to the rotation
+      vec3.transformQuat(
+        transform.position,
+        [0, 0, blenderController.distance],
+        transform.rotation,
+      );
+      vec3.add(
+        transform.position,
+        transform.position,
+        blenderController.center as [number, number, number],
+      );
+      entity.markChanged('transform');
+    });
   }
 
-  handleMouseUp(e: MouseEvent): void {
-
+  handleMouseUp(): void {
+    // Unregister events from the window.
+    window.removeEventListener('mousemove', this.handleMouseMove);
+    window.removeEventListener('mouseup', this.handleMouseUp);
   }
 
   update(): void {

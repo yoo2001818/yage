@@ -1,13 +1,14 @@
-import { vec3 } from 'gl-matrix';
 import { EntityStore } from '../src/store/EntityStore';
 import { SystemStore } from '../src/store/SystemStore';
 import {
   createFloat32ArrayComponent,
-  Float32ArrayComponent,
 } from '../src/components/Float32ArrayComponent';
 import { createComponents } from '../src/render/components/createComponents';
 import { TransformIndex } from '../src/indexes/TransformIndex';
 import { RenderSystem } from '../src/render/systems/RenderSystem';
+import { BlenderControllerSystem } from '../src/input/BlenderControllerSystem';
+import { BlenderControllerTarget } from '../src/input/BlenderControllerTarget';
+import { ImmutableComponent } from '../src/components/ImmutableComponent';
 
 import { Transform } from '../src/render/Transform';
 import { Texture } from '../src/render/Texture';
@@ -42,6 +43,10 @@ function main() {
   // Add needed components
   entityStore.addComponents(createComponents());
   entityStore.addComponent('vel', createFloat32ArrayComponent(3));
+  entityStore.addComponent(
+    'blenderController',
+    new ImmutableComponent<BlenderControllerTarget>(),
+  );
 
   entityStore.addIndex('transform', new TransformIndex('transform'));
 
@@ -99,6 +104,10 @@ function main() {
       far: 100,
       fov: 90 / 180 * Math.PI,
     },
+    blenderController: {
+      center: [0, 0, 0],
+      distance: 6,
+    },
   });
   /*
   {
@@ -126,14 +135,7 @@ function main() {
   // Initialize system store
   const systemStore = new SystemStore();
 
-  let timer = 0;
-  systemStore.addSystem(() => {
-    const cameraPos = camera.get<Transform>('transform')!;
-    cameraPos.setPosition([Math.cos(timer) * 5, 2.5 / 2, Math.sin(timer) * 5]);
-    cameraPos.lookAt([0, 0, 0], [0, 1, 0]);
-    camera.markChanged('transform');
-    timer += 0.003;
-  });
+  systemStore.addSystem(new BlenderControllerSystem(entityStore, canvas));
   systemStore.addSystem(renderer);
 
   // Initialize game step
