@@ -22,16 +22,22 @@ import phongVert from './phong.vert';
 import phongFrag from './phong.frag';
 import suzanneObj from './suzanne.obj';
 
+import './index.css';
+
 function main() {
   // Initialize game renderer
   const canvas = document.createElement('canvas');
   document.body.appendChild(canvas);
-  canvas.width = 640;
-  canvas.height = 480;
+  canvas.width = document.documentElement.clientWidth;
+  canvas.height = document.documentElement.clientHeight;
+
+  window.addEventListener('resize', () => {
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+  });
+
   const gl = canvas.getContext('webgl');
-  if (gl == null) {
-    throw new Error('Unable to initialize');
-  }
+  if (gl == null) return;
 
   // Initialize debug console.... which just dumps game state every frame.
   const debugDiv = document.createElement('pre');
@@ -109,27 +115,8 @@ function main() {
       distance: 6,
     },
   });
-  /*
-  {
-    const camera = entityStore.createEntity({
-      transform: true,
-      camera: {
-        type: 'perspective',
-        near: 0.1,
-        far: 100,
-        fov: 90 / 180 * Math.PI,
-      },
-    });
 
-    const cameraPos = camera.get<LocRotScale>('transform');
-    cameraPos.setLocation([-5 / 2, 2.5 / 2, 5 / 2]);
-    // cameraPos.setRotationXYZ([-Math.PI / 8, -Math.PI / 4, 0 ]);
-    cameraPos.lookAt([0, 0, 0]);
-    camera.markChanged('transform');
-  }
-  */
-
-  const renderer = new RenderSystem(entityStore, gl);
+  const renderer = new RenderSystem(entityStore, canvas);
   renderer.setCamera(camera);
 
   // Initialize system store

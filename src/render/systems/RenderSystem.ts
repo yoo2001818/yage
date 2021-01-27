@@ -20,6 +20,8 @@ import { ForwardPipeline } from '../pipelines/ForwardPipeline';
 export class RenderSystem {
   gl: WebGLRenderingContext;
 
+  canvas: HTMLCanvasElement;
+
   instancedExt: ANGLE_instanced_arrays;
 
   lowShaders: Map<number, ShaderBuffer>;
@@ -52,9 +54,14 @@ export class RenderSystem {
 
   constructor(
     store: EntityStore,
-    gl: WebGLRenderingContext,
+    canvas: HTMLCanvasElement,
     pipeline: Pipeline = new ForwardPipeline(),
   ) {
+    this.canvas = canvas;
+    const gl = canvas.getContext('webgl');
+    if (gl == null) {
+      throw new Error('WebGL context failed to initialize');
+    }
     this.gl = gl;
     this.instancedExt = gl.getExtension('ANGLE_instanced_arrays')!;
     this.lowShaders = new Map();
@@ -105,7 +112,7 @@ export class RenderSystem {
   }
 
   getProjectionMatrix(): Float32Array {
-    const { cameraId } = this;
+    const { cameraId, canvas } = this;
     const output = mat4.create() as Float32Array;
     if (cameraId == null) return output;
     const entity = this.entityStore.getEntity(cameraId);
@@ -117,7 +124,13 @@ export class RenderSystem {
         mat4.ortho(output, -1, 1, -1, 1, camera.near, camera.far);
         break;
       case 'perspective':
-        mat4.perspective(output, camera.fov, 640 / 480, camera.near, camera.far);
+        mat4.perspective(
+          output,
+          camera.fov,
+          canvas.width / canvas.height,
+          camera.near,
+          camera.far,
+        );
         break;
       default:
     }
