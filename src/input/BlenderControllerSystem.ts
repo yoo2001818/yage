@@ -34,7 +34,7 @@ export class BlenderControllerSystem {
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
-
+    this.handleBlenderControllerChange = this.handleBlenderControllerChange.bind(this);
     this.targetComponent.subscribe(this.handleBlenderControllerChange);
   }
 

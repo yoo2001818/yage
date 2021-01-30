@@ -56,6 +56,23 @@ function main() {
 
   entityStore.addIndex('transform', new TransformIndex('transform'));
 
+  const renderer = new RenderSystem(entityStore, canvas);
+
+  // Initialize system store
+  const systemStore = new SystemStore();
+
+  systemStore.addSystem(new BlenderControllerSystem(entityStore, canvas));
+  systemStore.addSystem(renderer);
+
+  // Initialize game step
+  systemStore.run('init');
+
+  function next() {
+    systemStore.run('tick');
+    requestAnimationFrame(next);
+  }
+  requestAnimationFrame(next);
+  console.log(entityStore);
   // Create generic material and geometry
 
   const objParsed = parseObj(suzanneObj);
@@ -115,25 +132,7 @@ function main() {
       distance: 6,
     },
   });
-
-  const renderer = new RenderSystem(entityStore, canvas);
   renderer.setCamera(camera);
-
-  // Initialize system store
-  const systemStore = new SystemStore();
-
-  systemStore.addSystem(new BlenderControllerSystem(entityStore, canvas));
-  systemStore.addSystem(renderer);
-
-  // Initialize game step
-  systemStore.run('init');
-
-  function next() {
-    systemStore.run('tick');
-    requestAnimationFrame(next);
-  }
-  requestAnimationFrame(next);
-  console.log(entityStore);
 }
 
 main();
