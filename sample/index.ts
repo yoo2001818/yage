@@ -31,13 +31,14 @@ function main() {
   canvas.width = document.documentElement.clientWidth;
   canvas.height = document.documentElement.clientHeight;
 
+  const gl = canvas.getContext('webgl');
+  if (gl == null) return;
+
   window.addEventListener('resize', () => {
     canvas.width = document.documentElement.clientWidth;
     canvas.height = document.documentElement.clientHeight;
+    gl.viewport(0, 0, canvas.width, canvas.height);
   });
-
-  const gl = canvas.getContext('webgl');
-  if (gl == null) return;
 
   // Initialize debug console.... which just dumps game state every frame.
   const debugDiv = document.createElement('pre');
