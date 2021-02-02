@@ -1,4 +1,4 @@
-import { ShaderPassDescriptor } from 'src/types/Shader';
+import { ShaderPassDescriptor } from '../types';
 import { Geometry } from '../Geometry';
 import { ShaderBuffer } from '../gl/ShaderBuffer';
 import { LowShader } from '../LowShader';

@@ -1,6 +1,6 @@
 import { Mesh } from '../render/Mesh';
 import { Material } from '../render/Material';
-import { GeometryBuilder } from './GeometryBuilder';
+import { GeometryBuilder } from '../geom/GeometryBuilder';
 import { Geometry } from '../render/Geometry';
 
 const POSITION = 0;

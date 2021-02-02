@@ -1,21 +1,20 @@
-import { EntityStore } from '../src/store/EntityStore';
-import { SystemStore } from '../src/store/SystemStore';
 import {
+  EntityStore,
+  SystemStore,
   createFloat32ArrayComponent,
-} from '../src/components/Float32ArrayComponent';
-import { createComponents } from '../src/render/components/createComponents';
-import { TransformIndex } from '../src/indexes/TransformIndex';
-import { RenderSystem } from '../src/render/systems/RenderSystem';
-import { BlenderControllerSystem } from '../src/input/BlenderControllerSystem';
-import { BlenderControllerTarget } from '../src/input/BlenderControllerTarget';
-import { ImmutableComponent } from '../src/components/ImmutableComponent';
-
-import { Transform } from '../src/render/Transform';
-import { Texture } from '../src/render/Texture';
-import { Shader } from '../src/render/Shader';
-import { Material } from '../src/render/Material';
-import { Mesh } from '../src/render/Mesh';
-import { parseObj } from '../src/formats/obj';
+  createRenderComponents,
+  TransformIndex,
+  RenderSystem,
+  BlenderControllerSystem,
+  BlenderControllerTarget,
+  ImmutableComponent,
+  Transform,
+  Texture,
+  Shader,
+  Material,
+  Mesh,
+  parseObj,
+} from '../src';
 
 import textureImg from './logobg.png';
 import phongVert from './phong.vert';
@@ -48,7 +47,7 @@ function main() {
   const entityStore = new EntityStore();
 
   // Add needed components
-  entityStore.addComponents(createComponents());
+  entityStore.addComponents(createRenderComponents());
   entityStore.addComponent('vel', createFloat32ArrayComponent(3));
   entityStore.addComponent(
     'blenderController',

@@ -1,11 +1,13 @@
 import { quat, vec3 } from 'gl-matrix';
 
-import { Component } from '../components/Component';
-import { EntityStore } from '../store/EntityStore';
 import { BlenderControllerTarget } from './BlenderControllerTarget';
-import { Transform } from '../render/Transform';
-import { EntityGroup } from '../store/EntityGroup';
-import { Entity } from '../store/Entity';
+import { Transform } from '../render/indexes/Transform';
+import {
+  Component,
+  EntityStore,
+  EntityGroup,
+  Entity,
+} from '../core';
 
 export class BlenderControllerSystem {
   entityStore: EntityStore;

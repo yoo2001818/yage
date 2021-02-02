@@ -1,5 +1,5 @@
-import { flattenBufferToArray, parseAttribute } from '../utils/parseAttribute';
-import { GeometryAttribute, GeometryDescriptor } from '../types/Geometry';
+import { flattenBufferToArray, parseAttribute } from './utils/parseAttribute';
+import { GeometryAttribute, GeometryDescriptor } from './types';
 
 // TODO: Move this to somewhere else...
 

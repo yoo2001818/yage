@@ -1,4 +1,4 @@
-import { UnisonComponent } from '../../components/UnisonComponent';
+import { UnisonComponent } from '../../core';
 import { Mesh } from '../Mesh';
 
 // Material, Geometry

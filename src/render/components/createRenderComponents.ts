@@ -1,4 +1,4 @@
-import { ImmutableComponent } from '../../components/ImmutableComponent';
+import { ImmutableComponent } from '../../core';
 import { Camera } from '../Camera';
 import { Geometry } from '../Geometry';
 import { Light } from '../Light';
@@ -8,7 +8,7 @@ import { TransformComponent } from './TransformComponent';
 import { MeshComponent } from './MeshComponent';
 import { Texture } from '../Texture';
 
-export function createComponents() {
+export function createRenderComponents() {
   return {
     camera: new ImmutableComponent<Camera>(),
     geometry: new ImmutableComponent<Geometry>(),
