@@ -1,5 +1,5 @@
 import { Float32ArrayComponent } from '../../core';
-import { Transform } from '../indexes/Transform';
+import { Transform } from '../Transform';
 
 export class TransformComponent extends Float32ArrayComponent<Transform> {
   constructor() {

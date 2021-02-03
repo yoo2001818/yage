@@ -1,7 +1,7 @@
 import { quat, vec3 } from 'gl-matrix';
 
 import { BlenderControllerTarget } from './BlenderControllerTarget';
-import { Transform } from '../render/indexes/Transform';
+import { Transform } from '../render/Transform';
 import {
   Component,
   EntityStore,
