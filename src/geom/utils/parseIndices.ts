@@ -2,16 +2,23 @@ export function parseIndices(
   indices: number[] | number[][] | Uint8Array | Uint16Array | Uint32Array,
 ): Uint8Array | Uint16Array | Uint32Array {
   if (Array.isArray(indices)) {
+    let output: number[] = [];
     if (Array.isArray(indices[0])) {
       // Flatten it.....
-      const output: number[] = [];
       // What the heck
       (indices as number[][])
         .forEach((v) => v.forEach((v2) => output.push(v2)));
-      // TODO: Support more than 65K indices
+    } else {
+      output = indices as number[];
+    }
+    const valueMax = output.reduce((p, v) => Math.max(p, v), 0);
+    if (valueMax < 256) {
+      return new Uint8Array(output);
+    }
+    if (valueMax < 65536) {
       return new Uint16Array(output);
     }
-    return new Uint16Array(indices as number[]);
+    return new Uint32Array(output);
   }
   return indices;
 }
