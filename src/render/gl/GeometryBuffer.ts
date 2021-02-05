@@ -4,6 +4,7 @@ import { ShaderBuffer } from './ShaderBuffer';
 interface BufferEntry {
   buffer: WebGLBuffer | null,
   version: number,
+  type: number,
 }
 
 interface AttributeBufferEntry extends BufferEntry {
@@ -49,6 +50,7 @@ export class GeometryBuffer {
           offset: entry.offset,
           instanced: entry.instanced,
           count: entry.count,
+          type: this.gl.FLOAT,
         };
         this.buffers.set(key, bufferEntry);
       }
@@ -67,6 +69,7 @@ export class GeometryBuffer {
         bufferEntry.offset = entry.offset;
         bufferEntry.instanced = entry.instanced;
         bufferEntry.count = entry.count;
+        bufferEntry.type = entry.type;
       }
     });
     // Then the elements
@@ -76,6 +79,7 @@ export class GeometryBuffer {
         this.elements = {
           buffer: this.gl.createBuffer(),
           version: -1,
+          type: 0,
         };
       }
       const bufferEntry = this.elements;
@@ -87,6 +91,13 @@ export class GeometryBuffer {
           entry.array,
           this.gl.STATIC_DRAW,
         );
+        if (bufferEntry.buffer instanceof Uint8Array) {
+          bufferEntry.type = this.gl.UNSIGNED_BYTE;
+        } else if (bufferEntry.buffer instanceof Uint16Array) {
+          bufferEntry.type = this.gl.UNSIGNED_SHORT;
+        } else if (bufferEntry.buffer instanceof Uint32Array) {
+          bufferEntry.type = this.gl.UNSIGNED_INT;
+        }
         bufferEntry.version = entry.version;
       }
     }
@@ -111,7 +122,7 @@ export class GeometryBuffer {
             gl.vertexAttribPointer(
               descriptor.location + i,
               4,
-              gl.FLOAT,
+              value.type,
               false,
               (value.stride || 64),
               (value.offset || 0) + i * 16,
@@ -131,7 +142,7 @@ export class GeometryBuffer {
           gl.vertexAttribPointer(
             descriptor.location,
             value.axis,
-            gl.FLOAT,
+            value.type,
             false,
             value.stride,
             value.offset,
@@ -157,7 +168,7 @@ export class GeometryBuffer {
         gl.drawElements(
           this.mode,
           this.count,
-          gl.UNSIGNED_SHORT,
+          this.elements.type,
           0,
         );
       } else {
@@ -171,7 +182,7 @@ export class GeometryBuffer {
       instancedExt.drawElementsInstancedANGLE(
         this.mode,
         this.count,
-        gl.UNSIGNED_SHORT,
+        this.elements.type,
         0,
         primCount,
       );
