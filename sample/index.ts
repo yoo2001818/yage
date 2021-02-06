@@ -19,7 +19,7 @@ import {
 import textureImg from './logobg.png';
 import phongVert from './phong.vert';
 import phongFrag from './phong.frag';
-import suzanneObj from './suzanne.obj';
+import suzanneObj from './suzannewithhat.obj';
 
 import './index.css';
 
@@ -77,16 +77,12 @@ function main() {
 
   const objParsed = parseObj(suzanneObj);
 
-  const sphereEnt = entityStore.createEntity({
-    transform: new Transform(),
-    geometry: objParsed[0].geometry,
-  });
-  sphereEnt.get<Transform>('transform').setScale([2, 2, 2]);
+  const materialEnt = entityStore.createEntity({});
   const boxImg = new Image();
   boxImg.src = textureImg;
-  sphereEnt.set('texture', new Texture(boxImg));
-  const sphereId = sphereEnt.getId();
-  sphereEnt.set<Shader>('shader', {
+  materialEnt.set('texture', new Texture(boxImg));
+  const materialId = materialEnt.getId();
+  materialEnt.set<Shader>('shader', {
     passes: [{
       type: 'forward',
       options: {
@@ -97,24 +93,35 @@ function main() {
       frag: phongFrag,
     }],
   });
-  sphereEnt.set<Material>('material', {
-    shaderId: sphereId,
-    uniforms: {
-      uMaterial: {
-        ambient: '#FCF364',
-        diffuse: '#FCF364',
-        specular: [1.0, 1.0, 1.0],
-        shininess: 50,
+  objParsed.forEach((entity) => {
+    const meshEnt = entityStore.createEntity({
+      transform: new Transform(),
+      geometry: entity.geometry,
+    });
+    meshEnt.get<Transform>('transform').setScale([2, 2, 2]);
+    const color = [Math.random(), Math.random(), Math.random()];
+    meshEnt.set<Material>('material', {
+      shaderId: materialId,
+      uniforms: {
+        uMaterial: {
+          ambient: color,
+          diffuse: color,
+          specular: [1.0, 1.0, 1.0],
+          shininess: 50,
+        },
+        uPointLight: [{
+          position: [5, 10, 0],
+          color: [1, 1, 1],
+          intensity: [0.3, 0.7, 0.5, 0.001],
+        }],
+        uDiffuseMap: materialId,
       },
-      uPointLight: [{
-        position: [5, 10, 0],
-        color: [1, 1, 1],
-        intensity: [0.3, 0.7, 0.5, 0.001],
-      }],
-      uDiffuseMap: sphereId,
-    },
+    });
+    const meshEntId = meshEnt.getId();
+    meshEnt.set<Mesh>('mesh', { materialId: meshEntId, geometryId: meshEntId });
+    meshEnt.unfloat();
+    console.log(entity.geometry);
   });
-  sphereEnt.set<Mesh>('mesh', { materialId: sphereId, geometryId: sphereId });
   // TODO: Transform don't work if specified here
   // sphereEnt.get<Transform>('transform').setScale([2, 2, 2]);
   // sphereEnt.unfloat();

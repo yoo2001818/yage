@@ -184,4 +184,8 @@ export class GeometryBuilder {
   addFace(vertexes: number[][]): void {
     this.faces.push(vertexes);
   }
+
+  clearFaces(): void {
+    this.faces = [];
+  }
 }

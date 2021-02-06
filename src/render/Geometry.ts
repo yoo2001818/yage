@@ -4,7 +4,7 @@ import {
   TRIANGLES,
 } from '../geom/types';
 
-import { parseAttribute, flattenBuffer } from '../geom/utils';
+import { parseAttribute, flattenBuffer, parseIndices } from '../geom/utils';
 
 interface BufferEntry<T> {
   array: T,
@@ -45,7 +45,7 @@ export class Geometry {
     if (indices == null) {
       this.setIndices(null);
     } else {
-      this.setIndices(new Uint16Array(indices));
+      this.setIndices(parseIndices(indices));
     }
     this.mode = mode;
   }

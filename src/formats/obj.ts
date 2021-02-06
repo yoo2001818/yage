@@ -17,7 +17,7 @@ export interface ObjEntity {
 export function parseObj(input: string): ObjEntity[] {
   const output: ObjEntity[] = [];
   let objectName: string | null = null;
-  let builder = new GeometryBuilder();
+  const builder = new GeometryBuilder();
   builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
   input.split('\n').forEach((line) => {
     if (line[0] === '#') return;
@@ -86,8 +86,7 @@ export function parseObj(input: string): ObjEntity[] {
           });
         }
         objectName = words.slice(1).join(' ');
-        builder = new GeometryBuilder();
-        builder.clearAttributes(['aPosition', 'aNormal', 'aTexCoord'], [3, 3, 2]);
+        builder.clearFaces();
         break;
       }
       case 'usemtl':

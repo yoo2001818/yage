@@ -62,6 +62,7 @@ export class RenderSystem {
     }
     this.gl = gl;
     this.instancedExt = gl.getExtension('ANGLE_instanced_arrays')!;
+    gl.getExtension('OES_element_index_uint');
     this.lowShaders = new Map();
     this.geometries = new Map();
     this.textures = new Map();
