@@ -5,7 +5,7 @@ import {
   removeGroupEntity,
 } from './EntityGroupMethods';
 import { EntityStore } from './EntityStore';
-import { removeItem } from '../utils/array';
+import { removeItem } from '../../utils/array';
 
 const ASSIGN_TABLE = [1, 4, 16, 64, 128, 256, 512, 1024, 2048];
 

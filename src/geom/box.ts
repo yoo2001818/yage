@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 /* eslint-disable no-multi-spaces */
-import { GeometryDescriptor } from '../types/Geometry';
+import { GeometryDescriptor } from './types';
 
 export function box(): GeometryDescriptor {
   return {

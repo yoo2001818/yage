@@ -1,4 +1,4 @@
-import { GeometryDescriptor } from '../types/Geometry';
+import { GeometryDescriptor } from './types';
 
 export function uvSphere(segments: number, rings: number): GeometryDescriptor {
   // A UV Sphere consists of many regular N-polygons, which serves as

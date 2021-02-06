@@ -1,4 +1,4 @@
-import { GeometryAttribute } from '../types/Geometry';
+import { GeometryAttribute } from '../types';
 
 export function parseAttribute(
   input: GeometryAttribute | number[][],

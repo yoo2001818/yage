@@ -10,7 +10,7 @@ import {
   getGroupComponentOffset,
   isAllocated,
 } from './EntityGroupMethods';
-import { Index } from '../indexes/Index';
+import { Index } from '../indexes/types';
 import { IdIndex } from '../indexes/IdIndex';
 
 export class EntityStore {

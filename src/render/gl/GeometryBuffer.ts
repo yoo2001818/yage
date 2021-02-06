@@ -69,7 +69,7 @@ export class GeometryBuffer {
         bufferEntry.offset = entry.offset;
         bufferEntry.instanced = entry.instanced;
         bufferEntry.count = entry.count;
-        bufferEntry.type = entry.type;
+        bufferEntry.type = this.gl.FLOAT;
       }
     });
     // Then the elements
@@ -91,11 +91,11 @@ export class GeometryBuffer {
           entry.array,
           this.gl.STATIC_DRAW,
         );
-        if (bufferEntry.buffer instanceof Uint8Array) {
+        if (entry.array instanceof Uint8Array) {
           bufferEntry.type = this.gl.UNSIGNED_BYTE;
-        } else if (bufferEntry.buffer instanceof Uint16Array) {
+        } else if (entry.array instanceof Uint16Array) {
           bufferEntry.type = this.gl.UNSIGNED_SHORT;
-        } else if (bufferEntry.buffer instanceof Uint32Array) {
+        } else if (entry.array instanceof Uint32Array) {
           bufferEntry.type = this.gl.UNSIGNED_INT;
         }
         bufferEntry.version = entry.version;

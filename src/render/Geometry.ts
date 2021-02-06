@@ -2,9 +2,9 @@ import {
   GeometryAttribute,
   GeometryDescriptor,
   TRIANGLES,
-} from '../types/Geometry';
+} from '../geom/types';
 
-import { parseAttribute, flattenBuffer } from '../utils/parseAttribute';
+import { parseAttribute, flattenBuffer } from '../geom/utils';
 
 interface BufferEntry<T> {
   array: T,
@@ -24,7 +24,7 @@ export class Geometry {
   // be used inside a game engine?
   attributes: Map<string, AttributeEntry> = new Map();
 
-  indices: BufferEntry<Uint16Array> | null = null;
+  indices: BufferEntry<Uint8Array | Uint16Array | Uint32Array> | null = null;
 
   mode: number = 0;
 
@@ -83,12 +83,12 @@ export class Geometry {
     }
   }
 
-  getIndices(): Uint16Array | null {
+  getIndices(): Uint32Array | Uint16Array | Uint8Array | null {
     if (this.indices == null) return null;
     return this.indices.array;
   }
 
-  setIndices(value: Uint16Array | null): void {
+  setIndices(value: Uint32Array | Uint16Array | Uint8Array | null): void {
     if (value == null) {
       this.indices = null;
       return;

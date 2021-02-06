@@ -1,9 +1,9 @@
 import { vec3 } from 'gl-matrix';
 
-import { GeometryDescriptor } from '../types/Geometry';
+import { GeometryDescriptor } from './types';
 
-import { parseAttribute, flattenBuffer } from '../utils/parseAttribute';
-import { parseIndices } from '../utils/parseIndices';
+import { parseAttribute, flattenBuffer } from './utils/parseAttribute';
+import { parseIndices } from './utils/parseIndices';
 
 export function calcNormals(
   geometry: GeometryDescriptor,
