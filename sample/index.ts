@@ -77,22 +77,23 @@ function main() {
 
   const objParsed = parseObj(suzanneObj);
 
-  const materialEnt = entityStore.createEntity({});
   const boxImg = new Image();
   boxImg.src = textureImg;
-  materialEnt.set('texture', new Texture(boxImg));
-  const materialId = materialEnt.getId();
-  materialEnt.set<Shader>('shader', {
-    passes: [{
-      type: 'forward',
-      options: {
-        cull: gl.BACK,
-        depth: gl.LESS,
-      },
-      vert: phongVert,
-      frag: phongFrag,
-    }],
+  const materialEnt = entityStore.createEntity({
+    texture: new Texture(boxImg),
+    shader: {
+      passes: [{
+        type: 'forward',
+        options: {
+          cull: gl.BACK,
+          depth: gl.LESS,
+        },
+        vert: phongVert,
+        frag: phongFrag,
+      }],
+    },
   });
+  const materialId = materialEnt.getId();
   objParsed.forEach((entity) => {
     const meshEnt = entityStore.createEntity({
       transform: new Transform(),
