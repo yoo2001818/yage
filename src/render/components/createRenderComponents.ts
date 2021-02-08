@@ -8,7 +8,18 @@ import { TransformComponent } from './TransformComponent';
 import { MeshComponent } from './MeshComponent';
 import { Texture } from '../Texture';
 
-export function createRenderComponents() {
+export interface RenderComponents {
+  camera: ImmutableComponent<Camera>,
+  geometry: ImmutableComponent<Geometry>,
+  light: ImmutableComponent<Light>,
+  transform: TransformComponent,
+  material: ImmutableComponent<Material>,
+  mesh: MeshComponent,
+  shader: ImmutableComponent<Shader>,
+  texture: ImmutableComponent<Texture>,
+}
+
+export function createRenderComponents(): RenderComponents {
   return {
     camera: new ImmutableComponent<Camera>(),
     geometry: new ImmutableComponent<Geometry>(),

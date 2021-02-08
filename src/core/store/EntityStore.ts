@@ -12,8 +12,9 @@ import {
 } from './EntityGroupMethods';
 import { Index } from '../indexes/types';
 import { IdIndex } from '../indexes/IdIndex';
+import { EntityValues, ValueIsComponent } from './types';
 
-export class EntityStore {
+export class EntityStore<D extends ValueIsComponent<D>> {
   components: Component<unknown>[] = [];
 
   componentNames: Record<string, number> = {};
@@ -35,7 +36,7 @@ export class EntityStore {
 
   idComponent: Component<number>;
 
-  removedSignal: Signal<[Entity]>;
+  removedSignal: Signal<[Entity<D>]>;
 
   lastGroupId: number = 0;
 
@@ -50,6 +51,8 @@ export class EntityStore {
     this.addIndex('id', new IdIndex());
   }
 
+  addComponent<K extends keyof D>(name: K, component: D[K]): D[K];
+  addComponent<T extends Component<any>>(name: string, component: T): T;
   addComponent<T extends Component<any>>(name: string, component: T): T {
     // It should register component to registry; this should do the following:
     // 1. Check if component name conflicts.
@@ -67,6 +70,10 @@ export class EntityStore {
     return component;
   }
 
+  addComponents<T extends Partial<D>>(components: T): void;
+  addComponents<T extends { [key: string]: Component<any> }>(
+    components: T,
+  ): void;
   addComponents<T extends { [key: string]: Component<any> }>(
     components: T,
   ): void {
@@ -76,6 +83,8 @@ export class EntityStore {
     });
   }
 
+  getComponent<K extends keyof D>(name: K, component: D[K]): D[K];
+  getComponent<T extends Component<unknown>>(name: string): T;
   getComponent<T extends Component<unknown>>(name: string): T {
     const pos = this.componentNames[name];
     if (pos == null) {
@@ -184,8 +193,8 @@ export class EntityStore {
   }
 
   createEntity(
-    base?: (string | Component<unknown>)[] | object,
-  ): Entity {
+    base?: (string | Component<unknown>)[] | EntityValues<D>,
+  ): Entity<D> {
     // If base was provided as an array, initialize them
     if (Array.isArray(base)) {
       // Map the component array to 'signatures'. We must make sure that
@@ -257,11 +266,11 @@ export class EntityStore {
     return this.entityGroupContainers[id];
   }
 
-  getEntity(id: number): Entity | null {
+  getEntity(id: number): Entity<D> | null {
     return this.getIndex<IdIndex>('id').get(id);
   }
 
-  getEntityOfGroup(group: EntityGroup, index: number): Entity {
+  getEntityOfGroup(group: EntityGroup, index: number): Entity<D> {
     return new Entity(this, group, index);
   }
 
@@ -308,7 +317,7 @@ export class EntityStore {
     });
   }
 
-  forEach(callback: (entity: Entity) => void): void {
+  forEach(callback: (entity: Entity<D>) => void): void {
     this.forEachGroup((group) => {
       const { size } = group;
       for (let i = 0; i < size; i += 1) {
@@ -319,7 +328,7 @@ export class EntityStore {
 
   forEachWith<T extends any[]>(
     components: { [K in keyof T]: Component<T[K]> },
-    callback: (e: Entity, ...args: T) => void,
+    callback: (e: Entity<D>, ...args: T) => void,
   ): void {
     this.forEachGroupWith(components, (group) => {
       const offsets = components.map((v) => getGroupComponentOffset(group, v));

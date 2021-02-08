@@ -10,10 +10,9 @@ import {
   ImmutableComponent,
   Transform,
   Texture,
-  Shader,
-  Material,
-  Mesh,
   parseObj,
+  RenderComponents,
+  Float32ArrayComponent,
 } from '../src';
 
 import textureImg from './logobg.png';
@@ -43,8 +42,15 @@ function main() {
   const debugDiv = document.createElement('pre');
   document.body.appendChild(debugDiv);
 
+  type StoreComponents =
+  & RenderComponents
+  & {
+    vel: Float32ArrayComponent,
+    blenderController: ImmutableComponent<BlenderControllerTarget>,
+  };
+
   // Initialize entity store
-  const entityStore = new EntityStore();
+  const entityStore = new EntityStore<StoreComponents>();
 
   // Add needed components
   entityStore.addComponents(createRenderComponents());
@@ -99,9 +105,9 @@ function main() {
       transform: new Transform(),
       geometry: entity.geometry,
     });
-    meshEnt.get<Transform>('transform').setScale([2, 2, 2]);
+    meshEnt.get('transform').setScale([2, 2, 2]);
     const color = [Math.random(), Math.random(), Math.random()];
-    meshEnt.set<Material>('material', {
+    meshEnt.set('material', {
       shaderId: materialId,
       uniforms: {
         uMaterial: {
@@ -119,7 +125,7 @@ function main() {
       },
     });
     const meshEntId = meshEnt.getId();
-    meshEnt.set<Mesh>('mesh', { materialId: meshEntId, geometryId: meshEntId });
+    meshEnt.set('mesh', { materialId: meshEntId, geometryId: meshEntId });
     meshEnt.unfloat();
     console.log(entity.geometry);
   });

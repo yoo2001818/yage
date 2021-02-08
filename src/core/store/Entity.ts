@@ -11,15 +11,16 @@ import {
   isAllocated,
   toJSONGroupEntity,
 } from './EntityGroupMethods';
+import { ValueIsComponent, ValueOfComponent } from './types';
 
-export class Entity {
-  store: EntityStore;
+export class Entity<D extends ValueIsComponent<D>> {
+  store: EntityStore<D>;
 
   group: EntityGroup;
 
   index: number;
 
-  constructor(store: EntityStore, group: EntityGroup, index: number) {
+  constructor(store: EntityStore<D>, group: EntityGroup, index: number) {
     this.store = store;
     this.group = group;
     this.index = index;
@@ -63,6 +64,8 @@ export class Entity {
     this.index = newIndex;
   }
 
+  remove<K extends keyof D>(key: K): void;
+  remove<T>(component: Component<T> | string): void;
   remove<T>(component: Component<T> | string): void {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
@@ -73,6 +76,8 @@ export class Entity {
     component.markChanged(this.group);
   }
 
+  has<K extends keyof D>(key: K): boolean;
+  has<T>(component: Component<T> | string): boolean;
   has<T>(component: Component<T> | string): boolean {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
@@ -81,6 +86,8 @@ export class Entity {
     return isAllocated(getGroupComponentOffset(this.group, component));
   }
 
+  getPos<K extends keyof D>(key: K): number;
+  getPos<T>(component: Component<T> | string): number;
   getPos<T>(component: Component<T> | string): number {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
@@ -97,6 +104,8 @@ export class Entity {
     return this.get(this.store.idComponent);
   }
 
+  get<K extends keyof D>(key: K): ValueOfComponent<D[K]>;
+  get<T>(component: Component<T> | string): T;
   get<T>(component: Component<T> | string): T {
     if (typeof component === 'string') {
       const componentInst = this.store.getComponent(component);
@@ -118,6 +127,8 @@ export class Entity {
     return getGroupComponents(this.group, this.store);
   }
 
+  set<K extends keyof D>(key: K, source: ValueOfComponent<D[K]>): void;
+  set<T>(component: Component<T> | string, source: T): void;
   set<T>(
     component: Component<T> | string,
     source: T,
