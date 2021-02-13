@@ -13,7 +13,7 @@ import {
 } from './EntityGroupMethods';
 import { ValueIsComponent, ValueOfComponent } from './types';
 
-export class Entity<D extends ValueIsComponent<D>> {
+export class Entity<D extends ValueIsComponent<D> = any> {
   store: EntityStore<D>;
 
   group: EntityGroup;

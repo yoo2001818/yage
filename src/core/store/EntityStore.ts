@@ -14,7 +14,7 @@ import { Index } from '../indexes/types';
 import { IdIndex } from '../indexes/IdIndex';
 import { EntityValues, ValueIsComponent } from './types';
 
-export class EntityStore<D extends ValueIsComponent<D>> {
+export class EntityStore<D extends ValueIsComponent<D> = any> {
   components: Component<unknown>[] = [];
 
   componentNames: Record<string, number> = {};
