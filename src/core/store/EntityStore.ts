@@ -48,6 +48,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
       'id',
       new ImmutableComponent<number>(),
     );
+    this.addComponent('name', new ImmutableComponent<string>());
     this.addIndex('id', new IdIndex());
   }
 
