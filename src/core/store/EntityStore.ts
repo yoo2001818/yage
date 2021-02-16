@@ -12,7 +12,7 @@ import {
 } from './EntityGroupMethods';
 import { Index } from '../indexes/types';
 import { IdIndex } from '../indexes/IdIndex';
-import { EntityValues, ValueIsComponent } from './types';
+import { EntityData, ValueIsComponent } from './types';
 
 export class EntityStore<D extends ValueIsComponent<D> = any> {
   components: Component<unknown>[] = [];
@@ -194,7 +194,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
   }
 
   createEntity(
-    base?: (string | Component<unknown>)[] | EntityValues<D>,
+    base?: (string | Component<unknown>)[] | EntityData<D>,
   ): Entity<D> {
     // If base was provided as an array, initialize them
     if (Array.isArray(base)) {
