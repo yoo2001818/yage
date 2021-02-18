@@ -88,4 +88,17 @@ export class Transform {
       diff[0], diff[1], diff[2],
     ]);
   }
+
+  toJSON(): unknown {
+    const { rawArray: a } = this;
+    return {
+      pos: [a[0], a[1], a[2]],
+      scale: [a[4], a[5], a[6]],
+      quat: [a[8], a[9], a[10], a[11]],
+    };
+  }
+
+  fromJSON(data: unknown): Transform {
+    
+  }
 }
