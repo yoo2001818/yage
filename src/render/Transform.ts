@@ -3,6 +3,26 @@ import { quat, vec3 } from 'gl-matrix';
 
 const IDENTITY = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0];
 
+interface TransformJSON {
+  pos: [number, number, number],
+  rotation: [number, number, number, number],
+  scale: [number, number, number],
+}
+
+function isTransformJSON(value: unknown): value is TransformJSON {
+  const obj = value as TransformJSON;
+  if (!(Array.isArray(obj.pos)
+    && obj.pos.length === 3
+    && obj.pos.every((v) => typeof v === 'number'))) return false;
+  if (!(Array.isArray(obj.rotation)
+    && obj.rotation.length === 4
+    && obj.rotation.every((v) => typeof v === 'number'))) return false;
+  if (!(Array.isArray(obj.scale)
+    && obj.scale.length === 3
+    && obj.scale.every((v) => typeof v === 'number'))) return false;
+  return true;
+}
+
 export class Transform {
   // rawArray is composed of:
   // - position x, y, z, w
@@ -89,16 +109,32 @@ export class Transform {
     ]);
   }
 
-  toJSON(): unknown {
+  toJSON(): TransformJSON {
     const { rawArray: a } = this;
     return {
       pos: [a[0], a[1], a[2]],
+      rotation: [a[8], a[9], a[10], a[11]],
       scale: [a[4], a[5], a[6]],
-      quat: [a[8], a[9], a[10], a[11]],
     };
   }
 
-  fromJSON(data: unknown): Transform {
-    
+  static fromJSON(data: unknown): Transform {
+    if (!isTransformJSON(data)) {
+      throw new Error('Invalid JSON');
+    }
+    return new Transform(new Float32Array([
+      data.pos[0],
+      data.pos[1],
+      data.pos[2],
+      0,
+      data.rotation[0],
+      data.rotation[1],
+      data.rotation[2],
+      data.rotation[3],
+      data.scale[0],
+      data.scale[1],
+      data.scale[2],
+      0,
+    ]));
   }
 }
