@@ -7,6 +7,8 @@ export class TransformComponent extends Float32ArrayComponent<Transform> {
       12,
       (v) => new Transform(v),
       (v) => v.rawArray,
+      (data) => Transform.fromJSON(data),
+      (item) => item.toJSON(),
     );
   }
 }
