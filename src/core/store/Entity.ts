@@ -20,10 +20,13 @@ export class Entity<D extends ValueIsComponent<D> = any> {
 
   index: number;
 
+  id: number | null;
+
   constructor(store: EntityStore<D>, group: EntityGroup, index: number) {
     this.store = store;
     this.group = group;
     this.index = index;
+    this.id = null;
   }
 
   // We have to maintain underlying structure from here.
