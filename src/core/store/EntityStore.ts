@@ -2,7 +2,7 @@ import { Component } from '../components/Component';
 import { ImmutableComponent } from '../components/ImmutableComponent';
 import { EntityGroup } from './EntityGroup';
 import { EntityGroupContainer } from './EntityGroupContainer';
-import { Entity } from './Entity';
+import { Entity, GroupEntity } from './entity';
 import { Signal } from '../Signal';
 import {
   getGroupContainerHashCode,
@@ -211,7 +211,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
       });
       signature[this.idComponent.pos!] = 0;
       const [group, index] = this.createEntitySlot(signature);
-      const entity = new Entity(this, group, index);
+      const entity = new GroupEntity(this, group, index);
       entity.set(this.idComponent, this.lastEntityId);
       this.lastEntityId += 1;
       return entity;
@@ -228,7 +228,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
       });
       signature[this.idComponent.pos!] = 1;
       const [group, index] = this.createEntitySlot(signature);
-      const entity = new Entity(this, group, index);
+      const entity = new GroupEntity(this, group, index);
       entity.set(this.idComponent, this.lastEntityId);
       this.lastEntityId += 1;
       Object.keys(base).forEach((key) => {
@@ -238,7 +238,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     }
     // Create floating entity group. Any other logic directly goes to Entity
     const [group, index] = this.createFloatingEntitySlot();
-    const entity = new Entity(this, group, index);
+    const entity = new GroupEntity(this, group, index);
     entity.set(this.idComponent, this.lastEntityId);
     this.lastEntityId += 1;
     return entity;
@@ -272,7 +272,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
   }
 
   getEntityOfGroup(group: EntityGroup, index: number): Entity<D> {
-    return new Entity(this, group, index);
+    return new GroupEntity(this, group, index);
   }
 
   getComponentOfEntity<T>(id: number, component: Component<T> | string): T {
@@ -322,7 +322,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     this.forEachGroup((group) => {
       const { size } = group;
       for (let i = 0; i < size; i += 1) {
-        callback(new Entity(this, group, i));
+        callback(new GroupEntity(this, group, i));
       }
     });
   }
@@ -335,7 +335,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
       const offsets = components.map((v) => getGroupComponentOffset(group, v));
       const { size } = group;
       for (let i = 0; i < size; i += 1) {
-        const entity = new Entity(this, group, i);
+        const entity = new GroupEntity(this, group, i);
         callback(
           entity,
           ...components.map((v, j) => v.get(offsets[j] + i)) as T,
@@ -359,7 +359,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     mapId?: (id: unknown) => number | null,
   ): void {
     input.forEach((entry) => {
-      const entity = this.createEntity();
+      const entity = this.createEntity() as GroupEntity<D>;
       entity.fromJSON(entry, mapId);
       entity.unfloat();
     });

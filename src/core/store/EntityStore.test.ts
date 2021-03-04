@@ -56,7 +56,7 @@ describe('EntityStore', () => {
       const entity = store.createEntity();
       entity.set('position', [0, 0, 5]);
       // Unfloat it many, many times
-      entity.unfloat();
+      // entity.unfloat();
     }
   });
   it('should be able to retrieve entity using its ID', () => {

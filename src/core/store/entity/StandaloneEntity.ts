@@ -1,4 +1,4 @@
-import { Entity } from './EntityInterface';
+import { Entity } from './Entity';
 import { Component } from '../../components/Component';
 
 import { ValueIsComponent } from '../types';

@@ -2,7 +2,7 @@ import { Component } from '../components/Component';
 import { EntityGroup } from '../store/EntityGroup';
 import { getGroupComponentOffset } from '../store/EntityGroupMethods';
 import { EntityStore } from '../store/EntityStore';
-import { Entity } from '../store/Entity';
+import { Entity, GroupEntity } from '../store/entity';
 
 interface IdIndexEntry {
   group: EntityGroup,
@@ -55,7 +55,7 @@ export class IdIndex {
   get(id: number): Entity | null {
     const entry = this.ids[id];
     if (entry == null) return null;
-    const entity = new Entity(this.store, entry.group, entry.index);
+    const entity = new GroupEntity(this.store, entry.group, entry.index);
     return entity;
   }
 }

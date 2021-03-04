@@ -14,6 +14,11 @@ export interface Entity<D extends ValueIsComponent<D> = any> {
   set<T>(component: Component<T> | string, source: T): void;
   // getComponents(): Component<unknown>[];
   markChanged<T>(component: Component<T> | string): void;
-  toJSON(): unknown;
-  fromJSON(value: unknown): void;
+  toJSON(
+    mapId?: (id: number | null) => unknown,
+  ): unknown;
+  fromJSON(
+    value: unknown,
+    mapId?: (id: unknown) => number | null,
+  ): void;
 }

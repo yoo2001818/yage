@@ -2,7 +2,7 @@ import { Component } from '../components/Component';
 import { EntityGroup } from '../store/EntityGroup';
 import { getGroupComponentOffset } from '../store/EntityGroupMethods';
 import { EntityStore } from '../store/EntityStore';
-import { Entity } from '../store/Entity';
+import { Entity, GroupEntity } from '../store/entity';
 
 interface NameIndexEntry {
   group: EntityGroup,
@@ -57,7 +57,7 @@ export class NameIndex {
     const entries = this.names.get(name);
     if (entries == null || entries.length === 0) return null;
     const entry = entries[0];
-    const entity = new Entity(this.store, entry.group, entry.index);
+    const entity = new GroupEntity(this.store, entry.group, entry.index);
     return entity;
   }
 }
