@@ -99,7 +99,7 @@ function main() {
       }],
     },
   });
-  const materialId = materialEnt.getId();
+  const materialId = materialEnt.id;
   objParsed.forEach((entity) => {
     const meshEnt = entityStore.createEntity({
       transform: new Transform(),
@@ -124,7 +124,7 @@ function main() {
         uDiffuseMap: materialId,
       },
     });
-    const meshEntId = meshEnt.getId();
+    const meshEntId = meshEnt.id;
     meshEnt.set('mesh', { materialId: meshEntId, geometryId: meshEntId });
     meshEnt.unfloat();
     console.log(entity.geometry);
