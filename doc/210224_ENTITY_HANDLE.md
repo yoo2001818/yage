@@ -46,3 +46,11 @@ This reduces the number of copying every component from 2 to 1, which should
 help. The entity group must maintain a bitset of locked entities, however this
 is neglible since it'd be extremely small. (256 bytes for largest entity group)
 It won't have any cache problems too.
+
+### Should a floating entity occupy array buffer?
+The floating entity currently occupies component arrays. However, this is
+not really necessary since the component's value can be expressed in "floating"
+state - that is, the state can exist without component array.
+
+Hence, it'd be pretty meaningless to do that. However, the indexes use array
+offset to distinguish each entity - This also needs to be taken care of.
