@@ -54,3 +54,11 @@ state - that is, the state can exist without component array.
 
 Hence, it'd be pretty meaningless to do that. However, the indexes use array
 offset to distinguish each entity - This also needs to be taken care of.
+
+### Treating index as a value
+Currently, entity's indexes are managed as a separate array list, just like 
+component arrays. While this is somewhat efficient, there is no way to store
+"floating entity" without any given offset into component index.
+
+The index can be instead stored within the entity, therefore treating the index
+as an "automatic" component.
