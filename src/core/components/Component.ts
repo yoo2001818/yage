@@ -1,4 +1,4 @@
-import { EntityGroup } from '../store/EntityGroup';
+import { EntityPage } from '../store/EntityPage';
 
 /**
  * Component maintains an array of each component. It stores actual data
@@ -32,12 +32,12 @@ export interface Component<T> {
   ): T,
   toJSON(value: T, mapId?: (id: number | null) => unknown): unknown,
 
-  markChanged(group: EntityGroup, start?: number, size?: number): void,
+  markChanged(group: EntityPage, start?: number, size?: number): void,
   subscribe(
-    callback: (group: EntityGroup, start: number, size: number) => void,
+    callback: (group: EntityPage, start: number, size: number) => void,
   ): void,
   unsubscribe(
-    callback: (group: EntityGroup, start: number, size: number) => void,
+    callback: (group: EntityPage, start: number, size: number) => void,
   ): void,
 
   getOffsetHash(offset: number): number,

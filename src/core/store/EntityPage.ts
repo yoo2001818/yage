@@ -1,9 +1,9 @@
 /**
- * EntityGroup contains entities of same type. In principle, EntityGroup is
+ * EntityPage contains entities of same type. In principle, EntityGroup is
  * nothing more than an allocation table; it just specifies list of components
  * and the offset of each component.
  */
-export class EntityGroup {
+export class EntityPage {
   id: number = 0;
 
   // The ID of the parent group container. If the group is "floating", -1 is

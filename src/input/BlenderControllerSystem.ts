@@ -5,7 +5,7 @@ import { Transform } from '../render/Transform';
 import {
   Component,
   EntityStore,
-  EntityGroup,
+  EntityPage,
   Entity,
 } from '../core';
 
@@ -55,7 +55,7 @@ export class BlenderControllerSystem {
   }
 
   handleBlenderControllerChange(
-    group: EntityGroup,
+    group: EntityPage,
     start: number,
     size: number,
   ): void {

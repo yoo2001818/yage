@@ -6,14 +6,14 @@ import {
   defaultComponentToJSON,
 } from './Component';
 import { Signal } from '../Signal';
-import { EntityGroup } from '../store/EntityGroup';
+import { EntityPage } from '../store/EntityPage';
 
 export abstract class AbstractComponent<T> implements Component<T> {
   name: string | null = null;
 
   pos: number | null = null;
 
-  signal: Signal<[EntityGroup, number, number]>;
+  signal: Signal<[EntityPage, number, number]>;
 
   itemFromJSON: ComponentFromJSON<T>;
 
@@ -71,18 +71,18 @@ export abstract class AbstractComponent<T> implements Component<T> {
     return this.itemToJSON(item, mapId);
   }
 
-  markChanged(group: EntityGroup, start = 0, size = group.size): void {
+  markChanged(group: EntityPage, start = 0, size = group.size): void {
     this.signal.emit(group, start, size);
   }
 
   subscribe(
-    callback: (group: EntityGroup, start: number, size: number) => void,
+    callback: (group: EntityPage, start: number, size: number) => void,
   ): void {
     this.signal.subscribe(callback);
   }
 
   unsubscribe(
-    callback: (group: EntityGroup, start: number, size: number) => void,
+    callback: (group: EntityPage, start: number, size: number) => void,
   ): void {
     this.signal.unsubscribe(callback);
   }

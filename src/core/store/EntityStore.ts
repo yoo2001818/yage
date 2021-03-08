@@ -1,7 +1,7 @@
 import { Component } from '../components/Component';
 import { ImmutableComponent } from '../components/ImmutableComponent';
-import { EntityGroup } from './EntityGroup';
-import { EntityGroupContainer } from './EntityGroupContainer';
+import { EntityPage } from './EntityPage';
+import { EntityClass } from './EntityClass';
 import { Entity, GroupEntity } from './entity';
 import { Signal } from '../Signal';
 import {
@@ -21,18 +21,18 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
 
   indexes: Record<string, Index> = {};
 
-  entityGroups: EntityGroup[] = [];
+  entityGroups: EntityPage[] = [];
 
   // Floating entity groups are stored separately. This is because
   // entity group containers are iterated while looping through entities, but
   // floating entity groups will be missed if we just scan group containers.
   // Therefore, after iterating entity group containers, we iterate
   // floating entity groups separately.
-  floatingEntityGroups: EntityGroup[] = [];
+  floatingEntityGroups: EntityPage[] = [];
 
-  entityGroupContainers: EntityGroupContainer[] = [];
+  entityGroupContainers: EntityClass[] = [];
 
-  deadEntityGroups: EntityGroup[] = [];
+  deadEntityGroups: EntityPage[] = [];
 
   idComponent: Component<number>;
 
@@ -112,24 +112,24 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     return item as T;
   }
 
-  createEntityGroup(): EntityGroup {
+  createEntityGroup(): EntityPage {
     if (this.deadEntityGroups.length > 0) {
       // Scan dead entity group
-      return this.deadEntityGroups.pop() as EntityGroup;
+      return this.deadEntityGroups.pop() as EntityPage;
     }
-    const group = new EntityGroup();
+    const group = new EntityPage();
     group.id = this.entityGroups.length;
     this.entityGroups.push(group);
     return group;
   }
 
-  releaseEntityGroup(group: EntityGroup): void {
+  releaseEntityGroup(group: EntityPage): void {
     // TODO Check dead entity group, push to list or remove it
     this.deadEntityGroups.push(group);
   }
 
-  createEntityGroupContainer(): EntityGroupContainer {
-    const container = new EntityGroupContainer();
+  createEntityGroupContainer(): EntityClass {
+    const container = new EntityClass();
     container.id = this.entityGroupContainers.length;
     this.entityGroupContainers.push(container);
     return container;
@@ -142,7 +142,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
   }
   */
 
-  createEntitySlot(signature: number[]): [EntityGroup, number] {
+  createEntitySlot(signature: number[]): [EntityPage, number] {
     // Well, this does not make any sense because to assign an entity slot, we
     // must know the signature of the entity beforehand.
     // Still, let's support it anyway.
@@ -150,7 +150,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     return groupContainer.createEntitySlot(this);
   }
 
-  releaseEntitySlot(group: EntityGroup, index: number): void {
+  releaseEntitySlot(group: EntityPage, index: number): void {
     // Read group's parent ID, and process accordingly
     const { parentId } = group;
     if (parentId === -1) {
@@ -163,7 +163,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     }
   }
 
-  createFloatingEntitySlot(): [EntityGroup, number] {
+  createFloatingEntitySlot(): [EntityPage, number] {
     // Just create an empty entity group, assign empty entity.
     const group = this.createEntityGroup();
     // Then, we register floating entity groups inside the list. This is used
@@ -176,7 +176,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     return [group, 0];
   }
 
-  releaseFloatingEntitySlot(group: EntityGroup, index: number): void {
+  releaseFloatingEntitySlot(group: EntityPage, index: number): void {
     // Floating entity group has only one entity within, therefore the group
     // can be released without any problem.
     removeGroupEntity(this, group, index);
@@ -250,7 +250,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
   // We need to convert this 'offsets' array to list of numbers - persumably a
   // bitset - but we'll do this right here for now, and accept
   // offsets array as an argument.
-  getEntityGroupContainer(signature: number[]): EntityGroupContainer {
+  getEntityGroupContainer(signature: number[]): EntityClass {
     const hashCode = getGroupContainerHashCode(signature, this);
     // Bleh - we're full scanning the array! It's okay for now...
     let item = this.entityGroupContainers
@@ -263,7 +263,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     return item;
   }
 
-  getEntityGroupContainerById(id: number): EntityGroupContainer | null {
+  getEntityGroupContainerById(id: number): EntityClass | null {
     return this.entityGroupContainers[id];
   }
 
@@ -271,7 +271,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     return this.getIndex<IdIndex>('id').get(id);
   }
 
-  getEntityOfGroup(group: EntityGroup, index: number): Entity<D> {
+  getEntityOfGroup(group: EntityPage, index: number): Entity<D> {
     return new GroupEntity(this, group, index);
   }
 
@@ -281,7 +281,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
     return entity.get(component);
   }
 
-  forEachGroup(callback: (group: EntityGroup) => void): void {
+  forEachGroup(callback: (group: EntityPage) => void): void {
     this.entityGroupContainers.forEach((container) => {
       container.groups.forEach(callback);
     });
@@ -290,7 +290,7 @@ export class EntityStore<D extends ValueIsComponent<D> = any> {
 
   forEachGroupWith(
     components: Component<unknown>[],
-    callback: (group: EntityGroup, ...args: number[]) => void,
+    callback: (group: EntityPage, ...args: number[]) => void,
   ): void {
     this.entityGroupContainers.forEach((container) => {
       const passed = components.every((component) => {

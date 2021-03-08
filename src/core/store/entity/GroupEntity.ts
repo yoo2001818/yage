@@ -1,4 +1,4 @@
-import { EntityGroup } from '../EntityGroup';
+import { EntityPage } from '../EntityPage';
 import { EntityStore } from '../EntityStore';
 import { Component } from '../../components/Component';
 import {
@@ -18,11 +18,11 @@ export class GroupEntity<D extends ValueIsComponent<D> = any>
 implements Entity<D> {
   store: EntityStore<D>;
 
-  group: EntityGroup;
+  group: EntityPage;
 
   index: number;
 
-  constructor(store: EntityStore<D>, group: EntityGroup, index: number) {
+  constructor(store: EntityStore<D>, group: EntityPage, index: number) {
     this.store = store;
     this.group = group;
     this.index = index;

@@ -1,10 +1,10 @@
-import { EntityGroup } from './EntityGroup';
+import { EntityPage } from './EntityPage';
 import { EntityStore } from './EntityStore';
 import { Component } from '../components/Component';
 
 // TODO: Fix order of store / group etc
 
-export function getGroupComponentIds(group: EntityGroup): number[] {
+export function getGroupComponentIds(group: EntityPage): number[] {
   const output: number[] = [];
   for (let i = 0; i < group.offsets.length; i += 1) {
     if (group.offsets[i] !== -1) {
@@ -19,7 +19,7 @@ export function isAllocated(value: number | undefined | null): boolean {
 }
 
 export function getGroupComponents(
-  group: EntityGroup,
+  group: EntityPage,
   store: EntityStore,
 ): Component<unknown>[] {
   const ids = getGroupComponentIds(group);
@@ -47,7 +47,7 @@ export function getGroupContainerHashCode(
 }
 
 export function updateGroupHashCode(
-  group: EntityGroup,
+  group: EntityPage,
   store: EntityStore,
 ): void {
   const hashCode = getGroupContainerHashCode(group.offsets, store);
@@ -55,7 +55,7 @@ export function updateGroupHashCode(
 }
 
 export function addGroupComponent<T>(
-  group: EntityGroup,
+  group: EntityPage,
   component: Component<T>,
   value: T,
   store: EntityStore,
@@ -74,7 +74,7 @@ export function addGroupComponent<T>(
 }
 
 export function addGroupComponentFromOffset<T>(
-  group: EntityGroup,
+  group: EntityPage,
   component: Component<T>,
   offset: number,
   store: EntityStore,
@@ -90,7 +90,7 @@ export function addGroupComponentFromOffset<T>(
 }
 
 export function removeGroupComponent(
-  group: EntityGroup,
+  group: EntityPage,
   component: Component<unknown>,
   store: EntityStore,
 ): void {
@@ -103,7 +103,7 @@ export function removeGroupComponent(
 }
 
 export function getGroupComponentOffset(
-  group: EntityGroup,
+  group: EntityPage,
   component: Component<unknown>,
 ): number {
   const { pos } = component;
@@ -116,7 +116,7 @@ export function getGroupComponentOffset(
 export function copyGroupComponents(
   store: EntityStore,
   offsets: number[],
-  dest: EntityGroup,
+  dest: EntityPage,
 ): void {
   for (let i = 0; i < offsets.length; i += 1) {
     const srcOffset = offsets[i];
@@ -128,8 +128,8 @@ export function copyGroupComponents(
 
 export function copyGroupEntity(
   store: EntityStore,
-  src: EntityGroup,
-  dest: EntityGroup,
+  src: EntityPage,
+  dest: EntityPage,
   srcIndex: number,
   destIndex: number,
 ): void {
@@ -149,7 +149,7 @@ export function copyGroupEntity(
 
 export function removeGroupEntity(
   store: EntityStore,
-  group: EntityGroup,
+  group: EntityPage,
   index: number,
 ): void {
   // Removes the entity from the entity group. This works by moving last
@@ -168,7 +168,7 @@ export function removeGroupEntity(
 }
 
 export function unallocateGroup(
-  group: EntityGroup,
+  group: EntityPage,
   store: EntityStore,
 ): void {
   for (let i = 0; i < group.offsets.length; i += 1) {
@@ -182,7 +182,7 @@ export function unallocateGroup(
 
 export function toJSONGroupEntity(
   store: EntityStore,
-  group: EntityGroup,
+  group: EntityPage,
   index: number,
   mapId?: (id: number | null) => unknown,
 ): unknown {

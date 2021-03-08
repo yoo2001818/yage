@@ -1,11 +1,11 @@
 import { Component } from '../components/Component';
-import { EntityGroup } from '../store/EntityGroup';
+import { EntityPage } from '../store/EntityPage';
 import { getGroupComponentOffset } from '../store/EntityGroupMethods';
 import { EntityStore } from '../store/EntityStore';
 import { Entity, GroupEntity } from '../store/entity';
 
 interface IdIndexEntry {
-  group: EntityGroup,
+  group: EntityPage,
   index: number,
 }
 
@@ -41,7 +41,7 @@ export class IdIndex {
     if (id != null) this.ids[id] = null;
   }
 
-  _handleChanged(group: EntityGroup, start: number, size: number): void {
+  _handleChanged(group: EntityPage, start: number, size: number): void {
     // Scan the contents of the entity group and map the id index entries.
     const { idComponent } = this;
     const offset = getGroupComponentOffset(group, idComponent);

@@ -1,5 +1,5 @@
 import { mat4 } from 'gl-matrix';
-import { Float32ArrayComponent, EntityGroup, EntityStore } from '../../core';
+import { Float32ArrayComponent, EntityPage, EntityStore } from '../../core';
 import { getGroupComponentOffset } from '../../core/store/EntityGroupMethods';
 
 const PAGE_SIZE = 65536;
@@ -54,7 +54,7 @@ export class TransformIndex {
     return array.subarray(offset);
   }
 
-  _handleChanged(group: EntityGroup, start: number, size: number): void {
+  _handleChanged(group: EntityPage, start: number, size: number): void {
     // TODO Do we really have to recalculate everything at here?
     // Scan the changed data and recalculate LocRotScale.
     // The array must be properly aligned to Float32ArrayComponent! Hmm...

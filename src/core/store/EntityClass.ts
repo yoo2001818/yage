@@ -1,4 +1,4 @@
-import { EntityGroup } from './EntityGroup';
+import { EntityPage } from './EntityPage';
 import {
   copyGroupComponents,
   getGroupContainerHashCode,
@@ -9,7 +9,7 @@ import { removeItem } from '../../utils/array';
 
 const ASSIGN_TABLE = [1, 4, 16, 64, 128, 256, 512, 1024, 2048];
 
-export class EntityGroupContainer {
+export class EntityClass {
   id: number = 0;
 
   // This contains the 'master' offset information used to initialize the other
@@ -18,9 +18,9 @@ export class EntityGroupContainer {
 
   hashCode: number = 0;
 
-  groups: EntityGroup[] = [];
+  groups: EntityPage[] = [];
 
-  freeGroups: EntityGroup[] = [];
+  freeGroups: EntityPage[] = [];
 
   init(
     offsets: number[],
@@ -30,7 +30,7 @@ export class EntityGroupContainer {
     this.hashCode = getGroupContainerHashCode(offsets, store);
   }
 
-  createEntitySlot(store: EntityStore): [EntityGroup, number] {
+  createEntitySlot(store: EntityStore): [EntityPage, number] {
     // Do we have any free entity groups?
     if (this.freeGroups.length > 0) {
       const group = this.freeGroups[this.freeGroups.length - 1];
@@ -59,7 +59,7 @@ export class EntityGroupContainer {
 
   releaseEntitySlot(
     store: EntityStore,
-    group: EntityGroup,
+    group: EntityPage,
     index: number,
   ): void {
     if (group.size === group.maxSize) {

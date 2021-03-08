@@ -1,5 +1,5 @@
 export * from './entity';
-export * from './EntityGroup';
-export * from './EntityGroupContainer';
+export * from './EntityPage';
+export * from './EntityClass';
 export * from './EntityStore';
 export * from './SystemStore';

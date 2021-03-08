@@ -1,11 +1,11 @@
 import { Component } from '../components/Component';
-import { EntityGroup } from '../store/EntityGroup';
+import { EntityPage } from '../store/EntityPage';
 import { getGroupComponentOffset } from '../store/EntityGroupMethods';
 import { EntityStore } from '../store/EntityStore';
 import { Entity, GroupEntity } from '../store/entity';
 
 interface NameIndexEntry {
-  group: EntityGroup,
+  group: EntityPage,
   index: number,
 }
 
@@ -41,7 +41,7 @@ export class NameIndex {
     if (name != null) this.names.set(name, []);
   }
 
-  _handleChanged(group: EntityGroup, start: number, size: number): void {
+  _handleChanged(group: EntityPage, start: number, size: number): void {
     // Scan the contents of the entity group and map the name index entries.
     const { nameComponent } = this;
     const offset = getGroupComponentOffset(group, nameComponent);
