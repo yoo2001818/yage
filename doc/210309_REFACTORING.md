@@ -14,3 +14,9 @@ is considered as a component, it won't be used to calculate hash sum)
 - "Paged" version which involves EntityPage
 - "Transaction" version which is a mix between two, which can be used to commit
   to paged version
+
+The directory structure should follow this as well;
+
+- core/entity/standalone
+- core/entity/paged
+- core/entity/transaction
