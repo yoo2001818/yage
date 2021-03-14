@@ -1,4 +1,5 @@
 import { SimpleEntity } from './SimpleEntity';
+import { SimpleEntityQuery } from './SimpleEntityQuery';
 import { Signal } from '../../Signal';
 
 import { EntityStore } from '../types';
@@ -42,8 +43,8 @@ export class SimpleEntityStore implements EntityStore {
     });
   }
 
-  query(): unknown {
-    throw new Error('Not implemented');
+  query(): SimpleEntityQuery {
+    return new SimpleEntityQuery(this);
   }
 
   getSignal(name: string): Signal<[EntityPage]> {
