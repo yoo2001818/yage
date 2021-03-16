@@ -28,7 +28,7 @@ export class SimpleEntityQuery implements EntityQuery {
   forEachPage(callback: (page: SimpleEntityPage) => void): void {
     this.store.forEach((entity) => {
       if (this.criterias.every((component) => entity.has(component))) {
-        callback(new SimpleEntityPage([entity]));
+        callback(new SimpleEntityPage(this.store, [entity]));
       }
     });
   }

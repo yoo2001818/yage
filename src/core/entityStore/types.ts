@@ -10,7 +10,7 @@ export interface EntityStore {
   query(): EntityQuery;
 
   // Signals. It can emit a bundle of entities..
-  getSignal(name: string): Signal<[EntityPage]>,
+  getSignal(name: string): Signal<[any]>,
 
   toJSON(): unknown;
   fromJSON(value: unknown): void;

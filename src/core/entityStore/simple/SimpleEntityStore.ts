@@ -10,9 +10,12 @@ export class SimpleEntityStore implements EntityStore {
 
   deletedIds: number[];
 
+  signals: Map<string, Signal<[SimpleEntityPage]>>;
+
   constructor() {
     this.entities = [];
     this.deletedIds = [];
+    this.signals = new Map();
   }
 
   get(id: number): SimpleEntity | null {
@@ -22,11 +25,11 @@ export class SimpleEntityStore implements EntityStore {
   create(): SimpleEntity {
     const newId = this.deletedIds.pop();
     if (newId != null) {
-      const entity = new SimpleEntity(newId);
+      const entity = new SimpleEntity(this, newId);
       this.entities[newId] = entity;
       return entity;
     }
-    const entity = new SimpleEntity(this.entities.length);
+    const entity = new SimpleEntity(this, this.entities.length);
     this.entities.push(entity);
     return entity;
   }
@@ -47,7 +50,7 @@ export class SimpleEntityStore implements EntityStore {
   forEachPage(callback: (page: SimpleEntityPage) => void): void {
     this.entities.forEach((entity) => {
       if (entity == null) return;
-      callback(new SimpleEntityPage([entity]));
+      callback(new SimpleEntityPage(this, [entity]));
     });
   }
 
@@ -55,8 +58,13 @@ export class SimpleEntityStore implements EntityStore {
     return new SimpleEntityQuery(this);
   }
 
-  getSignal(name: string): Signal<[EntityPage]> {
-    // noop
+  getSignal(name: string): Signal<[SimpleEntityPage]> {
+    let signal = this.signals.get(name);
+    if (signal == null) {
+      signal = new Signal<[SimpleEntityPage]>();
+      this.signals.set(name, signal);
+    }
+    return signal;
   }
 
   toJSON(): unknown {

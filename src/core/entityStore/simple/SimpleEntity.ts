@@ -1,3 +1,6 @@
+import { SimpleEntityStore } from './SimpleEntityStore';
+import { SimpleEntityPage } from './SimpleEntityPage';
+
 import { Entity } from '../types';
 
 export class SimpleEntity implements Entity {
@@ -5,9 +8,12 @@ export class SimpleEntity implements Entity {
 
   map: Map<string, unknown>;
 
-  constructor(id: number) {
+  store: SimpleEntityStore;
+
+  constructor(store: SimpleEntityStore, id: number) {
     this.id = id;
     this.map = new Map();
+    this.store = store;
   }
 
   has(name: string): boolean {
@@ -30,7 +36,7 @@ export class SimpleEntity implements Entity {
   }
 
   emit(name: string): void {
-    // noop
+    new SimpleEntityPage(this.store, [this]).emit(name);
   }
 
   toObject(): { [key: string]: unknown } {
