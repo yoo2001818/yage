@@ -1,6 +1,7 @@
 import { SimpleEntityStore } from './SimpleEntityStore';
 import { SimpleEntity } from './SimpleEntity';
-import { EntityPage } from '../types';
+import { SimpleEntityPage } from './SimpleEntityPage';
+import { EntityQuery } from '../types';
 
 export class SimpleEntityQuery implements EntityQuery {
   store: SimpleEntityStore;
@@ -24,8 +25,11 @@ export class SimpleEntityQuery implements EntityQuery {
     });
   }
 
-  forEachPage(callback: (page: EntityPage) => void): void {
-    // TODO
+  forEachPage(callback: (page: SimpleEntityPage) => void): void {
+    this.store.forEach((entity) => {
+      if (this.criterias.every((component) => entity.has(component))) {
+        callback(new SimpleEntityPage([entity]));
+      }
+    });
   }
-
 }

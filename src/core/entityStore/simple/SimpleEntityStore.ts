@@ -1,5 +1,6 @@
 import { SimpleEntity } from './SimpleEntity';
 import { SimpleEntityQuery } from './SimpleEntityQuery';
+import { SimpleEntityPage } from './SimpleEntityPage';
 import { Signal } from '../../Signal';
 
 import { EntityStore } from '../types';
@@ -40,6 +41,13 @@ export class SimpleEntityStore implements EntityStore {
     this.entities.forEach((entity) => {
       if (entity == null) return;
       callback(entity);
+    });
+  }
+
+  forEachPage(callback: (page: SimpleEntityPage) => void): void {
+    this.entities.forEach((entity) => {
+      if (entity == null) return;
+      callback(new SimpleEntityPage([entity]));
     });
   }
 

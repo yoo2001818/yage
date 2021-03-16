@@ -6,6 +6,7 @@ export interface EntityStore {
   create(): Entity;
   delete(id: number): void;
   forEach(callback: (entity: Entity) => void): void;
+  forEachPage(callback: (page: EntityPage) => void): void;
   query(): EntityQuery;
 
   // Signals. It can emit a bundle of entities..
