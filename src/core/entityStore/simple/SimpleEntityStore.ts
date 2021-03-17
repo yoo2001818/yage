@@ -66,12 +66,4 @@ export class SimpleEntityStore implements EntityStore {
     }
     return signal;
   }
-
-  toJSON(): unknown {
-
-  }
-
-  fromJSON(value: unknown): void {
-
-  }
 }

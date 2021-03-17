@@ -11,9 +11,6 @@ export interface EntityStore {
 
   // Signals. It can emit a bundle of entities..
   getSignal(name: string): Signal<[any]>,
-
-  toJSON(): unknown;
-  fromJSON(value: unknown): void;
 }
 
 export interface Entity {
