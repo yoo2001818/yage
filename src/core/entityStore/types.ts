@@ -4,6 +4,7 @@ export interface EntityStore {
   // Entity manipulation
   get(id: number): Entity | null;
   create(): Entity;
+  createFrom(object: { [key: string]: unknown }): Entity;
   delete(id: number): void;
   forEach(callback: (entity: Entity) => void): void;
   forEachPage(callback: (page: EntityPage) => void): void;

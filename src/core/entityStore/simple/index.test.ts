@@ -9,6 +9,14 @@ describe('SimpleEntityStore', () => {
     store.delete(entity.id);
     expect(store.get(entity.id)).toBe(null);
   });
+  it('should create from object', () => {
+    const store = new SimpleEntityStore();
+    const entity = store.createFrom({ name: 'A', health: 10 });
+    expect(entity.toObject()).toEqual({
+      name: 'A',
+      health: 10,
+    });
+  });
   it('should reuse ids', () => {
     const store = new SimpleEntityStore();
     const ent1 = store.create();

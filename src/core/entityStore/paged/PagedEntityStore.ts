@@ -1,16 +1,16 @@
-import { SimpleEntity } from './SimpleEntity';
-import { SimpleEntityQuery } from './SimpleEntityQuery';
-import { SimpleEntityPage } from './SimpleEntityPage';
+import { PagedEntity } from './PagedEntity';
+import { PagedEntityQuery } from './PagedEntityQuery';
+import { PagedEntityPage } from './PagedEntityPage';
 import { Signal } from '../../Signal';
 
 import { EntityStore } from '../types';
 
-export class SimpleEntityStore implements EntityStore {
-  entities: (SimpleEntity | null)[];
+export class PagedEntityStore implements EntityStore {
+  entities: (PagedEntity | null)[];
 
   deletedIds: number[];
 
-  signals: Map<string, Signal<[SimpleEntityPage]>>;
+  signals: Map<string, Signal<[PagedEntityPage]>>;
 
   constructor() {
     this.entities = [];
@@ -18,23 +18,23 @@ export class SimpleEntityStore implements EntityStore {
     this.signals = new Map();
   }
 
-  get(id: number): SimpleEntity | null {
+  get(id: number): PagedEntity | null {
     return this.entities[id];
   }
 
-  create(): SimpleEntity {
+  create(): PagedEntity {
     const newId = this.deletedIds.pop();
     if (newId != null) {
-      const entity = new SimpleEntity(this, newId);
+      const entity = new PagedEntity(this, newId);
       this.entities[newId] = entity;
       return entity;
     }
-    const entity = new SimpleEntity(this, this.entities.length);
+    const entity = new PagedEntity(this, this.entities.length);
     this.entities.push(entity);
     return entity;
   }
 
-  createFrom(object: { [key: string]: unknown }): SimpleEntity {
+  createFrom(object: { [key: string]: unknown }): PagedEntity {
     const entity = this.create();
     entity.fromObject(object);
     return entity;
@@ -46,28 +46,28 @@ export class SimpleEntityStore implements EntityStore {
     this.deletedIds.push(id);
   }
 
-  forEach(callback: (entity: SimpleEntity) => void): void {
+  forEach(callback: (entity: PagedEntity) => void): void {
     this.entities.forEach((entity) => {
       if (entity == null) return;
       callback(entity);
     });
   }
 
-  forEachPage(callback: (page: SimpleEntityPage) => void): void {
+  forEachPage(callback: (page: PagedEntityPage) => void): void {
     this.entities.forEach((entity) => {
       if (entity == null) return;
-      callback(new SimpleEntityPage(this, [entity]));
+      callback(new PagedEntityPage(this, [entity]));
     });
   }
 
-  query(): SimpleEntityQuery {
-    return new SimpleEntityQuery(this);
+  query(): PagedEntityQuery {
+    return new PagedEntityQuery(this);
   }
 
-  getSignal(name: string): Signal<[SimpleEntityPage]> {
+  getSignal(name: string): Signal<[PagedEntityPage]> {
     let signal = this.signals.get(name);
     if (signal == null) {
-      signal = new Signal<[SimpleEntityPage]>();
+      signal = new Signal<[PagedEntityPage]>();
       this.signals.set(name, signal);
     }
     return signal;
