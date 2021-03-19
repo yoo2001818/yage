@@ -4,8 +4,11 @@ import { PagedEntityPage } from './PagedEntityPage';
 import { Signal } from '../../Signal';
 
 import { EntityStore } from '../types';
+import { Component } from '../../components';
 
 export class PagedEntityStore implements EntityStore {
+  componentArrays: Component<unknown>[];
+
   entities: (PagedEntity | null)[];
 
   deletedIds: number[];

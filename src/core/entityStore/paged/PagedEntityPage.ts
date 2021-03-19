@@ -1,10 +1,18 @@
-import { PagedEntity } from './PagedEntity';
+// import { PagedEntity } from './PagedEntity';
 import { PagedEntityStore } from './PagedEntityStore';
 
 import { EntityPage } from '../types';
 
 export class PagedEntityPage implements EntityPage {
-  entities: PagedEntity[];
+  parentId: number;
+
+  offsets: number[];
+
+  size: number;
+
+  maxSize: number;
+
+  locked: boolean[];
 
   store: PagedEntityStore;
 
