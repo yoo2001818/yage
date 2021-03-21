@@ -12,13 +12,19 @@ export class PagedEntityPage implements EntityPage {
 
   maxSize: number;
 
-  locked: boolean[];
+  // locked: boolean[];
 
   store: PagedEntityStore;
 
-  constructor(store: PagedEntityStore, entities: PagedEntity[]) {
-    this.entities = entities;
+  constructor(
+    store: PagedEntityStore,
+    offsets: number[],
+    maxSize: number,
+  ) {
     this.store = store;
+    this.offsets = offsets;
+    this.maxSize = maxSize;
+    this.size = 0;
   }
 
   getEntities(): PagedEntity[] {
@@ -31,5 +37,13 @@ export class PagedEntityPage implements EntityPage {
 
   emit(name: string): void {
     this.store.getSignal(name).emit(this);
+  }
+
+  acquireSlot() {
+    
+  }
+
+  releaseSlot() {
+    
   }
 }

@@ -19,12 +19,14 @@ export class PagedEntityClass {
     this.hashCode = getGroupContainerHashCode(offsets, store);
   }
 
-  createEntity(store: PagedEntityStore): PagedEntity {
-
-  }
-  
-  deleteEntity(store: PagedEntityStore, entity: PagedEntity): void {
+  acquireSlot(store: PagedEntityStore): [PagedEntityPage, number] {
 
   }
 
+  releaseSlot(
+    store: PagedEntityStore,
+    page: PagedEntityPage,
+  ): void {
+
+  }
 }
