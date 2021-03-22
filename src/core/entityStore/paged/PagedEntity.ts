@@ -6,14 +6,17 @@ import { Entity } from '../types';
 export class PagedEntity implements Entity {
   id: number;
 
-  map: Map<string, unknown>;
+  page: PagedEntityPage;
+
+  index: number;
 
   store: PagedEntityStore;
 
-  constructor(store: PagedEntityStore, id: number) {
-    this.id = id;
-    this.map = new Map();
+  constructor(store: PagedEntityStore, page: PagedEntityPage, index: number) {
+    this.page = page;
+    this.index = index;
     this.store = store;
+    // TODO Retrieve ID
   }
 
   has(name: string): boolean {

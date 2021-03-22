@@ -1,10 +1,10 @@
-// import { PagedEntity } from './PagedEntity';
+import { PagedEntity } from './PagedEntity';
 import { PagedEntityStore } from './PagedEntityStore';
 
 import { EntityPage } from '../types';
 
 export class PagedEntityPage implements EntityPage {
-  parentId: number;
+  // parentId: number;
 
   offsets: number[];
 
@@ -28,22 +28,31 @@ export class PagedEntityPage implements EntityPage {
   }
 
   getEntities(): PagedEntity[] {
-    return this.entities;
+    const output: PagedEntity[] = [];
+    this.forEach((entity) => output.push(entity));
+    return output;
   }
 
   forEach(callback: (entity: PagedEntity) => void): void {
-    this.entities.forEach(callback);
+    for (let i = 0; i < this.size; i += 1) {
+      callback(new PagedEntity(this.store, this, i));
+    }
   }
 
   emit(name: string): void {
     this.store.getSignal(name).emit(this);
   }
 
-  acquireSlot() {
-    
+  acquireSlot(): number {
+    if (this.size >= this.maxSize) {
+      throw new Error('Page overflow');
+    }
+    const allocated = this.size;
+    this.size += 1;
+    return allocated;
   }
 
-  releaseSlot() {
-    
+  releaseSlot(index: number): void {
+    // Copy the last item's contents to here, then decrease the size counter
   }
 }
