@@ -41,6 +41,12 @@ export class PagedEntityClass {
     page: PagedEntityPage,
     index: number,
   ): void {
-
+    if (page.size === page.maxSize) {
+      this.freePages.push(page);
+    }
+    page.releaseSlot(index);
+    if (page.size === 0) {
+      // Remove the page
+    }
   }
 }

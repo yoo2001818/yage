@@ -54,5 +54,6 @@ export class PagedEntityPage implements EntityPage {
 
   releaseSlot(index: number): void {
     // Copy the last item's contents to here, then decrease the size counter
+    this.size -= 1;
   }
 }
