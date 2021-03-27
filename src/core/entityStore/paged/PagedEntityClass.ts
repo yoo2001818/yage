@@ -27,7 +27,7 @@ export class PagedEntityClass {
       }
       return [page, page.acquireSlot()];
     }
-    const page = store.createPage();
+    const page = new PagedEntityPage(store, this.offsets, 32);
     // page.maxSize = ...
     // allocate
     this.pages.push(page);
