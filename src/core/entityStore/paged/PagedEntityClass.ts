@@ -19,6 +19,13 @@ export class PagedEntityClass {
     this.hashCode = getGroupContainerHashCode(offsets, store);
   }
 
+  _initPage(
+    store: PagedEntityStore,
+    page: PagedEntityPage,
+  ): void {
+    // Fill the page with its own offsets
+  }
+
   acquireSlot(store: PagedEntityStore): [PagedEntityPage, number] {
     if (this.freePages.length > 0) {
       const page = this.freePages[this.freePages.length - 1];
@@ -28,6 +35,7 @@ export class PagedEntityClass {
       return [page, page.acquireSlot()];
     }
     const page = new PagedEntityPage(store, this.offsets, 32);
+    this._initPage(store, page);
     // page.maxSize = ...
     // allocate
     this.pages.push(page);
