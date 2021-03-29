@@ -8,16 +8,51 @@ import { EntityStore } from '../types';
 import { Component } from '../../components';
 
 export class PagedEntityStore implements EntityStore {
-  componentArrays: Component<unknown>[];
+  components: Component<unknown>[] = [];
+
+  componentNames: Record<string, number> = {};
 
   classes: PagedEntityClass[];
 
   signals: Map<string, Signal<[PagedEntityPage]>>;
 
   constructor() {
-    this.componentArrays = [];
     this.classes = [];
     this.signals = new Map();
+  }
+
+  addComponent<T extends Component<any>>(name: string, component: T): T {
+    // It should register component to registry; this should do the following:
+    // 1. Check if component name conflicts.
+    // 2. If not, using given component array, just create and append the
+    //    component to components. Easy!
+
+    if (name in this.componentNames) {
+      throw new Error(`Component ${name} is already registered`);
+    }
+
+    component.register(name, this.components.length);
+    // Register component's offset to componentNames
+    this.componentNames[name] = this.components.length;
+    this.components.push(component);
+    return component;
+  }
+
+  addComponents<T extends { [key: string]: Component<any> }>(
+    components: T,
+  ): void {
+    Object.keys(components).forEach((key) => {
+      const component = components[key];
+      this.addComponent(key, component);
+    });
+  }
+
+  getComponent<T extends Component<unknown>>(name: string): T {
+    const pos = this.componentNames[name];
+    if (pos == null) {
+      throw new Error(`Component ${name} does not exist`);
+    }
+    return this.components[pos] as T;
   }
 
   get(id: number): PagedEntity | null {
