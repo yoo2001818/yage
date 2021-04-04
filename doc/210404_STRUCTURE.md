@@ -1,0 +1,47 @@
+# Structure
+Since it's been a while, and the refactoring needs to be performed, I seriously
+need to rethink about the structure. However this needs a draft document -
+I can't write specification test code out of thin air.
+
+The store contains:
+- a list of ComponentContainer
+- a list of EntityClass
+- a list of Entity
+
+The ComponentContainer receives and manages all the component allocation /
+unallocation. It can be selected to operate in one of these three methods:
+- Array mode. An EntityPage receives an offset to the array. This greatly
+  improves the performance of batch processing.
+- Unison mode. Each Entity calculates hash code to find the specific value;
+  then the Entity gets assigned to the matching EntityPage. This is used to
+  quickly merge the Entity with the same shape / type, so they can be bulk
+  processed, for example instancing can be applied.
+- Independent mode. Each Entity has a Map object containing all the interim
+  components. The ComponentContainer does nothing in this case. This can be
+  utilized when the performance is not important or it can't benefit from
+  cache efficiency. For example, geometries or shaders are too large to benefit
+  from caches, furthermore it'll suffer from relocation since the payload is
+  too large.
+- If the component is not used for searching entities, it can be
+  just dropped. This makes the component dynamically attachable without harming
+  any performance, so it can be used to build an index.
+
+The EntityClass contains the list of EntityPage with same signature. It manages
+EntityPage of its own - the scaling policy, etc, is all managed by each class.
+
+The EntityPage contains the list of Entity. However, the EntityPage directly
+manages the offset of each ComponentContainer - so, if bulk processing is
+required, they can be used in here. it also contains the "lock" bitset which is
+used to determine if an Entity in the given offset is "locked" - the signature
+differs from the original EntityPage's type and should be ignored.
+
+The "lock" bit exists to remove unnecessary memory relocation, which is major
+overhead when changing entities. The batch processing, etc, all ignore an entity
+with "lock" bit set. However the locked entity needs to be processed, so the
+EntityPage reports to EntityClass that it contains locked entity which needs to
+be processed separately.
+
+The entity can freely move between pages, classes, however it may reside within
+non-matching entity type. This will be processed on each end of the tick (or when
+the game is not busy enough)
+
