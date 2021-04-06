@@ -45,3 +45,23 @@ The entity can freely move between pages, classes, however it may reside within
 non-matching entity type. This will be processed on each end of the tick (or when
 the game is not busy enough)
 
+## The Entity Identity
+EntityClass, EntityPage, Entity uses an array filled with numbers to check
+its identity. This is in fact very crucial for the operation of page based
+entity management.
+
+We also need to compare these numbers quickly enough to determine if the
+EntityClass / EntityPage / Entity belongs to certain pattern.
+
+To enable all of this, we can use a "hash code" function to quickly determine
+which entity is which.
+
+## The Entity Allocation Process
+When the entity gets created, it has an identity array to determine the slot.
+The store is required to use this information to correctly place the entity in
+a page.
+
+1. Determine which class it belongs to. Use hash code when necessary.
+2. If it doesn't exist, create one.
+3. The class creates a new page, or uses the previous page.
+4. The page increases its size by 1.
