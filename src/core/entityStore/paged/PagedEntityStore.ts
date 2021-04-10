@@ -55,6 +55,10 @@ export class PagedEntityStore implements EntityStore {
     return this.components[pos] as T;
   }
 
+  getClass(signature: number[]): PagedEntityClass {
+    //
+  }
+
   get(id: number): PagedEntity | null {
   }
 
