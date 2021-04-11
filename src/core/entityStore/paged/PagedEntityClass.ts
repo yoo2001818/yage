@@ -4,7 +4,7 @@ import { PagedEntityStore } from './PagedEntityStore';
 import { PagedEntity } from './PagedEntity';
 
 export class PagedEntityClass {
-  offsets: number[] = [];
+  signature: number[] = [];
 
   hashCode: number = 0;
 
@@ -14,16 +14,16 @@ export class PagedEntityClass {
 
   freePages: PagedEntityPage[] = [];
 
-  constructor(store: PagedEntityStore, offsets: number[]) {
-    this.offsets = offsets;
-    this.hashCode = getGroupContainerHashCode(offsets, store);
+  constructor(store: PagedEntityStore, signature: number[]) {
+    this.signature = signature;
+    this.hashCode = getGroupContainerHashCode(signature, store);
   }
 
   _initPage(
     store: PagedEntityStore,
     page: PagedEntityPage,
   ): void {
-    // Fill the page with its own offsets
+    // Fill the page with its own signature
   }
 
   acquireSlot(store: PagedEntityStore): [PagedEntityPage, number] {
@@ -34,7 +34,7 @@ export class PagedEntityClass {
       }
       return [page, page.acquireSlot()];
     }
-    const page = new PagedEntityPage(store, this.offsets, 32);
+    const page = new PagedEntityPage(store, this.signature, 32);
     this._initPage(store, page);
     // page.maxSize = ...
     // allocate

@@ -6,6 +6,7 @@ import { Signal } from '../../Signal';
 
 import { EntityStore } from '../types';
 import { Component } from '../../components';
+import { getGroupContainerHashCode } from './utils';
 
 export class PagedEntityStore implements EntityStore {
   components: Component<unknown>[] = [];
@@ -56,7 +57,15 @@ export class PagedEntityStore implements EntityStore {
   }
 
   getClass(signature: number[]): PagedEntityClass {
-    //
+    const hashCode = getGroupContainerHashCode(signature, this);
+    // Bleh - we're full scanning the array! It's okay for now...
+    let item = this.classes
+      .find((v) => v.hashCode === hashCode);
+    if (item == null) {
+      item = new PagedEntityClass(this, signature);
+      this.classes.push(item);
+    }
+    return item;
   }
 
   get(id: number): PagedEntity | null {
