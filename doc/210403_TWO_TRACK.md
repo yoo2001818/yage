@@ -13,3 +13,22 @@ just like regular components.
 
 Using this, we can reduce overhead of maintaining component indices even for
 components that are too large.
+
+## Component serialization
+In both cases, the ComponentArray object is solely responsible for generating
+inner-component objects. It MAY use internal indices to manage them, but
+it won't be visible in this case.
+
+This means all JSON serialization, etc, routines are all handled by
+ComponentArray itself.
+
+```tsx
+interface ComponentArray<T> {
+  allocate(size: number): number,
+  release(offset: number, size: number): void,
+
+  get(offset: number): T,
+  fromJSON(offset: number, value: unknown): T,
+  toJSON(offset: number): unknown,
+}
+```
