@@ -32,3 +32,7 @@ interface ComponentArray<T> {
   toJSON(offset: number): unknown,
 }
 ```
+
+## Going further
+Each entity page retrieves an offset of given size. Instead of doing this, we
+can just provide EntityPage sized array and put it directly inside EntityPage.
