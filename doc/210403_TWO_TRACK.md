@@ -48,3 +48,6 @@ initialized with its own storage unit.
 It means, like a buffer object, the component object only acts as a pointer;
 the data can be stored anywhere else. The component therefore must provide
 various ways to store the data, which can be pretty cumbersome.
+
+However, again, this is only meaningful if all data objects implement it.
+Simpler components do not need such a thing and usually it's not worth it.
