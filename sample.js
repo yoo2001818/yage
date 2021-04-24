@@ -43,7 +43,11 @@ query.forEach((entity) => {
   }
 });
 
-// 
+// While we can use Float32Array or array directly to optimize the code,
+// this completely takes away all abstractions and we have to mangle with the
+// memory all the time. The thing is, JavaScript simply isn't good for this
+// task. Instead of this, just keeping everything in the memory and accessing
+// them from JS side would be better?
 query.forEachPage((page) => {
   const posArr = page.get(positions);
   const healthArr = page.get(healths);
@@ -61,6 +65,14 @@ entity.set('health', { value: 30 });
 entity.delete('health');
 
 entity.destroy();
+
+// An index is also treated like a component, so the following is possible:
+entity.get('chunk');
+
+// Each component would manage all entities - therefore it'd be just call
+chunks.get(entity)
+// Which will read entity's key-value storage (if available) and return the
+// instance.
 
 chunks.update();
 
