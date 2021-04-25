@@ -76,3 +76,19 @@ chunks.get(entity)
 
 chunks.update();
 
+// The render systems, etc, can also retrieve and set data using components.
+// For example...
+
+query.forEachPage((page) => {
+  const mesh = page.get('mesh');
+  const instanced = page.get('meshInstanced');
+  const gl;
+  if (instanced == null) {
+    const buffer = gl.createBuffer();
+    // ...
+    page.set('meshInstanced', buffer);
+  }
+  // ...
+  gl.bindBuffer(gl.ARRAY_BUFFER, instanced.buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, 1, 2);
+});
