@@ -1,5 +1,3 @@
-import { Signal } from '../Signal';
-
 export interface EntityStore {
   // Entity manipulation
   get(id: number): Entity | null;
@@ -10,8 +8,8 @@ export interface EntityStore {
   forEachPage(callback: (page: EntityPage) => void): void;
   query(): EntityQuery;
 
-  // Signals. It can emit a bundle of entities..
-  getSignal(name: string): Signal<[any]>,
+  // Component manipulation
+  addComponent(name: string, componentContainer: ComponentContainer): void;
 }
 
 export interface Entity {
@@ -22,8 +20,6 @@ export interface Entity {
   set<V>(name: string, value: V): void;
   delete(name: string): void;
 
-  emit(name: string): void;
-
   toObject(): { [key: string]: unknown };
   fromObject(value: { [key: string]: unknown }): void;
 }
@@ -31,8 +27,6 @@ export interface Entity {
 export interface EntityPage {
   getEntities(): Entity[];
   forEach(callback: (entity: Entity) => void): void;
-
-  emit(name: string): void;
 }
 
 export interface EntityQuery {
@@ -40,4 +34,11 @@ export interface EntityQuery {
 
   forEach(callback: (entity: Entity) => void): void;
   forEachPage(callback: (page: EntityPage) => void): void;
+}
+
+export interface ComponentContainer<T = unknown> {
+  get(entity: Entity): T,
+  set(entity: Entity, value: T): void,
+
+  getSignature(entity: Entity): number,
 }
