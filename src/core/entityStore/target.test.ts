@@ -68,4 +68,25 @@ describe('EntityStore', () => {
       }
     });
   });
+  it('should manage components', () => {
+    // The component container manage its own data, signatures, etc.
+    const store = new EntityStore();
+    const component = new MutableComponent();
+    store.addComponent('component', component);
+
+    expect(component.id).toBe(0);
+    expect(component.name).toBe('component');
+
+    // When an entity gets set a component, the component container itself
+    // manipulates the entity itself.
+    const entity = store.create();
+    // This calls component.set(entity, value)
+    entity.set('component', 0);
+
+    // Like so, this calls component.get(entity, value)
+    entity.get('component');
+
+    // The component itself directly contributes to signature calculation too.
+    entity.getSignature();
+  });
 });
