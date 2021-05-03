@@ -1,32 +1,43 @@
 export interface EntityStore {
   // Entity manipulation
   get(id: number): Entity | null;
-  create(): Entity;
-  createFrom(object: { [key: string]: unknown }): Entity;
+  create(object?: Record<string, unknown>): Entity;
   delete(id: number): void;
   forEach(callback: (entity: Entity) => void): void;
   forEachPage(callback: (page: EntityPage) => void): void;
   query(): EntityQuery;
 
   // Component manipulation
-  addComponent(name: string, componentContainer: ComponentContainer): void;
+  addComponent(
+    name: string,
+    componentContainer: ComponentContainer<any, any>,
+  ): void;
+  addComponents(components: Record<string, ComponentContainer<any, any>>): void;
 }
 
 export interface Entity {
   id: number;
 
-  has(name: string): boolean;
-  get<V>(name: string): V;
-  set<V>(name: string, value: V): void;
-  delete(name: string): void;
+  has(component: ComponentContainer<any, any>): boolean;
+  get<O>(name: string | ComponentContainer<any, O>): O,
+  set<I>(name: string | ComponentContainer<I, any>, value: I): void;
+  delete(name: string | ComponentContainer<any, any>): void;
 
-  toObject(): { [key: string]: unknown };
-  fromObject(value: { [key: string]: unknown }): void;
+  toObject(): Record<string, unknown>;
+  fromObject(value: Record<string, unknown>): void;
+
+  getSignature(): number;
+
+  // The entity must provide free-to-use array to store component's data.
+  componentData: unknown[];
 }
 
 export interface EntityPage {
   getEntities(): Entity[];
   forEach(callback: (entity: Entity) => void): void;
+
+  // The entity page must provide free-to-use array to store component's data.
+  componentData: unknown[];
 }
 
 export interface EntityQuery {
@@ -36,9 +47,15 @@ export interface EntityQuery {
   forEachPage(callback: (page: EntityPage) => void): void;
 }
 
-export interface ComponentContainer<T = unknown> {
-  get(entity: Entity): T,
-  set(entity: Entity, value: T): void,
+// Basically ComponentContainer acts as an converter
+export interface ComponentContainer<InType, OutType> {
+  id: number;
+  name: string;
 
-  getSignature(entity: Entity): number,
+  get(entity: Entity): OutType;
+  set(entity: Entity, value: InType): void;
+
+  getPage?(entityPage: EntityPage): OutType[];
+
+  getSignature(entity: Entity): number;
 }
