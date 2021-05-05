@@ -3,7 +3,7 @@ import { SimpleEntityQuery } from './SimpleEntityQuery';
 import { SimpleEntityPage } from './SimpleEntityPage';
 import { Signal } from '../../Signal';
 
-import { EntityStore } from '../types';
+import { ComponentContainer, EntityStore } from '../types';
 
 export class SimpleEntityStore implements EntityStore {
   entities: (SimpleEntity | null)[];
@@ -12,10 +12,16 @@ export class SimpleEntityStore implements EntityStore {
 
   signals: Map<string, Signal<[SimpleEntityPage]>>;
 
+  components: ComponentContainer<any, any>[];
+
+  componentsMap: Map<string, number>;
+
   constructor() {
     this.entities = [];
     this.deletedIds = [];
     this.signals = new Map();
+    this.components = [];
+    this.componentsMap = new Map();
   }
 
   get(id: number): SimpleEntity | null {
@@ -71,5 +77,18 @@ export class SimpleEntityStore implements EntityStore {
       this.signals.set(name, signal);
     }
     return signal;
+  }
+
+  addComponent(
+    name: string,
+    componentContainer: ComponentContainer<any, any>,
+  ): void {
+
+  }
+
+  addComponents(
+    components: Record<string, ComponentContainer<any, any>>,
+  ): void {
+
   }
 }
