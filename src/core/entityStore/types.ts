@@ -13,15 +13,18 @@ export interface EntityStore {
     componentContainer: ComponentContainer<any, any>,
   ): void;
   addComponents(components: Record<string, ComponentContainer<any, any>>): void;
+  getComponent<T extends ComponentContainer<any, any>>(name: string): T;
+  getComponents(): ComponentContainer<any, any>[];
 }
 
 export interface Entity {
   id: number;
 
-  has(component: ComponentContainer<any, any>): boolean;
+  has(name: string | ComponentContainer<any, any>): boolean;
   get<O>(name: string | ComponentContainer<any, O>): O,
   set<I>(name: string | ComponentContainer<I, any>, value: I): void;
   delete(name: string | ComponentContainer<any, any>): void;
+  clear(): void;
 
   toObject(): Record<string, unknown>;
   fromObject(value: Record<string, unknown>): void;
@@ -52,8 +55,12 @@ export interface ComponentContainer<InType, OutType> {
   id: number;
   name: string;
 
+  register(store: EntityStore, id: number, name: string): void;
+
+  has(entity: Entity): boolean;
   get(entity: Entity): OutType;
   set(entity: Entity, value: InType): void;
+  delete(entity: Entity): void;
 
   getPage?(entityPage: EntityPage): OutType[];
 

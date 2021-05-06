@@ -1,7 +1,6 @@
 import { SimpleEntityStore } from './SimpleEntityStore';
-import { SimpleEntityPage } from './SimpleEntityPage';
 
-import { Entity } from '../types';
+import { ComponentContainer, Entity } from '../types';
 
 export class SimpleEntity implements Entity {
   id: number;
@@ -16,41 +15,54 @@ export class SimpleEntity implements Entity {
     this.store = store;
   }
 
-  has(name: string): boolean {
-    return this.map.has(name);
-  }
-
-  get<V>(name: string): V {
-    if (!this.has(name)) {
-      throw new Error(`Component ${name} does not exist`);
+  has(component: string | ComponentContainer<any, any>): boolean {
+    if (typeof component === 'string') {
+      return this.has(this.store.getComponent(component));
     }
-    return this.map.get(name) as V;
+    return component.has(this);
   }
 
-  set<V>(name: string, value: V): void {
-    this.map.set(name, value);
+  get<O>(component: string | ComponentContainer<any, O>): O {
+    if (typeof component === 'string') {
+      return this.get(this.store.getComponent(component));
+    }
+    return component.get(this);
   }
 
-  delete(name: string): void {
-    this.map.delete(name);
+  set<I>(component: string | ComponentContainer<I, any>, value: I): void {
+    if (typeof component === 'string') {
+      return this.set(this.store.getComponent(component), value);
+    }
+    return component.set(this, value);
   }
 
-  emit(name: string): void {
-    new SimpleEntityPage(this.store, [this]).emit(name);
+  delete(component: string | ComponentContainer<any, any>): void {
+    if (typeof component === 'string') {
+      return this.delete(this.store.getComponent(component));
+    }
+    return component.delete(this);
   }
 
-  toObject(): { [key: string]: unknown } {
-    const output: { [key: string]: unknown } = {};
-    for (const [key, value] of this.map.entries()) {
-      output[key] = value;
+  clear(): void {
+    for (const component of this.store.getComponents()) {
+      component.delete(this);
+    }
+  }
+
+  toObject(): Record<string, unknown> {
+    const output: Record<string, unknown> = {};
+    for (const component of this.store.getComponents()) {
+      if (component.has(this)) {
+        output[component.name] = component.get(this);
+      }
     }
     return output;
   }
 
-  fromObject(value: { [key: string]: unknown }): void {
-    this.map.clear();
-    Object.keys(value).forEach((key) => {
-      this.set(key, value[key]);
-    });
+  fromObject(map: Record<string, unknown>): void {
+    this.clear();
+    for (const [name, value] of Object.entries(map)) {
+      this.set(name, value);
+    }
   }
 }

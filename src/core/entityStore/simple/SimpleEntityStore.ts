@@ -14,7 +14,7 @@ export class SimpleEntityStore implements EntityStore {
 
   components: ComponentContainer<any, any>[];
 
-  componentsMap: Map<string, number>;
+  componentsMap: Map<string, ComponentContainer<any, any>>;
 
   constructor() {
     this.entities = [];
@@ -83,12 +83,32 @@ export class SimpleEntityStore implements EntityStore {
     name: string,
     componentContainer: ComponentContainer<any, any>,
   ): void {
-
+    if (this.componentsMap.has(name)) {
+      throw new Error(`Already registered component ${name}`);
+    }
+    const id = this.components.length;
+    componentContainer.register(this, id, name);
+    this.components.push(componentContainer);
+    this.componentsMap.set(name, componentContainer);
   }
 
   addComponents(
     components: Record<string, ComponentContainer<any, any>>,
   ): void {
+    for (const [name, value] of Object.entries(components)) {
+      this.addComponent(name, value);
+    }
+  }
 
+  getComponent<T extends ComponentContainer<any, any>>(name: string): T {
+    const component = this.componentsMap.get(name);
+    if (component == null) {
+      throw new Error(`Unknown component ${name}`);
+    }
+    return component as T;
+  }
+
+  getComponents(): ComponentContainer<any, any>[] {
+    return this.components;
   }
 }
