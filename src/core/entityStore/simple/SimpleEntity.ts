@@ -5,13 +5,13 @@ import { ComponentContainer, Entity } from '../types';
 export class SimpleEntity implements Entity {
   id: number;
 
-  map: Map<string, unknown>;
+  componentData: unknown[];
 
   store: SimpleEntityStore;
 
   constructor(store: SimpleEntityStore, id: number) {
     this.id = id;
-    this.map = new Map();
+    this.componentData = [];
     this.store = store;
   }
 
@@ -64,5 +64,13 @@ export class SimpleEntity implements Entity {
     for (const [name, value] of Object.entries(map)) {
       this.set(name, value);
     }
+  }
+
+  getSignature(): number {
+    let value: number = 0;
+    for (const component of this.store.getComponents()) {
+      value = value * 7 + component.getSignature(this);
+    }
+    return value;
   }
 }
