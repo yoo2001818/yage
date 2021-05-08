@@ -1,9 +1,14 @@
 import { SimpleEntityStore } from './SimpleEntityStore';
+import { SimpleEntityPage } from './SimpleEntityPage';
 
 import { ComponentContainer, Entity } from '../types';
 
 export class SimpleEntity implements Entity {
   id: number;
+
+  parent: SimpleEntityPage | null;
+
+  offset: number;
 
   componentData: unknown[];
 
@@ -11,6 +16,8 @@ export class SimpleEntity implements Entity {
 
   constructor(store: SimpleEntityStore, id: number) {
     this.id = id;
+    this.parent = null;
+    this.offset = 0;
     this.componentData = [];
     this.store = store;
   }

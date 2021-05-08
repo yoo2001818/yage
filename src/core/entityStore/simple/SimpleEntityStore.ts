@@ -28,7 +28,7 @@ export class SimpleEntityStore implements EntityStore {
     return this.entities[id];
   }
 
-  create(): SimpleEntity {
+  create(map?: Record<string, unknown>): SimpleEntity {
     const newId = this.deletedIds.pop();
     if (newId != null) {
       const entity = new SimpleEntity(this, newId);
@@ -37,12 +37,9 @@ export class SimpleEntityStore implements EntityStore {
     }
     const entity = new SimpleEntity(this, this.entities.length);
     this.entities.push(entity);
-    return entity;
-  }
-
-  createFrom(object: { [key: string]: unknown }): SimpleEntity {
-    const entity = this.create();
-    entity.fromObject(object);
+    if (map != null) {
+      entity.fromObject(map);
+    }
     return entity;
   }
 

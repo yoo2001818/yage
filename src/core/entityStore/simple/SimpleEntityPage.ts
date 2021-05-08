@@ -8,9 +8,12 @@ export class SimpleEntityPage implements EntityPage {
 
   store: SimpleEntityStore;
 
+  componentData: unknown[];
+
   constructor(store: SimpleEntityStore, entities: SimpleEntity[]) {
     this.entities = entities;
     this.store = store;
+    this.componentData = [];
   }
 
   getEntities(): SimpleEntity[] {

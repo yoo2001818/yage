@@ -20,6 +20,9 @@ export interface EntityStore {
 export interface Entity {
   id: number;
 
+  parent: EntityPage | null;
+  offset: number;
+
   has(name: string | ComponentContainer<any, any>): boolean;
   get<O>(name: string | ComponentContainer<any, O>): O,
   set<I>(name: string | ComponentContainer<I, any>, value: I): void;
@@ -36,6 +39,8 @@ export interface Entity {
 }
 
 export interface EntityPage {
+  entities: Entity[];
+
   getEntities(): Entity[];
   forEach(callback: (entity: Entity) => void): void;
 
