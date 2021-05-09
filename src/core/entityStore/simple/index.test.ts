@@ -1,4 +1,5 @@
 import { SimpleEntityStore } from './SimpleEntityStore';
+import { SimpleComponentContainer } from './SimpleComponentContainer';
 
 describe('SimpleEntityStore', () => {
   it('should create and delete entities', () => {
@@ -11,7 +12,11 @@ describe('SimpleEntityStore', () => {
   });
   it('should create from object', () => {
     const store = new SimpleEntityStore();
-    const entity = store.createFrom({ name: 'A', health: 10 });
+    store.addComponents({
+      name: new SimpleComponentContainer(),
+      health: new SimpleComponentContainer(),
+    });
+    const entity = store.create({ name: 'A', health: 10 });
     expect(entity.toObject()).toEqual({
       name: 'A',
       health: 10,
@@ -42,6 +47,10 @@ describe('SimpleEntityStore', () => {
 describe('SimpleEntity', () => {
   it('should manage components', () => {
     const store = new SimpleEntityStore();
+    store.addComponents({
+      name: new SimpleComponentContainer(),
+      x: new SimpleComponentContainer(),
+    });
     const entity = store.create();
     entity.set('name', 'Hello');
     expect(entity.has('name')).toBe(true);
@@ -59,6 +68,10 @@ describe('SimpleEntity', () => {
 describe('SimpleEntityQuery', () => {
   it('should filter out entities', () => {
     const store = new SimpleEntityStore();
+    store.addComponents({
+      name: new SimpleComponentContainer(),
+      x: new SimpleComponentContainer(),
+    });
     const entity1 = store.create();
     entity1.set('name', 'A');
     entity1.set('x', 5);
