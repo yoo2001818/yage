@@ -65,3 +65,39 @@ a page.
 2. If it doesn't exist, create one.
 3. The class creates a new page, or uses the previous page.
 4. The page increases its size by 1.
+
+## The Component Container
+The ComponentContainer class handles data management, including hashCode or
+getters, setters. If the entity's data only reside in the entity, it'd be pretty
+simple.
+
+However, there is a concept of EntityPage, which pretty much complicates
+everything.
+
+Basically, the entity's data can freely move around - between entity and
+pages - and the ComponentContainer must be aware of it in order to utilize
+the page's information.
+
+However, it'd be simple enough to implement that, since the ComponentContainer
+manages the data storage on its own, nothing else really interferes with it.
+
+The ComponentContainer can instead opt to store everything in the Entity. This
+is completely fine - it can just ignore "move" requests and store everything in
+the Entity.
+
+If the ComponentContainer opt to utilize EntityPage, it must do the following:
+
+- When performing get, set, has, delete...
+  - It must look for Entity's data set first, which might be a tuple.
+  - If it's undefined, it must proceed to look for EntityPage's data set.
+  - If the Entity's data is marked as deleted, it must report the component as
+    "not existing" and should not touch EntityPage's data at all.
+- It will be often asked to move the values around. Indeed the
+  ComponentContainer should move the values from page to entity, or vice versa.
+
+## The "lock" bit
+The EntityPage has a "lock" bit that is set whenever the signature of entity
+does not conform to the EntityPage's signature.
+
+To calculate this, the EntityPage would have a list of signature returned from
+the each component.
