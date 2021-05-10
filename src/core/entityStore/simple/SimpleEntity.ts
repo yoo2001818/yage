@@ -29,7 +29,7 @@ export class SimpleEntity implements Entity {
     return component.has(this);
   }
 
-  get<O>(component: string | ComponentContainer<any, O>): O {
+  get<O>(component: string | ComponentContainer<any, O>): O | undefined {
     if (typeof component === 'string') {
       return this.get(this.store.getComponent(component));
     }

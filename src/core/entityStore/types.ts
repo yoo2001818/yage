@@ -24,7 +24,7 @@ export interface Entity {
   offset: number;
 
   has(name: string | ComponentContainer<any, any>): boolean;
-  get<O>(name: string | ComponentContainer<any, O>): O,
+  get<O>(name: string | ComponentContainer<any, O>): O | undefined,
   set<I>(name: string | ComponentContainer<I, any>, value: I): void;
   delete(name: string | ComponentContainer<any, any>): void;
   clear(): void;
@@ -63,10 +63,15 @@ export interface ComponentContainer<InType, OutType> {
   register(store: EntityStore, id: number, name: string): void;
 
   has(entity: Entity): boolean;
-  get(entity: Entity): OutType;
+  get(entity: Entity): OutType | undefined;
   set(entity: Entity, value: InType): void;
   delete(entity: Entity): void;
 
+  unfloat(entity: Entity): void;
+  float(entity: Entity): void;
+
+  initPage(entityPage: EntityPage): void;
+  finalizePage(entityPage: EntityPage): void;
   getPage?(entityPage: EntityPage): OutType[];
 
   getSignature(entity: Entity): number;

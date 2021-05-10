@@ -17,12 +17,9 @@ export class SimpleComponentContainer<T> implements ComponentContainer<T, T> {
     return entity.componentData[this.id] !== undefined;
   }
 
-  get(entity: Entity): T {
+  get(entity: Entity): T | undefined {
     const value = entity.componentData[this.id];
-    if (value === undefined) {
-      throw new Error(`Entity doesn't have component ${this.name} set`);
-    }
-    return value as T;
+    return value as T | undefined;
   }
 
   set(entity: Entity, value: T): void {
@@ -31,6 +28,22 @@ export class SimpleComponentContainer<T> implements ComponentContainer<T, T> {
 
   delete(entity: Entity): void {
     entity.componentData[this.id] = undefined;
+  }
+
+  unfloat(): void {
+    // noop
+  }
+
+  float(): void {
+    // noop
+  }
+
+  initPage(): void {
+    // noop
+  }
+
+  finalizePage(): void {
+    // noop
   }
 
   getSignature(entity: Entity): number {
