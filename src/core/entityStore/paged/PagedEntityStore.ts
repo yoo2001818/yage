@@ -2,103 +2,79 @@ import { PagedEntity } from './PagedEntity';
 import { PagedEntityQuery } from './PagedEntityQuery';
 import { PagedEntityPage } from './PagedEntityPage';
 import { PagedEntityClass } from './PagedEntityClass';
-import { Signal } from '../../Signal';
 
-import { EntityStore } from '../types';
-import { Component } from '../../components';
-import { getGroupContainerHashCode } from './utils';
+import { ComponentContainer, EntityStore } from '../types';
 
 export class PagedEntityStore implements EntityStore {
-  components: Component<unknown>[] = [];
+  entities: (PagedEntity | null)[];
 
-  componentNames: Record<string, number> = {};
+  classes: Map<number, PagedEntityClass>;
 
-  classes: PagedEntityClass[];
+  components: ComponentContainer<any, any>[];
 
-  signals: Map<string, Signal<[PagedEntityPage]>>;
+  componentsMap: Map<string, ComponentContainer<any, any>>;
 
   constructor() {
-    this.classes = [];
-    this.signals = new Map();
-  }
-
-  addComponent<T extends Component<any>>(name: string, component: T): T {
-    // It should register component to registry; this should do the following:
-    // 1. Check if component name conflicts.
-    // 2. If not, using given component array, just create and append the
-    //    component to components. Easy!
-
-    if (name in this.componentNames) {
-      throw new Error(`Component ${name} is already registered`);
-    }
-
-    component.register(name, this.components.length);
-    // Register component's offset to componentNames
-    this.componentNames[name] = this.components.length;
-    this.components.push(component);
-    return component;
-  }
-
-  addComponents<T extends { [key: string]: Component<any> }>(
-    components: T,
-  ): void {
-    Object.keys(components).forEach((key) => {
-      const component = components[key];
-      this.addComponent(key, component);
-    });
-  }
-
-  getComponent<T extends Component<unknown>>(name: string): T {
-    const pos = this.componentNames[name];
-    if (pos == null) {
-      throw new Error(`Component ${name} does not exist`);
-    }
-    return this.components[pos] as T;
-  }
-
-  getClass(signature: number[]): PagedEntityClass {
-    const hashCode = getGroupContainerHashCode(signature, this);
-    // Bleh - we're full scanning the array! It's okay for now...
-    let item = this.classes
-      .find((v) => v.hashCode === hashCode);
-    if (item == null) {
-      item = new PagedEntityClass(this, signature);
-      this.classes.push(item);
-    }
-    return item;
+    this.entities = [];
+    this.classes = new Map();
+    this.components = [];
+    this.componentsMap = new Map();
   }
 
   get(id: number): PagedEntity | null {
+
   }
 
-  create(): PagedEntity {
-  }
+  create(map?: Record<string, unknown>): PagedEntity {
 
-  createFrom(object: { [key: string]: unknown }): PagedEntity {
-    const entity = this.create();
-    entity.fromObject(object);
-    return entity;
   }
 
   delete(id: number): void {
+
   }
 
   forEach(callback: (entity: PagedEntity) => void): void {
+
   }
 
   forEachPage(callback: (page: PagedEntityPage) => void): void {
-  }
 
+  }
+  
   query(): PagedEntityQuery {
     return new PagedEntityQuery(this);
   }
 
-  getSignal(name: string): Signal<[PagedEntityPage]> {
-    let signal = this.signals.get(name);
-    if (signal == null) {
-      signal = new Signal<[PagedEntityPage]>();
-      this.signals.set(name, signal);
+  addComponent(
+    name: string,
+    componentContainer: ComponentContainer<any, any>,
+  ): void {
+    if (this.componentsMap.has(name)) {
+      throw new Error(`Already registered component ${name}`);
     }
-    return signal;
+    const id = this.components.length;
+    componentContainer.register(this, id, name);
+    this.components.push(componentContainer);
+    this.componentsMap.set(name, componentContainer);
+  }
+
+  addComponents(
+    components: Record<string, ComponentContainer<any, any>>,
+  ): void {
+    for (const [name, value] of Object.entries(components)) {
+      this.addComponent(name, value);
+    }
+  }
+
+  getComponent<T extends ComponentContainer<any, any>>(name: string): T {
+    const component = this.componentsMap.get(name);
+    if (component == null) {
+      throw new Error(`Unknown component ${name}`);
+    }
+    return component as T;
+  }
+
+  getComponents(): ComponentContainer<any, any>[] {
+    return this.components;
   }
 }

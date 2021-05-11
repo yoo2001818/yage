@@ -10,8 +10,6 @@ export class SimpleEntityStore implements EntityStore {
 
   deletedIds: number[];
 
-  signals: Map<string, Signal<[SimpleEntityPage]>>;
-
   components: ComponentContainer<any, any>[];
 
   componentsMap: Map<string, ComponentContainer<any, any>>;
@@ -19,7 +17,6 @@ export class SimpleEntityStore implements EntityStore {
   constructor() {
     this.entities = [];
     this.deletedIds = [];
-    this.signals = new Map();
     this.components = [];
     this.componentsMap = new Map();
   }
