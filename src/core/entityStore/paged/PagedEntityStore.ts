@@ -22,7 +22,7 @@ export class PagedEntityStore implements EntityStore {
   }
 
   get(id: number): PagedEntity | null {
-
+    return this.entities[id];
   }
 
   create(map?: Record<string, unknown>): PagedEntity {

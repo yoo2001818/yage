@@ -64,15 +64,6 @@ export class SimpleEntityStore implements EntityStore {
     return new SimpleEntityQuery(this);
   }
 
-  getSignal(name: string): Signal<[SimpleEntityPage]> {
-    let signal = this.signals.get(name);
-    if (signal == null) {
-      signal = new Signal<[SimpleEntityPage]>();
-      this.signals.set(name, signal);
-    }
-    return signal;
-  }
-
   addComponent(
     name: string,
     componentContainer: ComponentContainer<any, any>,
