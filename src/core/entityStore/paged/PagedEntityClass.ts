@@ -4,9 +4,11 @@ import { PagedEntityStore } from './PagedEntityStore';
 import { PagedEntity } from './PagedEntity';
 
 export class PagedEntityClass {
-  signature: number[] = [];
+  store: PagedEntityStore;
 
-  hashCode: number = 0;
+  signatures: number[] = [];
+
+  signature: number = 0;
 
   // The pages are managed using an array - however random removal is
   // necessary for this to function..
@@ -14,9 +16,14 @@ export class PagedEntityClass {
 
   freePages: PagedEntityPage[] = [];
 
-  constructor(store: PagedEntityStore, signature: number[]) {
+  constructor(
+    store: PagedEntityStore,
+    signatures: number[],
+    signature: number,
+  ) {
+    this.store = store;
+    this.signatures = signatures;
     this.signature = signature;
-    this.hashCode = getGroupContainerHashCode(signature, store);
   }
 
   _initPage(

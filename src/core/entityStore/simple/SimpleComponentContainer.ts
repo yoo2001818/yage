@@ -30,11 +30,7 @@ export class SimpleComponentContainer<T> implements ComponentContainer<T, T> {
     entity.componentData[this.id] = undefined;
   }
 
-  unfloat(): void {
-    // noop
-  }
-
-  float(): void {
+  move(): void {
     // noop
   }
 

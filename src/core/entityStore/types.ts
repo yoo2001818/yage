@@ -67,8 +67,7 @@ export interface ComponentContainer<InType, OutType> {
   set(entity: Entity, value: InType): void;
   delete(entity: Entity): void;
 
-  unfloat(entity: Entity): void;
-  float(entity: Entity): void;
+  move(entity: Entity, destPage: EntityPage | null, destOffset: number): void;
 
   initPage(entityPage: EntityPage): void;
   finalizePage(entityPage: EntityPage): void;

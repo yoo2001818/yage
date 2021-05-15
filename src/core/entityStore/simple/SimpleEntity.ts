@@ -1,12 +1,11 @@
 import { SimpleEntityStore } from './SimpleEntityStore';
-import { SimpleEntityPage } from './SimpleEntityPage';
 
 import { ComponentContainer, Entity } from '../types';
 
 export class SimpleEntity implements Entity {
   id: number;
 
-  parent: SimpleEntityPage | null;
+  parent: null;
 
   offset: number;
 
@@ -16,10 +15,10 @@ export class SimpleEntity implements Entity {
 
   constructor(store: SimpleEntityStore, id: number) {
     this.id = id;
-    this.parent = null;
-    this.offset = 0;
     this.componentData = [];
     this.store = store;
+    this.parent = null;
+    this.offset = 0;
   }
 
   has(component: string | ComponentContainer<any, any>): boolean {

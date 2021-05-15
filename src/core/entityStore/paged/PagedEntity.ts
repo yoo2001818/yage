@@ -1,59 +1,105 @@
 import { PagedEntityStore } from './PagedEntityStore';
 import { PagedEntityPage } from './PagedEntityPage';
 
-import { Entity } from '../types';
+import { ComponentContainer, Entity } from '../types';
 
 export class PagedEntity implements Entity {
   id: number;
 
-  page: PagedEntityPage;
+  parent: PagedEntityPage | null;
 
-  index: number;
+  offset: number;
+
+  componentData: unknown[];
 
   store: PagedEntityStore;
 
-  constructor(store: PagedEntityStore, page: PagedEntityPage, index: number) {
-    this.page = page;
-    this.index = index;
+  constructor(
+    store: PagedEntityStore,
+    id: number,
+    parent: PagedEntityPage | null,
+    offset: number,
+  ) {
+    this.id = id;
+    this.parent = parent;
+    this.offset = offset;
+    this.componentData = [];
     this.store = store;
-    // TODO Retrieve ID
   }
 
-  has(name: string): boolean {
-    return this.map.has(name);
-  }
-
-  get<V>(name: string): V {
-    if (!this.has(name)) {
-      throw new Error(`Component ${name} does not exist`);
+  has(component: string | ComponentContainer<any, any>): boolean {
+    if (typeof component === 'string') {
+      return this.has(this.store.getComponent(component));
     }
-    return this.map.get(name) as V;
+    return component.has(this);
   }
 
-  set<V>(name: string, value: V): void {
-    this.map.set(name, value);
+  get<O>(component: string | ComponentContainer<any, O>): O | undefined {
+    if (typeof component === 'string') {
+      return this.get(this.store.getComponent(component));
+    }
+    return component.get(this);
   }
 
-  delete(name: string): void {
-    this.map.delete(name);
+  set<I>(component: string | ComponentContainer<I, any>, value: I): void {
+    if (typeof component === 'string') {
+      return this.set(this.store.getComponent(component), value);
+    }
+    // TODO Should the component signature changes, make it floating
+    return component.set(this, value);
   }
 
-  emit(name: string): void {
-    new PagedEntityPage(this.store, [this]).emit(name);
+  delete(component: string | ComponentContainer<any, any>): void {
+    if (typeof component === 'string') {
+      return this.delete(this.store.getComponent(component));
+    }
+    // TODO Should the component signature changes, make it floating
+    // Because floating operation is relatively simple,
+    return component.delete(this);
   }
 
-  toObject(): { [key: string]: unknown } {
-    const output: { [key: string]: unknown } = {};
-    for (const [key, value] of this.map.entries()) {
-      output[key] = value;
+  clear(): void {
+    for (const component of this.store.getComponents()) {
+      component.delete(this);
+    }
+    // TODO Should the component signature changes, make it floating
+  }
+
+  float(): void {
+    // Make the parent locked.
+  }
+
+  unfloat(): void {
+    // Find the appropriate EntityClass using the signature, and move to there.
+  }
+
+  toObject(): Record<string, unknown> {
+    const output: Record<string, unknown> = {};
+    for (const component of this.store.getComponents()) {
+      if (component.has(this)) {
+        output[component.name] = component.get(this);
+      }
     }
     return output;
   }
 
-  fromObject(value: { [key: string]: unknown }): void {
-    this.map.clear();
-    Object.keys(value).forEach((key) => {
-      this.set(key, value[key]);
-    });
+  fromObject(map: Record<string, unknown>): void {
+    this.clear();
+    for (const [name, value] of Object.entries(map)) {
+      this.set(name, value);
+    }
+  }
+
+  getSignatures(): number[] {
+    return this.store.getComponents()
+      .map((component) => component.getSignature(this));
+  }
+
+  getSignature(): number {
+    let value: number = 0;
+    for (const component of this.store.getComponents()) {
+      value = value * 7 + component.getSignature(this);
+    }
+    return value;
   }
 }

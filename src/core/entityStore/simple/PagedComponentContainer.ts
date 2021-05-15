@@ -99,17 +99,20 @@ export class PagedComponentContainer<T> implements ComponentContainer<T, T> {
     entity.componentData[this.id] = entry;
   }
 
-  unfloat(entity: Entity): void {
-    // Retrieve the data from entity and set it. Because of its structure,
-    // the following is possible too!
+  move(entity: Entity, destPage: EntityPage | null, destOffset: number): void {
+    // Retrieve the data from entity and set it.
+    // NOTE if we have destPage set, it assumes that destPage has parentArr.
     const value = this.get(entity) as T;
-    this.set(entity, value);
-  }
-
-  float(entity: Entity): void {
-    // Yup, the opposite is totally the same.
-    const value = this.get(entity) as T;
-    this.set(entity, value);
+    // If the value is undefined, it means it has been deleted; there's no
+    // need to do anything else.
+    if (value === undefined) return;
+    if (destPage != null) {
+      const parentArr = destPage.componentData[this.id] as T[];
+      parentArr[destOffset] = value;
+      entity.componentData[this.id] = undefined;
+    } else {
+      entity.componentData[this.id] = { deleted: false, value };
+    }
   }
 
   initPage(page: EntityPage): void {

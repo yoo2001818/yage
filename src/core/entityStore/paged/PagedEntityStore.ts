@@ -45,6 +45,14 @@ export class PagedEntityStore implements EntityStore {
     return new PagedEntityQuery(this);
   }
 
+  getClass(signatureArray: number[], signature: number): PagedEntityClass {
+    let entityClass = this.classes.get(signature);
+    if (entityClass != null) return entityClass;
+    entityClass = new PagedEntityClass(this, signatureArray, signature);
+    this.classes.set(signature, entityClass);
+    return entityClass;
+  }
+
   addComponent(
     name: string,
     componentContainer: ComponentContainer<any, any>,
