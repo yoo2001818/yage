@@ -73,6 +73,18 @@ export class PagedEntity implements Entity {
     // Find the appropriate EntityClass using the signature, and move to there.
   }
 
+  move(destPage: PagedEntityPage | null, destOffset: number): void {
+    // Dial all components to move the data, then set its own page / offset.
+    for (const component of this.store.getComponents()) {
+      component.move(this, destPage, destOffset);
+    }
+    if (this.parent != null) {
+      this.parent.releaseSlot(this.offset);
+    }
+    this.parent = destPage;
+    this.offset = destOffset;
+  }
+
   toObject(): Record<string, unknown> {
     const output: Record<string, unknown> = {};
     for (const component of this.store.getComponents()) {

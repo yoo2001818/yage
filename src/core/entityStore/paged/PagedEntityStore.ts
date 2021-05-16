@@ -54,7 +54,7 @@ export class PagedEntityStore implements EntityStore {
   forEachPage(callback: (page: PagedEntityPage) => void): void {
 
   }
-  
+
   query(): PagedEntityQuery {
     return new PagedEntityQuery(this);
   }
@@ -70,6 +70,7 @@ export class PagedEntityStore implements EntityStore {
       entity.parent.locked[entity.offset] = false;
     }
     const [page, offset] = entityClass.acquireSlot();
+    entity.move(page, offset);
   }
 
   getClass(signatureArray: number[], signature: number): PagedEntityClass {
