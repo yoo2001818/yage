@@ -1,46 +1,44 @@
 import { PagedEntity } from './PagedEntity';
 import { PagedEntityStore } from './PagedEntityStore';
+import { PagedEntityClass } from './PagedEntityClass';
 
 import { EntityPage } from '../types';
 
 export class PagedEntityPage implements EntityPage {
-  // parentId: number;
-
-  offsets: number[];
+  entities: PagedEntity[];
 
   size: number;
 
   maxSize: number;
 
-  // locked: boolean[];
+  locked: boolean[];
+
+  entityClass: PagedEntityClass;
 
   store: PagedEntityStore;
 
+  componentData: unknown[];
+
   constructor(
     store: PagedEntityStore,
-    offsets: number[],
+    entityClass: PagedEntityClass,
     maxSize: number,
   ) {
-    this.store = store;
-    this.offsets = offsets;
-    this.maxSize = maxSize;
+    this.entities = [];
     this.size = 0;
+    this.maxSize = maxSize;
+    this.locked = [];
+    this.entityClass = entityClass;
+    this.store = store;
+    this.componentData = [];
   }
 
   getEntities(): PagedEntity[] {
-    const output: PagedEntity[] = [];
-    this.forEach((entity) => output.push(entity));
-    return output;
+    return this.entities;
   }
 
   forEach(callback: (entity: PagedEntity) => void): void {
-    for (let i = 0; i < this.size; i += 1) {
-      callback(new PagedEntity(this.store, this, i));
-    }
-  }
-
-  emit(name: string): void {
-    this.store.getSignal(name).emit(this);
+    this.entities.forEach(callback);
   }
 
   acquireSlot(): number {

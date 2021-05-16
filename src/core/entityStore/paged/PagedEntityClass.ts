@@ -1,4 +1,3 @@
-import { getGroupContainerHashCode } from './utils';
 import { PagedEntityPage } from './PagedEntityPage';
 import { PagedEntityStore } from './PagedEntityStore';
 import { PagedEntity } from './PagedEntity';
@@ -33,7 +32,7 @@ export class PagedEntityClass {
     // Fill the page with its own signature
   }
 
-  acquireSlot(store: PagedEntityStore): [PagedEntityPage, number] {
+  acquireSlot(): [PagedEntityPage, number] {
     if (this.freePages.length > 0) {
       const page = this.freePages[this.freePages.length - 1];
       if (page.size + 1 >= page.maxSize) {
@@ -41,8 +40,8 @@ export class PagedEntityClass {
       }
       return [page, page.acquireSlot()];
     }
-    const page = new PagedEntityPage(store, this.signature, 32);
-    this._initPage(store, page);
+    const page = new PagedEntityPage(this.store, this, 32);
+    this._initPage(this.store, page);
     // page.maxSize = ...
     // allocate
     this.pages.push(page);

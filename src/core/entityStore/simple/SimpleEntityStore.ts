@@ -8,7 +8,7 @@ import { ComponentContainer, EntityStore } from '../types';
 export class SimpleEntityStore implements EntityStore {
   entities: (SimpleEntity | null)[];
 
-  deletedIds: number[];
+  deletedEntities: SimpleEntity[];
 
   components: ComponentContainer<any, any>[];
 
@@ -16,7 +16,7 @@ export class SimpleEntityStore implements EntityStore {
 
   constructor() {
     this.entities = [];
-    this.deletedIds = [];
+    this.deletedEntities = [];
     this.components = [];
     this.componentsMap = new Map();
   }
@@ -26,11 +26,10 @@ export class SimpleEntityStore implements EntityStore {
   }
 
   create(map?: Record<string, unknown>): SimpleEntity {
-    const newId = this.deletedIds.pop();
-    if (newId != null) {
-      const entity = new SimpleEntity(this, newId);
-      this.entities[newId] = entity;
-      return entity;
+    const revivedEntity = this.deletedEntities.pop();
+    if (revivedEntity != null) {
+      this.entities[revivedEntity.id] = revivedEntity;
+      return revivedEntity;
     }
     const entity = new SimpleEntity(this, this.entities.length);
     this.entities.push(entity);
@@ -41,9 +40,11 @@ export class SimpleEntityStore implements EntityStore {
   }
 
   delete(id: number): void {
-    if (this.entities[id] == null) return;
+    const entity = this.entities[id];
+    if (entity == null) return;
+    entity.clear();
+    this.deletedEntities.push(entity);
     this.entities[id] = null;
-    this.deletedIds.push(id);
   }
 
   forEach(callback: (entity: SimpleEntity) => void): void {
