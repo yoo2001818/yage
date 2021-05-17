@@ -54,4 +54,12 @@ export class PagedEntityPage implements EntityPage {
     // Copy the last item's contents to here, then decrease the size counter
     this.size -= 1;
   }
+
+  lock(offset: number): void {
+    this.locked[offset] = true;
+  }
+
+  unlock(offset: number): void {
+    this.locked[offset] = false;
+  }
 }

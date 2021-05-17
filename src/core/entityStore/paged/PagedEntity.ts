@@ -67,10 +67,14 @@ export class PagedEntity implements Entity {
 
   float(): void {
     // Make the parent locked.
+    if (this.parent != null) {
+      this.parent.lock(this.offset);
+    }
   }
 
   unfloat(): void {
     // Find the appropriate EntityClass using the signature, and move to there.
+    this.store.unfloat(this);
   }
 
   move(destPage: PagedEntityPage | null, destOffset: number): void {
@@ -83,6 +87,7 @@ export class PagedEntity implements Entity {
     }
     this.parent = destPage;
     this.offset = destOffset;
+    destPage?.unlock(destOffset);
   }
 
   toObject(): Record<string, unknown> {
