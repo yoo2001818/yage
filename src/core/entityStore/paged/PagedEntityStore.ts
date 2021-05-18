@@ -48,11 +48,15 @@ export class PagedEntityStore implements EntityStore {
   }
 
   forEach(callback: (entity: PagedEntity) => void): void {
-
+    this.entities.forEach((entity) => {
+      if (entity != null) callback(entity);
+    });
   }
 
   forEachPage(callback: (page: PagedEntityPage) => void): void {
-
+    this.classes.forEach((entityClass) => {
+      entityClass.forEachPage(callback);
+    });
   }
 
   query(): PagedEntityQuery {

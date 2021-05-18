@@ -25,6 +25,10 @@ export class PagedEntityClass {
     this.signature = signature;
   }
 
+  forEachPage(callback: (page: PagedEntityPage) => void): void {
+    this.pages.forEach(callback);
+  }
+
   _initPage(
     store: PagedEntityStore,
     page: PagedEntityPage,
