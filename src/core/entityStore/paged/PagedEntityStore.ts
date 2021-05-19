@@ -10,6 +10,8 @@ export class PagedEntityStore implements EntityStore {
 
   deletedEntities: PagedEntity[];
 
+  floatingEntities: PagedEntity[];
+
   classes: Map<number, PagedEntityClass>;
 
   components: ComponentContainer<any, any>[];
@@ -19,6 +21,7 @@ export class PagedEntityStore implements EntityStore {
   constructor() {
     this.entities = [];
     this.deletedEntities = [];
+    this.floatingEntities = [];
     this.classes = new Map();
     this.components = [];
     this.componentsMap = new Map();
@@ -33,13 +36,19 @@ export class PagedEntityStore implements EntityStore {
     const revivedEntity = this.deletedEntities.pop();
     if (revivedEntity != null) {
       entity = revivedEntity;
+      this.entities[entity.id] = entity;
     } else {
       entity = new PagedEntity(this, this.entities.length, null, 0);
+      this.entities.push(entity);
     }
     // Set the map if it exists
     if (map != null) {
       entity.fromObject(map);
     }
+    // TODO Make it floating, or not floating. If the entity is a floating
+    // entity, register to floating entity page.
+    // Otherwise, find and assign entity.
+    this.floatingEntities.push(entity);
     return entity;
   }
 
@@ -63,18 +72,25 @@ export class PagedEntityStore implements EntityStore {
     return new PagedEntityQuery(this);
   }
 
+  float(entity: PagedEntity): void {
+    // Mark the entity as floating.
+    if (!entity.floating) {
+      entity.floating = true;
+      this.floatingEntities.push(entity);
+    }
+  }
+
   unfloat(entity: PagedEntity): void {
     // TODO: This looks odd.
     const signatures = entity.getSignatures();
     const signature = entity.getSignature();
     // Find the target class
     const entityClass = this.getClass(signatures, signature);
-    if (entity.parent != null && entity.parent.entityClass === entityClass) {
-      // Do nothing and make the entity unlocked.
-      entity.parent.locked[entity.offset] = false;
-    }
     const [page, offset] = entityClass.acquireSlot();
     entity.move(page, offset);
+    entity.floating = false;
+    // TODO: Really?
+    this.floatingEntities = this.floatingEntities.filter((v) => v !== entity);
   }
 
   getClass(signatureArray: number[], signature: number): PagedEntityClass {

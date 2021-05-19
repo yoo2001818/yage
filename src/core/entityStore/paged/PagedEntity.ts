@@ -14,6 +14,8 @@ export class PagedEntity implements Entity {
 
   store: PagedEntityStore;
 
+  floating: boolean;
+
   constructor(
     store: PagedEntityStore,
     id: number,
@@ -23,6 +25,7 @@ export class PagedEntity implements Entity {
     this.id = id;
     this.parent = parent;
     this.offset = offset;
+    this.floating = parent == null;
     this.componentData = [];
     this.store = store;
   }
@@ -66,10 +69,7 @@ export class PagedEntity implements Entity {
   }
 
   float(): void {
-    // Make the parent locked.
-    if (this.parent != null) {
-      this.parent.lock(this.offset);
-    }
+    this.store.float(this);
   }
 
   unfloat(): void {
@@ -87,7 +87,6 @@ export class PagedEntity implements Entity {
     }
     this.parent = destPage;
     this.offset = destOffset;
-    destPage?.unlock(destOffset);
   }
 
   toObject(): Record<string, unknown> {

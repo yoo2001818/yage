@@ -11,8 +11,6 @@ export class PagedEntityPage implements EntityPage {
 
   maxSize: number;
 
-  locked: boolean[];
-
   entityClass: PagedEntityClass;
 
   store: PagedEntityStore;
@@ -27,7 +25,6 @@ export class PagedEntityPage implements EntityPage {
     this.entities = [];
     this.size = 0;
     this.maxSize = maxSize;
-    this.locked = [];
     this.entityClass = entityClass;
     this.store = store;
     this.componentData = [];
@@ -53,13 +50,5 @@ export class PagedEntityPage implements EntityPage {
   releaseSlot(index: number): void {
     // Copy the last item's contents to here, then decrease the size counter
     this.size -= 1;
-  }
-
-  lock(offset: number): void {
-    this.locked[offset] = true;
-  }
-
-  unlock(offset: number): void {
-    this.locked[offset] = false;
   }
 }
