@@ -1,6 +1,5 @@
 import { PagedEntityPage } from './PagedEntityPage';
 import { PagedEntityStore } from './PagedEntityStore';
-import { PagedEntity } from './PagedEntity';
 
 export class PagedEntityClass {
   store: PagedEntityStore;
@@ -29,11 +28,15 @@ export class PagedEntityClass {
     this.pages.forEach(callback);
   }
 
-  _initPage(
-    store: PagedEntityStore,
-    page: PagedEntityPage,
-  ): void {
+  _createPage(): PagedEntityPage {
     // Fill the page with its own signature
+    const page = new PagedEntityPage(this.store, this, 32);
+    for (const component of this.store.getComponents()) {
+      component.initPage(page);
+    }
+    this.pages.push(page);
+    this.freePages.push(page);
+    return page;
   }
 
   acquireSlot(): [PagedEntityPage, number] {
@@ -44,13 +47,7 @@ export class PagedEntityClass {
       }
       return [page, page.acquireSlot()];
     }
-    const page = new PagedEntityPage(this.store, this, 32);
-    this._initPage(this.store, page);
-    // page.maxSize = ...
-    // allocate
-    this.pages.push(page);
-    this.freePages.push(page);
-
+    const page = this._createPage();
     return [page, page.acquireSlot()];
   }
 
