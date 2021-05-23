@@ -53,7 +53,13 @@ export class PagedEntityStore implements EntityStore {
   }
 
   delete(id: number): void {
-
+    // Make the entity floating, then remove it from the page
+    // TODO How am I going to implement it? the page doesn't maintain
+    // entities...
+    const entity = this.get(id);
+    if (entity == null) return;
+    entity.floating = true;
+    this.entities[id] = null;
   }
 
   forEach(callback: (entity: PagedEntity) => void): void {

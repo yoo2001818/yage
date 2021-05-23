@@ -46,34 +46,49 @@ export class PagedEntity implements Entity {
 
   set<I>(component: string | ComponentContainer<I, any>, value: I): void {
     if (typeof component === 'string') {
-      return this.set(this.store.getComponent(component), value);
+      this.set(this.store.getComponent(component), value);
+      return;
     }
-    // TODO Should the component signature changes, make it floating
-    return component.set(this, value);
+    // If the component signature changes, make it floating
+    const prevSig = component.getSignature(this);
+    component.set(this, value);
+    const nextSig = component.getSignature(this);
+    if (prevSig !== nextSig) {
+      this.float();
+    }
   }
 
   delete(component: string | ComponentContainer<any, any>): void {
     if (typeof component === 'string') {
-      return this.delete(this.store.getComponent(component));
+      this.delete(this.store.getComponent(component));
+      return;
     }
     // TODO Should the component signature changes, make it floating
-    // Because floating operation is relatively simple,
-    return component.delete(this);
+    const prevSig = component.getSignature(this);
+    component.delete(this);
+    const nextSig = component.getSignature(this);
+    if (prevSig !== nextSig) {
+      this.float();
+    }
   }
 
   clear(): void {
     for (const component of this.store.getComponents()) {
       component.delete(this);
     }
-    // TODO Should the component signature changes, make it floating
+    this.float();
   }
 
   float(): void {
+    // Because floating / unfloating involves various other classes and pages,
+    // it is better to delegate this to the store.
     this.store.float(this);
   }
 
   unfloat(): void {
     // Find the appropriate EntityClass using the signature, and move to there.
+    // Because floating / unfloating involves various other classes and pages,
+    // it is better to delegate this to the store.
     this.store.unfloat(this);
   }
 
