@@ -38,12 +38,13 @@ export class PagedEntityPage implements EntityPage {
     this.entities.forEach(callback);
   }
 
-  acquireSlot(): number {
+  acquireSlot(entity: PagedEntity): number {
     if (this.size >= this.maxSize) {
       throw new Error('Page overflow');
     }
     const allocated = this.size;
     this.size += 1;
+    this.entities[allocated] = entity;
     return allocated;
   }
 

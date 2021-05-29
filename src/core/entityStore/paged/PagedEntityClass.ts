@@ -1,3 +1,4 @@
+import { PagedEntity } from './PagedEntity';
 import { PagedEntityPage } from './PagedEntityPage';
 import { PagedEntityStore } from './PagedEntityStore';
 
@@ -39,16 +40,16 @@ export class PagedEntityClass {
     return page;
   }
 
-  acquireSlot(): [PagedEntityPage, number] {
+  acquireSlot(entity: PagedEntity): [PagedEntityPage, number] {
     if (this.freePages.length > 0) {
       const page = this.freePages[this.freePages.length - 1];
       if (page.size + 1 >= page.maxSize) {
         this.freePages.pop();
       }
-      return [page, page.acquireSlot()];
+      return [page, page.acquireSlot(entity)];
     }
     const page = this._createPage();
-    return [page, page.acquireSlot()];
+    return [page, page.acquireSlot(entity)];
   }
 
   releaseSlot(
