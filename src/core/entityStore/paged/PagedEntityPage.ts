@@ -5,7 +5,7 @@ import { PagedEntityClass } from './PagedEntityClass';
 import { EntityPage } from '../types';
 
 export class PagedEntityPage implements EntityPage {
-  entities: PagedEntity[];
+  entities: (PagedEntity | null)[];
 
   size: number;
 
@@ -50,6 +50,7 @@ export class PagedEntityPage implements EntityPage {
 
   releaseSlot(index: number): void {
     // Copy the last item's contents to here, then decrease the size counter
+    this.entities[index] = null;
     this.size -= 1;
   }
 }
