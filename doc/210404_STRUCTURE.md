@@ -101,3 +101,12 @@ does not conform to the EntityPage's signature.
 
 To calculate this, the EntityPage would have a list of signature returned from
 the each component.
+
+## The responsibility
+The structure makes that some values are processed through the store, or
+some are processed within the entity itself, etc.
+
+This makes it hard to determine which method performs which, but it is not
+possible to make everything only do stuff for itself.
+
+Instead, we'd be better to just separate private / public methods.
