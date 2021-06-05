@@ -31,11 +31,13 @@ export class PagedEntityPage implements EntityPage {
   }
 
   getEntities(): PagedEntity[] {
-    return this.entities;
+    return this.entities.filter((v): v is PagedEntity => v != null);
   }
 
   forEach(callback: (entity: PagedEntity) => void): void {
-    this.entities.forEach(callback);
+    this.entities.forEach((v) => {
+      if (v != null) callback(v);
+    });
   }
 
   acquireSlot(entity: PagedEntity): number {

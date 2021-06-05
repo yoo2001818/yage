@@ -39,8 +39,6 @@ export interface Entity {
 }
 
 export interface EntityPage {
-  entities: Entity[];
-
   getEntities(): Entity[];
   forEach(callback: (entity: Entity) => void): void;
 
